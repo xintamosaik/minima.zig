@@ -1,5 +1,5 @@
 extern "env" fn console_log(value: i32) void;
-const MEMORY_BASE_PTR: u32 = 1024;
+const MEMORY_BASE_PTR: u32 = 0;
 
 const SCREEN_W: i32 = 128;
 const SCREEN_H: i32 = 96;
@@ -14,7 +14,20 @@ const INPUT_LEN: u32 = 16;
 const INPUT_PTR: u32 = FRAME_END;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
 export fn tick() void {
-    console_log(42);
+    const up = @as(*const u8, @ptrFromInt(INPUT_PTR)).* != 0;
+    const down = @as(*const u8, @ptrFromInt(INPUT_PTR + 1)).* != 0;
+    const left = @as(*const u8, @ptrFromInt(INPUT_PTR + 2)).* != 0;
+    const right = @as(*const u8, @ptrFromInt(INPUT_PTR + 3)).* != 0;
+    const confirm = @as(*const u8, @ptrFromInt(INPUT_PTR + 4)).* != 0;
+    const cancel = @as(*const u8, @ptrFromInt(INPUT_PTR + 5)).* != 0;
+    const reset = @as(*const u8, @ptrFromInt(INPUT_PTR + 6)).* != 0;
+    console_log(@as(i32, @intFromBool(up)));
+    console_log(@as(i32, @intFromBool(down)));
+    console_log(@as(i32, @intFromBool(left)));
+    console_log(@as(i32, @intFromBool(right)));
+    console_log(@as(i32, @intFromBool(confirm)));
+    console_log(@as(i32, @intFromBool(cancel)));
+    console_log(@as(i32, @intFromBool(reset)));
 }
 
 export fn width() i32 {
@@ -43,10 +56,7 @@ export fn inputLen() u32 {
 
 /// Packs RGBA channels into one 32-bit pixel.
 fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
-    return @as(u32, r)
-        | (@as(u32, g) << 8)
-        | (@as(u32, b) << 16)
-        | (@as(u32, a) << 24);
+    return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
 }
 
 /// Writes one 32-bit pixel into linear memory at byte offset `offset`.
@@ -72,7 +82,7 @@ fn fillRect(x: i32, y: i32, w: i32, h: i32, color: u32) void {
     var py = y0;
     while (py < y1) : (py += 1) {
         var px = x0;
-        var row: u32 = FRAME_PTR + @intCast((py * SCREEN_W + x0)) * BPP;
+        var row: u32 = FRAME_PTR + @as(u32, @intCast(py * SCREEN_W + x0)) * BPP;
 
         while (px < x1) : (px += 1) {
             writePixel32(row, color);
@@ -94,4 +104,8 @@ fn drawCheckerboardBackground() void {
             fillRect(x, y, BG_TILE, BG_TILE, if (use_a) C_BG_A else C_BG_B);
         }
     }
+}
+
+export fn init() void {
+    drawCheckerboardBackground();
 }
