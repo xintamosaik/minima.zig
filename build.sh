@@ -3,10 +3,10 @@ set -eu
 
 mkdir -p dist
 
-zig build-exe src/wasm.zig \
+zig build-exe src/index.zig \
   -target wasm32-freestanding \
   -fno-entry \
   -rdynamic \
-  -femit-bin=dist/wasm.wasm
+  -femit-bin=dist/index.wasm
 
  
