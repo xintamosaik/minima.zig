@@ -1,35 +1,51 @@
-extern "env" fn console_log(value: i32) void;
-const MEMORY_BASE_PTR: u32 = 0;
+extern "env" fn console_log(value: u32) void;
+const MEMORY_BASE_PTR: u32 = 1024;
 
-const SCREEN_W: i32 = 128;
-const SCREEN_H: i32 = 96;
+const SCREEN_W: u32 = 128;
+const SCREEN_H: u32 = 96;
 
 const BPP: u32 = 4;
 
-const FRAME_LEN: u32 = @as(u32, SCREEN_W) * @as(u32, SCREEN_H) * BPP;
 const FRAME_PTR: u32 = MEMORY_BASE_PTR;
+const FRAME_LEN: u32 = SCREEN_W * SCREEN_H * BPP;
 const FRAME_END: u32 = FRAME_PTR + FRAME_LEN;
 
-const INPUT_LEN: u32 = 16;
 const INPUT_PTR: u32 = FRAME_END;
+const INPUT_LEN: u32 = 16;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
-export fn tick() void {
-    const up = @as(*const u8, @ptrFromInt(INPUT_PTR)).* != 0;
-    const down = @as(*const u8, @ptrFromInt(INPUT_PTR + 1)).* != 0;
-    const left = @as(*const u8, @ptrFromInt(INPUT_PTR + 2)).* != 0;
-    const right = @as(*const u8, @ptrFromInt(INPUT_PTR + 3)).* != 0;
-    const confirm = @as(*const u8, @ptrFromInt(INPUT_PTR + 4)).* != 0;
-    const cancel = @as(*const u8, @ptrFromInt(INPUT_PTR + 5)).* != 0;
-    const reset = @as(*const u8, @ptrFromInt(INPUT_PTR + 6)).* != 0;
-    console_log(@as(i32, @intFromBool(up)));
-    console_log(@as(i32, @intFromBool(down)));
-    console_log(@as(i32, @intFromBool(left)));
-    console_log(@as(i32, @intFromBool(right)));
-    console_log(@as(i32, @intFromBool(confirm)));
-    console_log(@as(i32, @intFromBool(cancel)));
-    console_log(@as(i32, @intFromBool(reset)));
+const Input = enum(u32) {
+    up = 0,
+    down = 1,
+    left = 2,
+    right = 3,
+    confirm = 4,
+    cancel = 5,
+    reset = 6,
+};
+fn inputByte(key: Input) u8 {
+    return @as(*const u8, @ptrFromInt(INPUT_PTR + @intFromEnum(key))).*;
+}
+fn inputPressed(key: Input) bool {
+    return inputByte(key) != 0;
 }
 
+export fn tick() void {
+    const up = inputPressed(.up);
+    const down = inputPressed(.down);
+    const left = inputPressed(.left);
+    const right = inputPressed(.right);
+    const confirm = inputPressed(.confirm);
+    const cancel = inputPressed(.cancel);
+    const reset = inputPressed(.reset);
+
+    console_log(@intFromBool(up));
+    console_log(@intFromBool(down));
+    console_log(@intFromBool(left));
+    console_log(@intFromBool(right));
+    console_log(@intFromBool(confirm));
+    console_log(@intFromBool(cancel));
+    console_log(@intFromBool(reset));
+}
 export fn width() i32 {
     return SCREEN_W;
 }
