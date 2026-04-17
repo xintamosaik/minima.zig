@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Zig WASM test</title>
+</head>
+
+<body>
+    <h1>Zig WASM test</h1>
+    <pre id="out">loading...</pre>
+    <script type="module">
+        const out = document.getElementById("out");
+
+        try {
+            const response = await fetch("./wasm.wasm");
+            const { instance } = await WebAssembly.instantiateStreaming(response);
+            const result = instance.exports.add(3, 7);
+            out.textContent = `3 + 7 = ${result}`;
+        } catch (err) {
+            out.textContent = `Failed to load wasm: ${err}`;
+        }
+    </script>
+</body>
+
+</html>
