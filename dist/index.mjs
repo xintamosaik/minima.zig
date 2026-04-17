@@ -1,10 +1,17 @@
 "use strict";
-const out = document.getElementById("out");
 
 try {
+    const out = document.getElementById("out");
+    const importObject = {
+        env: {
+            console_log(num) {
+                console.log(num)
+            }
+        },
+    };
     const response = await fetch("./index.wasm");
-    const { instance } = await WebAssembly.instantiateStreaming(response);
-    console.log(instance);
+    const { instance } = await WebAssembly.instantiateStreaming(response, importObject);
+  
     const add = instance.exports.add;
     const tick = instance.exports.tick;
     const getCounter = instance.exports.getCounter;
