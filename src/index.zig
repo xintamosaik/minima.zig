@@ -1,4 +1,5 @@
 extern "env" fn console_log(value: u32) void;
+
 const MEMORY_BASE_PTR: u32 = 1024;
 
 const SCREEN_W: u32 = 128;
@@ -11,8 +12,14 @@ const FRAME_LEN: u32 = SCREEN_W * SCREEN_H * BPP;
 const FRAME_END: u32 = FRAME_PTR + FRAME_LEN;
 
 const INPUT_PTR: u32 = FRAME_END;
-const INPUT_LEN: u32 = 16;
+const INPUT_KEY_BYTES: u32 = 8;
+const MOUSE_X_PTR: u32 = INPUT_PTR + INPUT_KEY_BYTES;
+const MOUSE_Y_PTR: u32 = MOUSE_X_PTR + 4;
+const MOUSE_BUTTONS_PTR: u32 = MOUSE_Y_PTR + 4;
+const INPUT_LEN: u32 = INPUT_KEY_BYTES + 12;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
+const MOUSE_BUTTONS_LEFT: u32 = 1;
+const MOUSE_BUTTONS_RIGHT: u32 = 2;
 const Input = enum(u32) {
     up = 0,
     down = 1,
@@ -30,21 +37,30 @@ fn inputPressed(key: Input) bool {
 }
 
 export fn tick() void {
-    const up = inputPressed(.up);
-    const down = inputPressed(.down);
-    const left = inputPressed(.left);
-    const right = inputPressed(.right);
-    const confirm = inputPressed(.confirm);
-    const cancel = inputPressed(.cancel);
-    const reset = inputPressed(.reset);
-
-    console_log(@intFromBool(up));
-    console_log(@intFromBool(down));
-    console_log(@intFromBool(left));
-    console_log(@intFromBool(right));
-    console_log(@intFromBool(confirm));
-    console_log(@intFromBool(cancel));
-    console_log(@intFromBool(reset));
+    //^const up = inputPressed(.up);
+    //^const down = inputPressed(.down);
+    //^const left = inputPressed(.left);
+    //^const right = inputPressed(.right);
+    //^const confirm = inputPressed(.confirm);
+    //^const cancel = inputPressed(.cancel);
+    //^const reset = inputPressed(.reset);
+    const mousex = @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*;
+    const mousey = @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*;
+    const mousebuttons = @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*;
+    // console_log(mousebuttons);
+    // only on mouse clicked:
+    if (mousebuttons > 0) {
+        console_log(mousex);
+        console_log(mousey);
+        console_log(mousebuttons);
+        //console_log(@intFromBool(up));
+        //console_log(@intFromBool(down));
+        //console_log(@intFromBool(left));
+        //console_log(@intFromBool(right));
+        //console_log(@intFromBool(confirm));
+        //console_log(@intFromBool(cancel));
+        //console_log(@intFromBool(reset));
+    }
 }
 export fn width() i32 {
     return SCREEN_W;
@@ -68,6 +84,18 @@ export fn inputPtr() u32 {
 
 export fn inputLen() u32 {
     return INPUT_LEN;
+}
+
+export fn mouse_x() u32 {
+    return @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*;
+}
+
+export fn mouse_y() u32 {
+    return @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*;
+}
+
+export fn mouse_buttons() u32 {
+    return @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*;
 }
 
 /// Packs RGBA channels into one 32-bit pixel.
