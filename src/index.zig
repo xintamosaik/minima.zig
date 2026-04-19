@@ -85,9 +85,10 @@ export fn tick() void {
         //console_log(@intFromBool(confirm));
         //console_log(@intFromBool(cancel));
         //console_log(@intFromBool(reset));
-    }
-    player1.pos.x = @as(u32, mousex);
+         player1.pos.x = @as(u32, mousex);
     player1.pos.y = @as(u32, mousey);
+    }
+   
 }
 export fn width() i32 {
     return SCREEN_W;
@@ -136,7 +137,7 @@ fn writePixel32(offset: u32, color: u32) void {
     ptr.* = color;
 }
 
-const BG_TILE: i32 = 8;
+const BG_TILE: u32 = 8;
 fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     var x0 = x;
     var y0 = y;
@@ -181,12 +182,12 @@ const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
  
 fn drawCheckerboardBackground() void {
-    var y: i32 = 0;
+    var y: u32 = 0;
     while (y < SCREEN_H) : (y += BG_TILE) {
-        var x: i32 = 0;
+        var x: u32 = 0;
         while (x < SCREEN_W) : (x += BG_TILE) {
-            const tx = @divTrunc(x, BG_TILE);
-            const ty = @divTrunc(y, BG_TILE);
+            const tx = x / BG_TILE;
+            const ty = y / BG_TILE;
             const use_a = ((tx + ty) & 1) == 0;
 
             fillRect(x, y, BG_TILE, BG_TILE, if (use_a) C64_DARK_GRAY else C64_LIGHT_GRAY);
