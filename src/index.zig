@@ -160,15 +160,50 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
         }
     }
 }
+fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
+    if (y >= SCREEN_H) return;
+    if (x1 <= x0) return;
+
+    const cx0 = if (x0 > SCREEN_W) SCREEN_W else x0;
+    const cx1 = if (x1 > SCREEN_W) SCREEN_W else x1;
+    if (cx1 <= cx0) return;
+
+    var px = cx0;
+    var row: u32 = FRAME_PTR + @as(u32, @intCast(y * SCREEN_W + cx0)) * BPP;
+    while (px < cx1) : (px += 1) {
+        writePixel32(row, color);
+        row += BPP;
+    }
+}
+
 fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
-    fillRect(x, y0, 1, y1 - y0, color);
+    if (x >= SCREEN_W) return;
+    if (y1 <= y0) return;
+
+    const cy0 = if (y0 > SCREEN_H) SCREEN_H else y0;
+    const cy1 = if (y1 > SCREEN_H) SCREEN_H else y1;
+    if (cy1 <= cy0) return;
+
+    var py = cy0;
+    var row: u32 = FRAME_PTR + @as(u32, @intCast(cy0 * SCREEN_W + x)) * BPP;
+    while (py < cy1) : (py += 1) {
+        writePixel32(row, color);
+        row += SCREEN_W * BPP;
+    }
 }
 
 fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
-    fillRect(x, y, w, 1, color);
-    fillRect(x, y + h - 1, w, 1, color);
-    fillRect(x, y, 1, h, color);
-    fillRect(x + w - 1, y, 1, h, color);
+    if (w == 0 or h == 0) return;
+
+    const x1 = x +| w;
+    const y1 = y +| h;
+    const xr = x +| (w - 1);
+    const yb = y +| (h - 1);
+
+    drawHorizontalLine(x, x1, y, color);
+    drawHorizontalLine(x, x1, yb, color);
+    drawVerticalLine(x, y, y1, color);
+    drawVerticalLine(xr, y, y1, color);
 }
 // Commodore 64 palette (Pepto-inspired RGB values)
 const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
