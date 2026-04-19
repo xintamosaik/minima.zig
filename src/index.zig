@@ -44,7 +44,6 @@ var player1: Player = Player{
     .color = C64_BLUE,
 };
 
-
 const Input = enum(u32) {
     up = 0,
     down = 1,
@@ -85,10 +84,9 @@ export fn tick() void {
         //console_log(@intFromBool(confirm));
         //console_log(@intFromBool(cancel));
         //console_log(@intFromBool(reset));
-         player1.pos.x = @as(u32, mousex);
-    player1.pos.y = @as(u32, mousey);
+        player1.pos.x = @as(u32, mousex);
+        player1.pos.y = @as(u32, mousey);
     }
-   
 }
 export fn width() i32 {
     return SCREEN_W;
@@ -180,7 +178,6 @@ const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
 const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
 const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
- 
 fn drawCheckerboardBackground() void {
     var y: u32 = 0;
     while (y < SCREEN_H) : (y += BG_TILE) {
@@ -207,7 +204,7 @@ fn drawShadows() void {
 }
 fn drawPlayer() void {
     // Simple example of drawing a player as a filled rectangle.
- 
+
     fillRect(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
 fn drawEntities() void {
