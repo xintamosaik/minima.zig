@@ -4,6 +4,11 @@ const MEMORY_BASE_PTR: u32 = 1024;
 
 const SCREEN_W: u32 = 128;
 const SCREEN_H: u32 = 96;
+const TILE_SIZE: u32 = 8;
+const GRID_W: usize = @as(usize, SCREEN_W / TILE_SIZE);
+const GRID_H: usize = @as(usize, SCREEN_H / TILE_SIZE);
+const GRID_W_U32: u32 = @as(u32, @intCast(GRID_W));
+const GRID_H_U32: u32 = @as(u32, @intCast(GRID_H));
 
 const BPP: u32 = 4;
 
@@ -44,6 +49,14 @@ var player1: Player = Player{
     .color = C64_BLUE,
 };
 
+const TileKind = enum(u8) {
+    light,
+    dark,
+    wall,
+};
+
+var world_tiles: [GRID_W * GRID_H]TileKind = undefined;
+
 const Input = enum(u32) {
     up = 0,
     down = 1,
@@ -74,8 +87,11 @@ export fn tick() void {
     // console_log(mousebuttons);
     // only on mouse clicked:
     if (mousebuttons > 0) {
-        console_log(mousex);
-        console_log(mousey);
+        const tx = pixelToTileX(mousex);
+        const ty = pixelToTileY(mousey);
+
+        console_log(tx);
+        console_log(ty);
         console_log(mousebuttons);
         //console_log(@intFromBool(up));
         //console_log(@intFromBool(down));
@@ -84,8 +100,15 @@ export fn tick() void {
         //console_log(@intFromBool(confirm));
         //console_log(@intFromBool(cancel));
         //console_log(@intFromBool(reset));
-        player1.pos.x = @as(u32, mousex);
-        player1.pos.y = @as(u32, mousey);
+        if ((mousebuttons & MOUSE_BUTTONS_LEFT) != 0) {
+            setTile(tx, ty, .wall);
+        }
+        if ((mousebuttons & MOUSE_BUTTONS_RIGHT) != 0) {
+            setTile(tx, ty, .light);
+        }
+
+        player1.pos.x = tx * TILE_SIZE;
+        player1.pos.y = ty * TILE_SIZE;
     }
 }
 export fn width() i32 {
@@ -135,15 +158,12 @@ fn writePixel32(offset: u32, color: u32) void {
     ptr.* = color;
 }
 
-const BG_TILE: u32 = 8;
 fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
-    var x0 = x;
-    var y0 = y;
+    const x0 = x;
+    const y0 = y;
     var x1 = x + w;
     var y1 = y + h;
 
-    if (x0 < 0) x0 = 0;
-    if (y0 < 0) y0 = 0;
     if (x1 > SCREEN_W) x1 = SCREEN_W;
     if (y1 > SCREEN_H) y1 = SCREEN_H;
 
@@ -223,16 +243,61 @@ const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
 const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
 const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
-fn drawCheckerboardBackground() void {
-    var y: u32 = 0;
-    while (y < SCREEN_H) : (y += BG_TILE) {
-        var x: u32 = 0;
-        while (x < SCREEN_W) : (x += BG_TILE) {
-            const tx = x / BG_TILE;
-            const ty = y / BG_TILE;
-            const use_a = ((tx + ty) & 1) == 0;
+fn tileColor(kind: TileKind) u32 {
+    return switch (kind) {
+        .light => C64_LIGHT_GRAY,
+        .dark => C64_DARK_GRAY,
+        .wall => C64_BROWN,
+    };
+}
 
-            fillRect(x, y, BG_TILE, BG_TILE, if (use_a) C64_DARK_GRAY else C64_LIGHT_GRAY);
+fn tileIndex(tx: u32, ty: u32) usize {
+    return @as(usize, @intCast(ty * GRID_W_U32 + tx));
+}
+
+fn setTile(tx: u32, ty: u32, kind: TileKind) void {
+    if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return;
+    world_tiles[tileIndex(tx, ty)] = kind;
+}
+
+fn getTile(tx: u32, ty: u32) TileKind {
+    if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return .dark;
+    return world_tiles[tileIndex(tx, ty)];
+}
+
+fn pixelToTileX(px: u32) u32 {
+    if (px >= SCREEN_W) return GRID_W_U32 - 1;
+    return px / TILE_SIZE;
+}
+
+fn pixelToTileY(py: u32) u32 {
+    if (py >= SCREEN_H) return GRID_H_U32 - 1;
+    return py / TILE_SIZE;
+}
+
+fn drawTile(tx: u32, ty: u32) void {
+    const x = tx * TILE_SIZE;
+    const y = ty * TILE_SIZE;
+    fillRect(x, y, TILE_SIZE, TILE_SIZE, tileColor(getTile(tx, ty)));
+}
+
+fn initTileMap() void {
+    var ty: u32 = 0;
+    while (ty < GRID_H_U32) : (ty += 1) {
+        var tx: u32 = 0;
+        while (tx < GRID_W_U32) : (tx += 1) {
+            const use_light = ((tx + ty) & 1) == 0;
+            setTile(tx, ty, if (use_light) .light else .dark);
+        }
+    }
+}
+
+fn drawCheckerboardBackground() void {
+    var ty: u32 = 0;
+    while (ty < GRID_H_U32) : (ty += 1) {
+        var tx: u32 = 0;
+        while (tx < GRID_W_U32) : (tx += 1) {
+            drawTile(tx, ty);
         }
     }
 }
@@ -274,5 +339,5 @@ export fn render() void {
     drawUI();
 }
 export fn init() void {
-    drawCheckerboardBackground();
+    initTileMap();
 }
