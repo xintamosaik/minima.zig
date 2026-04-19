@@ -140,15 +140,15 @@ resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 instance.exports.init();
-
+const render = instance.exports.render;
 const tick = instance.exports.tick;
 /** Main frame loop: write input, tick game, and present frame. */
 function loop() {
     writeInput();
 
     tick();
-    // render();
-   
+    render();
+
    
 
     ctx.putImageData(image, 0, 0);

@@ -20,6 +20,31 @@ const INPUT_LEN: u32 = INPUT_KEY_BYTES + 12;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
 const MOUSE_BUTTONS_LEFT: u32 = 1;
 const MOUSE_BUTTONS_RIGHT: u32 = 2;
+const Point = struct {
+    x: u32,
+    y: u32,
+};
+
+const Rect: type = struct {
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+};
+
+const Player: type = struct {
+    pos: Point,
+    color: u32,
+    h: u32 = 8,
+    w: u32 = 8,
+};
+
+var player1: Player = Player{
+    .pos = Point{ .x = 60, .y = 40 },
+    .color = C64_BLUE,
+};
+
+
 const Input = enum(u32) {
     up = 0,
     down = 1,
@@ -61,6 +86,8 @@ export fn tick() void {
         //console_log(@intFromBool(cancel));
         //console_log(@intFromBool(reset));
     }
+    player1.pos.x = @as(u32, mousex);
+    player1.pos.y = @as(u32, mousey);
 }
 export fn width() i32 {
     return SCREEN_W;
@@ -110,7 +137,7 @@ fn writePixel32(offset: u32, color: u32) void {
 }
 
 const BG_TILE: i32 = 8;
-fn fillRect(x: i32, y: i32, w: i32, h: i32, color: u32) void {
+fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     var x0 = x;
     var y0 = y;
     var x1 = x + w;
@@ -166,7 +193,43 @@ fn drawCheckerboardBackground() void {
         }
     }
 }
-
+fn drawBackground() void {
+    // In a real game, you would have more complex background rendering logic here.
+    // For this example, the checkerboard background is drawn once in `init()`.
+    drawCheckerboardBackground();
+}
+fn drawTerrain() void {
+    // Placeholder for terrain rendering logic.
+}
+fn drawShadows() void {
+    // Placeholder for shadow rendering logic.
+}
+fn drawPlayer() void {
+    // Simple example of drawing a player as a filled rectangle.
+ 
+    fillRect(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
+}
+fn drawEntities() void {
+    // Placeholder for entity rendering logic.
+    drawPlayer();
+}
+fn drawEffects() void {
+    // Placeholder for effects rendering logic.
+}
+fn drawUI() void {
+    // Placeholder for UI rendering logic.
+}
+export fn render() void {
+    // For this example, the background is static and drawn once in `init()`.
+    // In a real game, you would likely want to redraw the background each frame
+    // or have more complex rendering logic here.
+    drawBackground();
+    drawTerrain();
+    drawShadows();
+    drawEntities();
+    drawEffects();
+    drawUI();
+}
 export fn init() void {
     drawCheckerboardBackground();
 }
