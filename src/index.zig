@@ -25,6 +25,17 @@ const INPUT_LEN: u32 = INPUT_KEY_BYTES + 12;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
 const MOUSE_BUTTONS_LEFT: u32 = 1;
 const MOUSE_BUTTONS_RIGHT: u32 = 2;
+
+export fn width() i32 { return SCREEN_W; }
+export fn height() i32 { return SCREEN_H; }
+export fn framePtr() u32 { return FRAME_PTR; }
+export fn frameLen() u32 { return FRAME_LEN; }
+export fn inputPtr() u32 { return INPUT_PTR; }
+export fn inputLen() u32 { return INPUT_LEN; }
+export fn mouse_x() u32 { return @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*; }
+export fn mouse_y() u32 { return @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*; }
+export fn mouse_buttons() u32 { return @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*; }
+
 const Point = struct {
     x: u32,
     y: u32,
@@ -87,8 +98,8 @@ export fn tick() void {
     // console_log(mousebuttons);
     // only on mouse clicked:
     if (mousebuttons > 0) {
-        const tx = pixelToTileX(mousex);
-        const ty = pixelToTileY(mousey);
+        const tx = if (mousex >= SCREEN_W) (GRID_W_U32 - 1) else (mousex / TILE_SIZE);
+        const ty = if (mousey >= SCREEN_H) (GRID_H_U32 - 1) else (mousey / TILE_SIZE);
 
         console_log(tx);
         console_log(ty);
@@ -110,41 +121,6 @@ export fn tick() void {
         player1.pos.x = tx * TILE_SIZE;
         player1.pos.y = ty * TILE_SIZE;
     }
-}
-export fn width() i32 {
-    return SCREEN_W;
-}
-
-export fn height() i32 {
-    return SCREEN_H;
-}
-
-export fn framePtr() u32 {
-    return FRAME_PTR;
-}
-
-export fn frameLen() u32 {
-    return FRAME_LEN;
-}
-
-export fn inputPtr() u32 {
-    return INPUT_PTR;
-}
-
-export fn inputLen() u32 {
-    return INPUT_LEN;
-}
-
-export fn mouse_x() u32 {
-    return @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*;
-}
-
-export fn mouse_y() u32 {
-    return @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*;
-}
-
-export fn mouse_buttons() u32 {
-    return @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*;
 }
 
 /// Packs RGBA channels into one 32-bit pixel.
@@ -243,14 +219,6 @@ const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
 const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
 const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
-fn tileColor(kind: TileKind) u32 {
-    return switch (kind) {
-        .light => C64_LIGHT_GRAY,
-        .dark => C64_DARK_GRAY,
-        .wall => C64_BROWN,
-    };
-}
-
 fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * GRID_W_U32 + tx));
 }
@@ -259,29 +227,30 @@ fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
+export fn render() void {
+    // For this example, the background is static and drawn once in `init()`.
+    // In a real game, you would likely want to redraw the background each frame
+    // or have more complex rendering logic here.
+    var ty: u32 = 0;
+    while (ty < GRID_H_U32) : (ty += 1) {
+        var tx: u32 = 0;
+        while (tx < GRID_W_U32) : (tx += 1) {
+            const x = tx * TILE_SIZE;
+            const y = ty * TILE_SIZE;
+            const kind = world_tiles[tileIndex(tx, ty)];
+            const color = switch (kind) {
+                .light => C64_LIGHT_GRAY,
+                .dark => C64_DARK_GRAY,
+                .wall => C64_BROWN,
+            };
+            fillRect(x, y, TILE_SIZE, TILE_SIZE, color);
+        }
+    }
 
-fn getTile(tx: u32, ty: u32) TileKind {
-    if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return .dark;
-    return world_tiles[tileIndex(tx, ty)];
+    // Entity render pass.
+    drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
-
-fn pixelToTileX(px: u32) u32 {
-    if (px >= SCREEN_W) return GRID_W_U32 - 1;
-    return px / TILE_SIZE;
-}
-
-fn pixelToTileY(py: u32) u32 {
-    if (py >= SCREEN_H) return GRID_H_U32 - 1;
-    return py / TILE_SIZE;
-}
-
-fn drawTile(tx: u32, ty: u32) void {
-    const x = tx * TILE_SIZE;
-    const y = ty * TILE_SIZE;
-    fillRect(x, y, TILE_SIZE, TILE_SIZE, tileColor(getTile(tx, ty)));
-}
-
-fn initTileMap() void {
+export fn init() void {
     var ty: u32 = 0;
     while (ty < GRID_H_U32) : (ty += 1) {
         var tx: u32 = 0;
@@ -290,54 +259,4 @@ fn initTileMap() void {
             setTile(tx, ty, if (use_light) .light else .dark);
         }
     }
-}
-
-fn drawCheckerboardBackground() void {
-    var ty: u32 = 0;
-    while (ty < GRID_H_U32) : (ty += 1) {
-        var tx: u32 = 0;
-        while (tx < GRID_W_U32) : (tx += 1) {
-            drawTile(tx, ty);
-        }
-    }
-}
-fn drawBackground() void {
-    // In a real game, you would have more complex background rendering logic here.
-    // For this example, the checkerboard background is drawn once in `init()`.
-    drawCheckerboardBackground();
-}
-fn drawTerrain() void {
-    // Placeholder for terrain rendering logic.
-}
-fn drawShadows() void {
-    // Placeholder for shadow rendering logic.
-}
-fn drawPlayer() void {
-    // Simple example of drawing a player as a filled rectangle.
-
-    drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
-}
-fn drawEntities() void {
-    // Placeholder for entity rendering logic.
-    drawPlayer();
-}
-fn drawEffects() void {
-    // Placeholder for effects rendering logic.
-}
-fn drawUI() void {
-    // Placeholder for UI rendering logic.
-}
-export fn render() void {
-    // For this example, the background is static and drawn once in `init()`.
-    // In a real game, you would likely want to redraw the background each frame
-    // or have more complex rendering logic here.
-    drawBackground();
-    drawTerrain();
-    drawShadows();
-    drawEntities();
-    drawEffects();
-    drawUI();
-}
-export fn init() void {
-    initTileMap();
 }
