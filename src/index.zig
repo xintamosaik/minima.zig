@@ -160,6 +160,16 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
         }
     }
 }
+fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
+    fillRect(x, y0, 1, y1 - y0, color);
+}
+
+fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
+    fillRect(x, y, w, 1, color);
+    fillRect(x, y + h - 1, w, 1, color);
+    fillRect(x, y, 1, h, color);
+    fillRect(x + w - 1, y, 1, h, color);
+}
 // Commodore 64 palette (Pepto-inspired RGB values)
 const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
 const C64_WHITE: u32 = rgba(0xFF, 0xFF, 0xFF, 0xFF);
@@ -205,7 +215,7 @@ fn drawShadows() void {
 fn drawPlayer() void {
     // Simple example of drawing a player as a filled rectangle.
 
-    fillRect(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
+    drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
 fn drawEntities() void {
     // Placeholder for entity rendering logic.
