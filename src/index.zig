@@ -134,8 +134,25 @@ fn fillRect(x: i32, y: i32, w: i32, h: i32, color: u32) void {
         }
     }
 }
-const C_BG_A: u32 = rgba(40, 24, 28, 255);
-const C_BG_B: u32 = rgba(46, 30, 34, 255);
+// Commodore 64 palette (Pepto-inspired RGB values)
+const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
+const C64_WHITE: u32 = rgba(0xFF, 0xFF, 0xFF, 0xFF);
+const C64_RED: u32 = rgba(0x68, 0x37, 0x2B, 0xFF);
+const C64_CYAN: u32 = rgba(0x70, 0xA4, 0xB2, 0xFF);
+const C64_PURPLE: u32 = rgba(0x6F, 0x3D, 0x86, 0xFF);
+const C64_GREEN: u32 = rgba(0x58, 0x8D, 0x43, 0xFF);
+const C64_BLUE: u32 = rgba(0x35, 0x28, 0x79, 0xFF);
+const C64_YELLOW: u32 = rgba(0xB8, 0xC7, 0x6F, 0xFF);
+const C64_ORANGE: u32 = rgba(0x6F, 0x4F, 0x25, 0xFF);
+const C64_BROWN: u32 = rgba(0x43, 0x39, 0x00, 0xFF);
+const C64_LIGHT_RED: u32 = rgba(0x9A, 0x67, 0x59, 0xFF);
+const C64_DARK_GRAY: u32 = rgba(0x44, 0x44, 0x44, 0xFF);
+const C64_GRAY: u32 = rgba(0x6C, 0x6C, 0x6C, 0xFF);
+const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
+const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
+const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
+
+ 
 fn drawCheckerboardBackground() void {
     var y: i32 = 0;
     while (y < SCREEN_H) : (y += BG_TILE) {
@@ -145,7 +162,7 @@ fn drawCheckerboardBackground() void {
             const ty = @divTrunc(y, BG_TILE);
             const use_a = ((tx + ty) & 1) == 0;
 
-            fillRect(x, y, BG_TILE, BG_TILE, if (use_a) C_BG_A else C_BG_B);
+            fillRect(x, y, BG_TILE, BG_TILE, if (use_a) C64_DARK_GRAY else C64_LIGHT_GRAY);
         }
     }
 }
