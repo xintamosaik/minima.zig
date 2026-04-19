@@ -24,7 +24,8 @@ const MOUSE_BUTTONS_PTR: u32 = MOUSE_Y_PTR + 4;
 const INPUT_LEN: u32 = INPUT_KEY_BYTES + 12;
 const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
 const MOUSE_BUTTONS_LEFT: u32 = 1;
-const MOUSE_BUTTONS_RIGHT: u32 = 4;
+const MOUSE_BUTTONS_MIDDLE: u32 = 2;
+const MOUSE_BUTTONS_RIGHT: u32 = 3;
 
 export fn width() i32 { return SCREEN_W; }
 export fn height() i32 { return SCREEN_H; }
@@ -113,10 +114,10 @@ export fn tick() void {
         //console_log(@intFromBool(confirm));
         //console_log(@intFromBool(cancel));
         //console_log(@intFromBool(reset));
-        if ((mousebuttons & MOUSE_BUTTONS_LEFT) != 0) {
+        if (mousebuttons == MOUSE_BUTTONS_LEFT) {
             setTile(tx, ty, .wall);
         }
-        if ((mousebuttons & MOUSE_BUTTONS_RIGHT) != 0) {
+        if (mousebuttons == MOUSE_BUTTONS_RIGHT) {
             setTile(tx, ty, .light);
         }
 

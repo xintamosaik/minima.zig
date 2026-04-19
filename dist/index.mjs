@@ -25,6 +25,28 @@ if (!canvas) {
 }
 canvas.width = width;
 canvas.height = height;
+const BUTTON_LEFT = 0;
+const BUTTON_MIDDLE = 1;
+const BUTTON_RIGHT = 2;
+
+const MOUSE_BUTTON_LEFT = 1;
+const MOUSE_BUTTON_MIDDLE = 2;
+const MOUSE_BUTTON_RIGHT = 3;
+
+/** Converts a DOM mouse button index into our WASM input bitmask. */
+function mouseButtonBit(button) {
+    switch (button) {
+        case BUTTON_LEFT:
+            return MOUSE_BUTTON_LEFT;
+        case BUTTON_MIDDLE:
+            return MOUSE_BUTTON_MIDDLE;
+        case BUTTON_RIGHT:
+            return MOUSE_BUTTON_RIGHT;
+        default:
+            return 0;
+    }
+}
+
 const mouseInput = {
     x: 0,
     y: 0,
@@ -37,12 +59,21 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mousedown", (e) => {
     mouseInput.x = Math.floor(e.offsetX / scale);
     mouseInput.y = Math.floor(e.offsetY / scale);
-    mouseInput.buttons |= (1 << e.button);
+    const bit = mouseButtonBit(e.button);
+    if (bit !== 0) {
+        mouseInput.buttons = bit;
+    }
 });
 canvas.addEventListener("mouseup", (e) => {
     mouseInput.x = Math.floor(e.offsetX / scale);
     mouseInput.y = Math.floor(e.offsetY / scale);
-    mouseInput.buttons &= ~(1 << e.button);
+    const bit = mouseButtonBit(e.button);
+    if (bit !== 0 && mouseInput.buttons === bit) {
+        mouseInput.buttons = 0;
+    }
+});
+canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
 });
 canvas.addEventListener("mouseleave", () => {
     mouseInput.buttons = 0;
