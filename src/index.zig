@@ -77,9 +77,11 @@ const Input = enum(u32) {
     cancel = 5,
     reset = 6,
 };
+
 fn inputByte(key: Input) u8 {
     return @as(*const u8, @ptrFromInt(INPUT_PTR + @intFromEnum(key))).*;
 }
+
 fn inputPressed(key: Input) bool {
     return inputByte(key) != 0;
 }
@@ -156,6 +158,7 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
         }
     }
 }
+
 fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     if (y >= SCREEN_H) return;
     if (x1 <= x0) return;
@@ -201,6 +204,7 @@ fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     drawVerticalLine(x, y, y1, color);
     drawVerticalLine(xr, y, y1, color);
 }
+
 // Commodore 64 palette (Pepto-inspired RGB values)
 const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
 const C64_WHITE: u32 = rgba(0xFF, 0xFF, 0xFF, 0xFF);
@@ -227,6 +231,7 @@ fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
+
 export fn render() void {
     // For this example, the background is static and drawn once in `init()`.
     // In a real game, you would likely want to redraw the background each frame
@@ -250,6 +255,7 @@ export fn render() void {
     // Entity render pass.
     drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
+
 export fn init() void {
     var ty: u32 = 0;
     while (ty < GRID_H_U32) : (ty += 1) {
