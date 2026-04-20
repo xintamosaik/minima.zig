@@ -133,7 +133,9 @@ const TileKind = enum(u8) {
     wall,
 };
 
+/// The world is represented as a flat array of tiles. We calculate the index based on tile coordinates (tx, ty) using the tileIndex function. This allows us to easily access and modify the tile data for our grid-based world.
 const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
+/// Initialize the world with all dark tiles. We can change this later in the init() function to create a more interesting world layout. For now, it's just a simple checkerboard pattern of light and dark tiles.
 var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
 
 /// Helper function to calculate the index in the world_tiles array based on tile coordinates. This allows us to easily access and modify the tile data for our grid-based world.
