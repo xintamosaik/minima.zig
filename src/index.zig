@@ -2,7 +2,7 @@ extern "env" fn console_log(value: u32) void;
 
 // TILEMAP
 
-/// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels. 
+/// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels.
 /// This keeps calculations simple and close to retro aesthetics.
 const TILE_SIZE: u32 = 8;
 /// We use 16 tiles for now. It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world. This means our world will be 128 pixels wide (16 tiles * 8 pixels per tile).
@@ -59,10 +59,9 @@ export fn inputPtr() u32 { return @as(u32, @intCast(@intFromPtr(&input_data))); 
 /// Exports the byte length of the input data block for JS memory management.
 export fn inputLen() u32 { return @sizeOf(InputData); }
 
-/// Mouse button "enum". Here, left mouse button as 1
-const MOUSE_BUTTONS_LEFT: u32 = 1;
-/// Mouse button "enum". Here, right mouse button as 3 
-const MOUSE_BUTTONS_RIGHT: u32 = 3;
+/// Mouse button bitmask values shared with JS.
+const MOUSE_BUTTON_LEFT: u32 = 1;
+const MOUSE_BUTTON_RIGHT: u32 = 4;
 
 /// ATTENTION: THESE SHOULD NOT BE WRITTEN TO BY ZIG.
 /// Mouse coordinate (x)
@@ -71,7 +70,7 @@ export fn mouse_x() u32 { return input_data.mouse_x; }
 /// Mouse coordinate (y)
 export fn mouse_y() u32 { return input_data.mouse_y; }
 
-/// Mouse button state which will be 1 for left and 2 for right button for now.
+/// Mouse button state as a bitmask (left=1, middle=2, right=4).
 export fn mouse_buttons() u32 { return input_data.mouse_buttons; }
 
 // 2D GEOMETRY
@@ -108,7 +107,7 @@ var player1: Player = Player{
 
 // TILES
 
-/// Extensible tile types for our tilemap. For now, we have just three: light, dark, and wall. 
+/// Extensible tile types for our tilemap. For now, we have just three: light, dark, and wall.
 /// We can easily add more later if we want to expand the world with different terrain types, items, etc.
 const TileKind = enum(u8) {
     light,
@@ -117,7 +116,7 @@ const TileKind = enum(u8) {
 };
 
 const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
-var world_tiles: [GRID_LEN]TileKind = undefined;
+var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
 
 /// Helper function to calculate the index in the world_tiles array based on tile coordinates. This allows us to easily access and modify the tile data for our grid-based world.
 fn tileIndex(tx: u32, ty: u32) usize {
@@ -131,7 +130,7 @@ fn setTile(tx: u32, ty: u32, kind: TileKind) void {
 }
 
 /// Tick is used for simulation. 
-/// It should run either round-based or whatever is appropriate for the game. 
+/// It should run either round-based or whatever is appropriate for the game.
 /// Most games do less ticks than renders.
 export fn tick() void {
     const mousex = input_data.mouse_x;
@@ -142,15 +141,12 @@ export fn tick() void {
         const tx = if (mousex >= SCREEN_W) (GRID_W - 1) else (mousex / TILE_SIZE);
         const ty = if (mousey >= SCREEN_H) (GRID_H - 1) else (mousey / TILE_SIZE);
 
-        if (mousebuttons == MOUSE_BUTTONS_LEFT) {
+        if ((mousebuttons & MOUSE_BUTTON_LEFT) != 0) {
             setTile(tx, ty, .wall);
         }
-        if (mousebuttons == MOUSE_BUTTONS_RIGHT) {
+        if ((mousebuttons & MOUSE_BUTTON_RIGHT) != 0) {
             setTile(tx, ty, .light);
         }
-
-        player1.pos.x = tx * TILE_SIZE;
-        player1.pos.y = ty * TILE_SIZE;
     }
 }
 
@@ -158,6 +154,7 @@ export fn tick() void {
 
 /// Packs RGBA channels into one 32-bit pixel.
 fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
+    // In wasm32 little-endian memory this is laid out as [R, G, B, A], matching ImageData.
     return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
 }
 

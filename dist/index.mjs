@@ -31,7 +31,7 @@ const BUTTON_RIGHT = 2;
 
 const MOUSE_BUTTON_LEFT = 1;
 const MOUSE_BUTTON_MIDDLE = 2;
-const MOUSE_BUTTON_RIGHT = 3;
+const MOUSE_BUTTON_RIGHT = 4;
 
 /** Converts a DOM mouse button index into our WASM input bitmask. */
 function mouseButtonBit(button) {
@@ -61,15 +61,15 @@ canvas.addEventListener("mousedown", (e) => {
     mouseInput.y = Math.floor(e.offsetY / scale);
     const bit = mouseButtonBit(e.button);
     if (bit !== 0) {
-        mouseInput.buttons = bit;
+        mouseInput.buttons |= bit;
     }
 });
 canvas.addEventListener("mouseup", (e) => {
     mouseInput.x = Math.floor(e.offsetX / scale);
     mouseInput.y = Math.floor(e.offsetY / scale);
     const bit = mouseButtonBit(e.button);
-    if (bit !== 0 && mouseInput.buttons === bit) {
-        mouseInput.buttons = 0;
+    if (bit !== 0) {
+        mouseInput.buttons &= ~bit;
     }
 });
 canvas.addEventListener("contextmenu", (e) => {
@@ -92,6 +92,7 @@ ctx.fillRect(0, 0, width, height);
 const buffer = instance.exports.memory.buffer;
 const framePtr = instance.exports.framePtr;
 const frameLen = instance.exports.frameLen;
+// Zig writes u32 pixels as RGBA bytes in little-endian memory; ImageData consumes that byte view directly.
 const frame = new Uint8ClampedArray(buffer, framePtr(), frameLen());
 const image = new ImageData(frame, width, height);
 
@@ -175,6 +176,7 @@ const render = instance.exports.render;
 const tick = instance.exports.tick;
 /** Main frame loop: write input, tick game, and present frame. */
 function loop() {
+    // TODO: Move simulation to a fixed timestep so game speed does not depend on display refresh rate.
     writeInput();
 
     tick();
