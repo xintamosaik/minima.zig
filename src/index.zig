@@ -2,13 +2,16 @@ extern "env" fn console_log(value: u32) void;
 
 const SCREEN_W: u32 = 128;
 const SCREEN_H: u32 = 96;
+const FRAME_PIXELS: usize = @as(usize, SCREEN_W * SCREEN_H);
+
 const TILE_SIZE: u32 = 8;
 const GRID_W: u32 = SCREEN_W / TILE_SIZE;
 const GRID_H: u32 = SCREEN_H / TILE_SIZE;
 const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
-const FRAME_PIXELS: usize = @as(usize, SCREEN_W * SCREEN_H);
 
-const BPP: u32 = 4;
+
+
+ 
 
 const INPUT_KEY_COUNT: usize = 8;
 
