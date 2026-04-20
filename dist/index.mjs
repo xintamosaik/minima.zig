@@ -174,12 +174,38 @@ window.addEventListener("resize", resizeCanvas);
 instance.exports.init();
 const render = instance.exports.render;
 const tick = instance.exports.tick;
+const TICK_RATE = 60;
+const FIXED_STEP_MS = 1000 / TICK_RATE;
+const MAX_CATCH_UP_STEPS = 5;
+
+let accumulatorMs = 0;
+let lastFrameTimeMs = 0;
 /** Main frame loop: write input, tick game, and present frame. */
-function loop() {
-    // TODO: Move simulation to a fixed timestep so game speed does not depend on display refresh rate.
+function loop(nowMs) {
+    if (lastFrameTimeMs === 0) {
+        lastFrameTimeMs = nowMs;
+    }
+
+    let frameDeltaMs = nowMs - lastFrameTimeMs;
+    lastFrameTimeMs = nowMs;
+    if (frameDeltaMs > 250) {
+        frameDeltaMs = 250;
+    }
+
+    accumulatorMs += frameDeltaMs;
+
     writeInput();
 
-    tick();
+    let steps = 0;
+    while (accumulatorMs >= FIXED_STEP_MS && steps < MAX_CATCH_UP_STEPS) {
+        tick();
+        accumulatorMs -= FIXED_STEP_MS;
+        steps += 1;
+    }
+    if (steps === MAX_CATCH_UP_STEPS) {
+        accumulatorMs = 0;
+    }
+
     render();
 
    
