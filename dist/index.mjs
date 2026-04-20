@@ -104,12 +104,15 @@ const INPUT_RIGHT = 3;
 const INPUT_CONFIRM = 4;
 const INPUT_CANCEL = 5;
 const INPUT_RESET = 6;
-const MOUSE_X_OFFSET = 8;
-const MOUSE_Y_OFFSET = 12;
-const MOUSE_BUTTONS_OFFSET = 16;
 
 const inputPtr = instance.exports.inputPtr;
 const inputLen = instance.exports.inputLen;
+const inputMouseXOffset = instance.exports.inputMouseXOffset;
+const inputMouseYOffset = instance.exports.inputMouseYOffset;
+const inputMouseButtonsOffset = instance.exports.inputMouseButtonsOffset;
+const MOUSE_X_OFFSET = inputMouseXOffset();
+const MOUSE_Y_OFFSET = inputMouseYOffset();
+const MOUSE_BUTTONS_OFFSET = inputMouseButtonsOffset();
 const input = new Uint8Array(buffer, inputPtr(), inputLen() );
 const inputView = new DataView(buffer, inputPtr(), inputLen());
 
@@ -194,6 +197,7 @@ function loop(nowMs) {
 
     accumulatorMs += frameDeltaMs;
 
+    // Input is sampled once per rendered frame, then reused by all fixed ticks in this frame.
     writeInput();
 
     let steps = 0;
@@ -202,8 +206,8 @@ function loop(nowMs) {
         accumulatorMs -= FIXED_STEP_MS;
         steps += 1;
     }
-    if (steps === MAX_CATCH_UP_STEPS) {
-        accumulatorMs = 0;
+    if (steps === MAX_CATCH_UP_STEPS && accumulatorMs > FIXED_STEP_MS) {
+        accumulatorMs = FIXED_STEP_MS;
     }
 
     render();

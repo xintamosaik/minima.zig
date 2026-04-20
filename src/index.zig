@@ -71,9 +71,25 @@ export fn inputLen() u32 {
     return @sizeOf(InputData);
 }
 
+/// Exports byte offsets for mouse fields so JS stays in sync with InputData layout.
+export fn inputMouseXOffset() u32 {
+    return @as(u32, @intCast(@offsetOf(InputData, "mouse_x")));
+}
+export fn inputMouseYOffset() u32 {
+    return @as(u32, @intCast(@offsetOf(InputData, "mouse_y")));
+}
+export fn inputMouseButtonsOffset() u32 {
+    return @as(u32, @intCast(@offsetOf(InputData, "mouse_buttons")));
+}
+
 /// Mouse button bitmask values shared with JS.
 const MOUSE_BUTTON_LEFT: u32 = 1;
 const MOUSE_BUTTON_RIGHT: u32 = 4;
+
+const INPUT_UP: usize = 0;
+const INPUT_DOWN: usize = 1;
+const INPUT_LEFT: usize = 2;
+const INPUT_RIGHT: usize = 3;
 
 /// ATTENTION: THESE SHOULD NOT BE WRITTEN TO BY ZIG.
 /// Mouse coordinate (x)
@@ -100,7 +116,7 @@ const Point = struct {
 };
 
 /// The other classic struct, a rectangle defined by its top-left corner and dimensions. Used for drawing and collision.
-const Rect: type = struct {
+const Rect = struct {
     x: u32,
     y: u32,
     w: u32,
@@ -110,7 +126,7 @@ const Rect: type = struct {
 // PLAYABLE CHARACTER(S)
 
 /// Player is a simple struct that holds what we need to know about the player character: its position, color, and dimensions. For now, it's just a rectangle that we draw on the screen, but we can easily expand it later with more properties like velocity, health, etc.
-const Player: type = struct {
+const Player = struct {
     pos: Point,
     color: u32,
     h: u32 = 8,
@@ -156,6 +172,21 @@ export fn tick() void {
     const mousex = input_data.mouse_x;
     const mousey = input_data.mouse_y;
     const mousebuttons = input_data.mouse_buttons;
+    const max_x = SCREEN_W - player1.w;
+    const max_y = SCREEN_H - player1.h;
+
+    if (input_data.keys[INPUT_LEFT] != 0 and player1.pos.x > 0) {
+        player1.pos.x -= 1;
+    }
+    if (input_data.keys[INPUT_RIGHT] != 0 and player1.pos.x < max_x) {
+        player1.pos.x += 1;
+    }
+    if (input_data.keys[INPUT_UP] != 0 and player1.pos.y > 0) {
+        player1.pos.y -= 1;
+    }
+    if (input_data.keys[INPUT_DOWN] != 0 and player1.pos.y < max_y) {
+        player1.pos.y += 1;
+    }
 
     if (mousebuttons > 0) {
         const tx = if (mousex >= SCREEN_W) (GRID_W - 1) else (mousex / TILE_SIZE);
@@ -200,9 +231,10 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
 
     var py = y0;
     while (py < y1) : (py += 1) {
+        const row_start = @as(usize, @intCast(py * SCREEN_W));
         var px = x0;
         while (px < x1) : (px += 1) {
-            writePixel32(px, py, color);
+            frame_buffer[row_start + @as(usize, @intCast(px))] = color;
         }
     }
 }
