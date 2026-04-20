@@ -1,41 +1,47 @@
 extern "env" fn console_log(value: u32) void;
 
-const MEMORY_BASE_PTR: u32 = 1024;
-
 const SCREEN_W: u32 = 128;
 const SCREEN_H: u32 = 96;
 const TILE_SIZE: u32 = 8;
-const GRID_W: usize = @as(usize, SCREEN_W / TILE_SIZE);
-const GRID_H: usize = @as(usize, SCREEN_H / TILE_SIZE);
-const GRID_W_U32: u32 = @as(u32, @intCast(GRID_W));
-const GRID_H_U32: u32 = @as(u32, @intCast(GRID_H));
+const GRID_W: u32 = SCREEN_W / TILE_SIZE;
+const GRID_H: u32 = SCREEN_H / TILE_SIZE;
+const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
+const FRAME_PIXELS: usize = @as(usize, SCREEN_W * SCREEN_H);
 
 const BPP: u32 = 4;
 
-const FRAME_PTR: u32 = MEMORY_BASE_PTR;
-const FRAME_LEN: u32 = SCREEN_W * SCREEN_H * BPP;
-const FRAME_END: u32 = FRAME_PTR + FRAME_LEN;
+const INPUT_KEY_COUNT: usize = 8;
 
-const INPUT_PTR: u32 = FRAME_END;
-const INPUT_KEY_BYTES: u32 = 8;
-const MOUSE_X_PTR: u32 = INPUT_PTR + INPUT_KEY_BYTES;
-const MOUSE_Y_PTR: u32 = MOUSE_X_PTR + 4;
-const MOUSE_BUTTONS_PTR: u32 = MOUSE_Y_PTR + 4;
-const INPUT_LEN: u32 = INPUT_KEY_BYTES + 12;
-const INPUT_END: u32 = INPUT_PTR + INPUT_LEN;
+// Zig allocates this in module memory; JS can query its base via `framePtr()`.
+export var frame_buffer: [FRAME_PIXELS]u32 = undefined;
+
+const InputData = extern struct {
+    keys: [INPUT_KEY_COUNT]u8,
+    mouse_x: u32,
+    mouse_y: u32,
+    mouse_buttons: u32,
+};
+
+// C-layout input block keeps byte offsets stable for JS DataView writes.
+export var input_data: InputData = .{
+    .keys = [_]u8{0} ** INPUT_KEY_COUNT,
+    .mouse_x = 0,
+    .mouse_y = 0,
+    .mouse_buttons = 0,
+};
+
 const MOUSE_BUTTONS_LEFT: u32 = 1;
-const MOUSE_BUTTONS_MIDDLE: u32 = 2;
 const MOUSE_BUTTONS_RIGHT: u32 = 3;
 
 export fn width() i32 { return SCREEN_W; }
 export fn height() i32 { return SCREEN_H; }
-export fn framePtr() u32 { return FRAME_PTR; }
-export fn frameLen() u32 { return FRAME_LEN; }
-export fn inputPtr() u32 { return INPUT_PTR; }
-export fn inputLen() u32 { return INPUT_LEN; }
-export fn mouse_x() u32 { return @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*; }
-export fn mouse_y() u32 { return @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*; }
-export fn mouse_buttons() u32 { return @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*; }
+export fn framePtr() u32 { return @as(u32, @intCast(@intFromPtr(&frame_buffer[0]))); }
+export fn frameLen() u32 { return @sizeOf(@TypeOf(frame_buffer)); }
+export fn inputPtr() u32 { return @as(u32, @intCast(@intFromPtr(&input_data))); }
+export fn inputLen() u32 { return @sizeOf(InputData); }
+export fn mouse_x() u32 { return input_data.mouse_x; }
+export fn mouse_y() u32 { return input_data.mouse_y; }
+export fn mouse_buttons() u32 { return input_data.mouse_buttons; }
 
 const Point = struct {
     x: u32,
@@ -67,53 +73,17 @@ const TileKind = enum(u8) {
     wall,
 };
 
-var world_tiles: [GRID_W * GRID_H]TileKind = undefined;
-
-const Input = enum(u32) {
-    up = 0,
-    down = 1,
-    left = 2,
-    right = 3,
-    confirm = 4,
-    cancel = 5,
-    reset = 6,
-};
-
-fn inputByte(key: Input) u8 {
-    return @as(*const u8, @ptrFromInt(INPUT_PTR + @intFromEnum(key))).*;
-}
-
-fn inputPressed(key: Input) bool {
-    return inputByte(key) != 0;
-}
+var world_tiles: [GRID_LEN]TileKind = undefined;
 
 export fn tick() void {
-    //^const up = inputPressed(.up);
-    //^const down = inputPressed(.down);
-    //^const left = inputPressed(.left);
-    //^const right = inputPressed(.right);
-    //^const confirm = inputPressed(.confirm);
-    //^const cancel = inputPressed(.cancel);
-    //^const reset = inputPressed(.reset);
-    const mousex = @as(*const u32, @ptrFromInt(MOUSE_X_PTR)).*;
-    const mousey = @as(*const u32, @ptrFromInt(MOUSE_Y_PTR)).*;
-    const mousebuttons = @as(*const u32, @ptrFromInt(MOUSE_BUTTONS_PTR)).*;
-    // console_log(mousebuttons);
-    // only on mouse clicked:
-    if (mousebuttons > 0) {
-        const tx = if (mousex >= SCREEN_W) (GRID_W_U32 - 1) else (mousex / TILE_SIZE);
-        const ty = if (mousey >= SCREEN_H) (GRID_H_U32 - 1) else (mousey / TILE_SIZE);
+    const mousex = input_data.mouse_x;
+    const mousey = input_data.mouse_y;
+    const mousebuttons = input_data.mouse_buttons;
 
-        console_log(tx);
-        console_log(ty);
-        console_log(mousebuttons);
-        //console_log(@intFromBool(up));
-        //console_log(@intFromBool(down));
-        //console_log(@intFromBool(left));
-        //console_log(@intFromBool(right));
-        //console_log(@intFromBool(confirm));
-        //console_log(@intFromBool(cancel));
-        //console_log(@intFromBool(reset));
+    if (mousebuttons > 0) {
+        const tx = if (mousex >= SCREEN_W) (GRID_W - 1) else (mousex / TILE_SIZE);
+        const ty = if (mousey >= SCREEN_H) (GRID_H - 1) else (mousey / TILE_SIZE);
+
         if (mousebuttons == MOUSE_BUTTONS_LEFT) {
             setTile(tx, ty, .wall);
         }
@@ -131,17 +101,18 @@ fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
     return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
 }
 
-/// Writes one 32-bit pixel into linear memory at byte offset `offset`.
-fn writePixel32(offset: u32, color: u32) void {
-    const ptr: *u32 = @ptrFromInt(offset);
-    ptr.* = color;
+/// Writes one 32-bit pixel into the frame buffer.
+fn writePixel32(x: u32, y: u32, color: u32) void {
+    if (x >= SCREEN_W or y >= SCREEN_H) return;
+    const index = @as(usize, @intCast(y * SCREEN_W + x));
+    frame_buffer[index] = color;
 }
 
 fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     const x0 = x;
     const y0 = y;
-    var x1 = x + w;
-    var y1 = y + h;
+    var x1 = x +| w;
+    var y1 = y +| h;
 
     if (x1 > SCREEN_W) x1 = SCREEN_W;
     if (y1 > SCREEN_H) y1 = SCREEN_H;
@@ -151,11 +122,8 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     var py = y0;
     while (py < y1) : (py += 1) {
         var px = x0;
-        var row: u32 = FRAME_PTR + @as(u32, @intCast(py * SCREEN_W + x0)) * BPP;
-
         while (px < x1) : (px += 1) {
-            writePixel32(row, color);
-            row += 4;
+            writePixel32(px, py, color);
         }
     }
 }
@@ -169,10 +137,8 @@ fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     if (cx1 <= cx0) return;
 
     var px = cx0;
-    var row: u32 = FRAME_PTR + @as(u32, @intCast(y * SCREEN_W + cx0)) * BPP;
     while (px < cx1) : (px += 1) {
-        writePixel32(row, color);
-        row += BPP;
+        writePixel32(px, y, color);
     }
 }
 
@@ -185,10 +151,8 @@ fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
     if (cy1 <= cy0) return;
 
     var py = cy0;
-    var row: u32 = FRAME_PTR + @as(u32, @intCast(cy0 * SCREEN_W + x)) * BPP;
     while (py < cy1) : (py += 1) {
-        writePixel32(row, color);
-        row += SCREEN_W * BPP;
+        writePixel32(x, py, color);
     }
 }
 
@@ -225,22 +189,19 @@ const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
 const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
 fn tileIndex(tx: u32, ty: u32) usize {
-    return @as(usize, @intCast(ty * GRID_W_U32 + tx));
+    return @as(usize, @intCast(ty * GRID_W + tx));
 }
 
 fn setTile(tx: u32, ty: u32, kind: TileKind) void {
-    if (tx >= GRID_W_U32 or ty >= GRID_H_U32) return;
+    if (tx >= GRID_W or ty >= GRID_H) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
 
 export fn render() void {
-    // For this example, the background is static and drawn once in `init()`.
-    // In a real game, you would likely want to redraw the background each frame
-    // or have more complex rendering logic here.
     var ty: u32 = 0;
-    while (ty < GRID_H_U32) : (ty += 1) {
+    while (ty < GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < GRID_W_U32) : (tx += 1) {
+        while (tx < GRID_W) : (tx += 1) {
             const x = tx * TILE_SIZE;
             const y = ty * TILE_SIZE;
             const kind = world_tiles[tileIndex(tx, ty)];
@@ -253,15 +214,14 @@ export fn render() void {
         }
     }
 
-    // Entity render pass.
     drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
 
 export fn init() void {
     var ty: u32 = 0;
-    while (ty < GRID_H_U32) : (ty += 1) {
+    while (ty < GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < GRID_W_U32) : (tx += 1) {
+        while (tx < GRID_W) : (tx += 1) {
             const use_light = ((tx + ty) & 1) == 0;
             setTile(tx, ty, if (use_light) .light else .dark);
         }
