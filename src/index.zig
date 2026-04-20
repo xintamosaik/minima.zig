@@ -15,28 +15,36 @@ const GRID_H: u32 = 12;
 /// 128 = 8 * 16. 128 is somewhat close to retro resolutions
 const SCREEN_W: u32 = GRID_W * TILE_SIZE;
 /// Exported for calculations in JS (Width);
-export fn width() i32 { return SCREEN_W; }
+export fn width() i32 {
+    return SCREEN_W;
+}
 
 /// 96 = 8 * 12. 96 is somewhat close to retro resolutions
 const SCREEN_H: u32 = GRID_H * TILE_SIZE;
 /// Exported for calculations in JS (Height);
-export fn height() i32 { return SCREEN_H; }
+export fn height() i32 {
+    return SCREEN_H;
+}
 
 /// The raw amoung of pixels in the frame buffer, used for JS memory management.
 const FRAME_PIXELS: usize = @as(usize, SCREEN_W * SCREEN_H);
 /// Zig allocates this in module memory; JS can query its base via `framePtr()`.
 export var frame_buffer: [FRAME_PIXELS]u32 = undefined;
 /// Exports the byte offset of the frame buffer for JS to write pixel data into.
-export fn framePtr() u32 { return @as(u32, @intCast(@intFromPtr(&frame_buffer[0]))); }
+export fn framePtr() u32 {
+    return @as(u32, @intCast(@intFromPtr(&frame_buffer[0])));
+}
 /// Exports the byte length of the frame buffer for JS memory management.
-export fn frameLen() u32 { return @sizeOf(@TypeOf(frame_buffer)); }
+export fn frameLen() u32 {
+    return @sizeOf(@TypeOf(frame_buffer));
+}
 
 // INPUT
 
 /// The number of keys we plan to track
 const INPUT_KEY_COUNT: usize = 8;
 
-/// C-layout struct for input data, written to by JS. 
+/// C-layout struct for input data, written to by JS.
 /// The `extern` attribute ensures C-compatible layout and stable byte offsets.
 const InputData = extern struct {
     keys: [INPUT_KEY_COUNT]u8,
@@ -55,9 +63,13 @@ export var input_data: InputData = .{
 };
 
 /// Exports the byte offset of the input data block for JS to write input state into.
-export fn inputPtr() u32 { return @as(u32, @intCast(@intFromPtr(&input_data))); }
+export fn inputPtr() u32 {
+    return @as(u32, @intCast(@intFromPtr(&input_data)));
+}
 /// Exports the byte length of the input data block for JS memory management.
-export fn inputLen() u32 { return @sizeOf(InputData); }
+export fn inputLen() u32 {
+    return @sizeOf(InputData);
+}
 
 /// Mouse button bitmask values shared with JS.
 const MOUSE_BUTTON_LEFT: u32 = 1;
@@ -65,13 +77,19 @@ const MOUSE_BUTTON_RIGHT: u32 = 4;
 
 /// ATTENTION: THESE SHOULD NOT BE WRITTEN TO BY ZIG.
 /// Mouse coordinate (x)
-export fn mouse_x() u32 { return input_data.mouse_x; }
+export fn mouse_x() u32 {
+    return input_data.mouse_x;
+}
 
 /// Mouse coordinate (y)
-export fn mouse_y() u32 { return input_data.mouse_y; }
+export fn mouse_y() u32 {
+    return input_data.mouse_y;
+}
 
 /// Mouse button state as a bitmask (left=1, middle=2, right=4).
-export fn mouse_buttons() u32 { return input_data.mouse_buttons; }
+export fn mouse_buttons() u32 {
+    return input_data.mouse_buttons;
+}
 
 // 2D GEOMETRY
 
@@ -129,7 +147,7 @@ fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     world_tiles[tileIndex(tx, ty)] = kind;
 }
 
-/// Tick is used for simulation. 
+/// Tick is used for simulation.
 /// It should run either round-based or whatever is appropriate for the game.
 /// Most games do less ticks than renders.
 export fn tick() void {
@@ -165,7 +183,7 @@ fn writePixel32(x: u32, y: u32, color: u32) void {
     frame_buffer[index] = color;
 }
 
-/// Simple function to fill a rectangle area with a color. 
+/// Simple function to fill a rectangle area with a color.
 /// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
 fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     const x0 = x;
@@ -250,7 +268,7 @@ const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
 const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
 const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
 
-/// The main render function that draws the current game state to the frame buffer. 
+/// The main render function that draws the current game state to the frame buffer.
 /// This function is called every frame to update the visuals.
 export fn render() void {
     var ty: u32 = 0;
