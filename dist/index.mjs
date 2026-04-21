@@ -1,8 +1,7 @@
 "use strict";
 
 /**
- * We share console.log to enable debugging messages in Zig/WASM.
- * Since Zig is strict with types we only allow "error codes"
+ * Exposed to WASM for debug logging.
  * 
  * @param {number} num - The number to log, typically an error code or status value from WASM.
  */
@@ -18,7 +17,7 @@ const importObject = {
 };
 
 /**
- * This fetches the compiled WASM module as a file. 
+ * Fetch compiled WASM module.
  */
 const response = await fetch("./index.wasm");
 if (!response.ok) {
@@ -26,7 +25,7 @@ if (!response.ok) {
 }
 
 /**
- * The instance holds all exported functions and memory from our WASM module.
+ * Instance exposes WASM exports and memory.
  */
 const { instance } = await WebAssembly.instantiateStreaming(response, importObject);
 if (!instance) {
@@ -34,14 +33,14 @@ if (!instance) {
 }
 
 /**
- * This is the width of the "game". We want to sync the canvas size.
+ * Game width used to size the canvas.
  * 
  * @type {number}
  */
 const width = instance.exports.width();
 
 /**
- * This is the height of the "game". We want to sync the canvas size.
+ * Game height used to size the canvas.
  * 
  * @type {number}
  */
@@ -58,8 +57,7 @@ canvas.width = width; // Sync width
 canvas.height = height; // Sync height
 
 /**
- * The 2D rendering context for the canvas. 
- * It's used to draw the ImageData that we create from the WASM memory frame buffer.
+ * 2D context used to draw ImageData.
  */
 const ctx = canvas.getContext("2d");
 if (!ctx) {
@@ -73,7 +71,7 @@ if (!ctx) {
 const frame = new Uint8ClampedArray(instance.exports.memory.buffer, instance.exports.framePtr(), instance.exports.frameLen());
 
 /**
- * The ImageData object that wraps the frame buffer. This is what we will draw onto the canvas each frame.
+ * ImageData wrapper for the shared frame buffer.
  */
 const image = new ImageData(frame, width, height);
 
@@ -86,7 +84,7 @@ const MOUSE_BUTTON_MIDDLE = 2;
 const MOUSE_BUTTON_RIGHT = 4;
 
 /** 
- * Converts a DOM mouse button index into our WASM input bitmask.
+ * Converts DOM mouse button index to WASM bitmask.
  * @param {number} button - The DOM mouse button index.
  */
 function mouseButtonBit(button) {
@@ -109,9 +107,7 @@ const mouseInput = {
 };
 
 /**
- * Writes the current mouse position (relative to the canvas) into our mouseInput object.
- * This is called on mouse move, down, and up to keep the position updated.
- * The position is scaled down by the current canvas scale factor to match the game coordinates.
+ * Updates mouse position in game-space coordinates.
  * @param {MouseEvent} e 
  */
 function registerMouseMovement(e) {
@@ -121,8 +117,7 @@ function registerMouseMovement(e) {
 canvas.addEventListener("mousemove", registerMouseMovement);
 
 /**
- * Besides updating the mouse position,
- * this also sets the appropriate button bit in the mouseInput.buttons bitmask when a button is pressed.
+ * Updates position and sets the pressed mouse button bit.
  * @param {MouseEvent} e 
  */
 function registerMouseDown(e) {
@@ -135,8 +130,7 @@ function registerMouseDown(e) {
 canvas.addEventListener("mousedown", registerMouseDown);
 
 /**
- * Besides updating the mouse position, 
- * this also clears the appropriate button bit in the mouseInput.buttons bitmask when a button is released.
+ * Updates position and clears the released mouse button bit.
  * @param {MouseEvent} e 
  */
 function registerMouseUp(e) {
@@ -168,12 +162,12 @@ const INPUT_RESET = 6;
 const input = new Uint8Array(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
 
 /**
- * DataView is used for writing u32 mouse fields into the same memory block.
+ * DataView for writing u32 mouse fields in shared input memory.
  */
 const inputView = new DataView(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
 
 /** 
- * Keyboard state mapped to the input memory layout. 
+ * Keyboard state mapped to the input layout.
  */
 const keys = {
     ArrowUp: false,
@@ -186,7 +180,7 @@ const keys = {
 };
 
 /** 
- * Captures key presses and marks them as active. 
+ * Captures key presses.
  * @param {KeyboardEvent} e 
  */
 function registerKeyDown(e) {
@@ -198,7 +192,7 @@ function registerKeyDown(e) {
 window.addEventListener("keydown", registerKeyDown);
 
 /**
- * Captures key releases and marks them as inactive.
+ * Captures key releases.
  * @param {KeyboardEvent} e
  */
 function registerKeyUp(e) {
@@ -210,7 +204,7 @@ function registerKeyUp(e) {
 window.addEventListener("keyup", registerKeyUp);
 
 /** 
- * Clears all key state to avoid sticky input after focus loss. 
+ * Clears key state on focus loss to avoid sticky input.
  * @param {FocusEvent} e
  */
 function registerBlur(e) {
@@ -236,7 +230,7 @@ const MOUSE_Y_OFFSET = instance.exports.inputMouseYOffset();
 const MOUSE_BUTTONS_OFFSET = instance.exports.inputMouseButtonsOffset();
 
 /** 
- * Writes current key state into the shared input bytes for WASM.
+ * Writes current input state into shared WASM memory.
  */
 function writeInput() {
     input[INPUT_UP] = keys.ArrowUp ? 1 : 0;
@@ -253,15 +247,12 @@ function writeInput() {
 }
 
 /**
- * The scale factor for resizing the canvas. 
- * This is calculated based on the window size and the game dimensions to maintain pixelated graphics 
- * while filling as much of the screen as possible.
+ * Integer scale used for crisp pixel rendering.
  */
 let scale = 1
 
 /** 
- * Resizes the canvas element to an integer pixel scale. 
- * This ensures that the game's graphics remain sharp and pixelated, rather than blurry.
+ * Resizes the canvas using integer scaling.
  */
 function resizeCanvas() {
     const scaleX = Math.floor((window.innerWidth - 16) / width);
@@ -276,39 +267,27 @@ window.addEventListener("resize", resizeCanvas);
 instance.exports.init();
 
 /**
- * The target tick rate for the game logic. This determines how often the game state updates per second.
+ * Target simulation ticks per second.
  */
 const TICK_RATE = 60;
 
 /**
- * The fixed time step in milliseconds for each game tick, calculated from the target tick rate.
+ * Fixed timestep duration in milliseconds.
  */
 const FIXED_STEP_MS = 1000 / TICK_RATE;
 
 /**
- * The maximum number of fixed update steps to perform in a single frame. 
- * This prevents the game from trying to catch up too much if the frame rate drops significantly, 
- * which could cause long freezes or spiral of death scenarios.
+ * Max fixed steps processed in one frame.
  */
 const MAX_CATCH_UP_STEPS = 5;
 
 /**
- * The accumulator for tracking how much time has passed since the last game tick.
- * This allows us to perform fixed time step updates for the game logic, 
- * ensuring consistent behavior regardless of frame rate fluctuations.
- * 
- * Each frame, we add the elapsed time to the accumulator and then perform as many fixed ticks 
- * as needed while the accumulator exceeds the fixed step time.
- * 
- * After ticking, we subtract the fixed step time from the accumulator. 
- * This way, we can handle variable frame rates while keeping the game logic updates consistent.
+ * Accumulated unprocessed frame time for fixed-step updates.
  */
 let accumulatorMs = 0;
 
 /**
- * The timestamp of the last frame in milliseconds. This is used to calculate the delta time for each frame,
- * which is then added to the accumulator to determine how many fixed ticks to perform.
- * It is initialized to 0 and set to the current time on the first frame.
+ * Timestamp of the previous frame.
  */
 let lastFrameTimeMs = 0;
 
