@@ -30,8 +30,8 @@ export fn height() i32 {
     return SCREEN_H;
 }
 
-/// The raw amoung of pixels in the frame buffer, used for JS memory management.
-const FRAME_PIXELS: usize = @as(usize, SCREEN_W * SCREEN_H);
+/// Raw pixel count of the frame buffer.
+const FRAME_PIXELS = SCREEN_W * SCREEN_H;
 /// Zig allocates this in module memory; JS can query its base via `framePtr()`.
 export var frame_buffer: [FRAME_PIXELS]u32 = undefined;
 /// Exports the byte offset of the frame buffer for JS to write pixel data into.
@@ -45,8 +45,8 @@ export fn frameLen() u32 {
 
 // INPUT
 
-/// The number of keys we plan to track
-const INPUT_KEY_COUNT: usize = 8;
+/// Number of tracked keys.
+const INPUT_KEY_COUNT = 8;
 
 /// C-layout struct for input data, written to by JS.
 /// The `extern` attribute ensures C-compatible layout and stable byte offsets.
@@ -113,14 +113,13 @@ export fn mouse_buttons() u32 {
 
 // 2D GEOMETRY
 
-/// The classic Point struct, used for two-dimensional positions.
+/// 2D position.
 const Point = struct {
     x: u32,
     y: u32,
 };
 
-/// The other classic struct, a rectangle defined by its top-left corner and dimensions.
-/// Used for drawing and collision.
+/// Axis-aligned rectangle used for drawing and collision.
 const Rect = struct {
     x: u32,
     y: u32,
@@ -130,10 +129,7 @@ const Rect = struct {
 
 // PLAYABLE CHARACTER(S)
 
-/// Player is a simple struct that holds what we need to know about the player character:
-/// its position, color, and dimensions.
-/// For now, it's just a rectangle that we draw on the screen,
-/// but we can easily expand it later with more properties like velocity, health, etc.
+/// Minimal player state.
 const Player = struct {
     pos: Point,
     color: u32,
@@ -141,47 +137,38 @@ const Player = struct {
     w: u32 = 8,
 };
 
-/// We only have one player for now. Could be party of players later.
-var player1: Player = Player{
+/// Single active player.
+var player1 = Player{
     .pos = Point{ .x = 60, .y = 40 },
     .color = C64_BLUE,
 };
 
 // TILES
 
-/// Extensible tile types for our tilemap. For now, we have just three: light, dark, and wall.
-/// We can easily add more later if we want to expand the world with different terrain types, items, etc.
+/// Tile types used by the world grid.
 const TileKind = enum(u8) {
     light,
     dark,
     wall,
 };
 
-/// The world is represented as a flat array of tiles.
-/// We calculate the index based on tile coordinates (tx, ty) using the tileIndex function.
-/// This allows us to easily access and modify the tile data for our grid-based world.
-const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
-/// Initialize the world with all dark tiles.
-/// We can change this later in the init() function to create a more interesting world layout.
-/// For now, it's just a simple checkerboard pattern of light and dark tiles.
+/// Flat tile storage; index is computed by `tileIndex`.
+const GRID_LEN = GRID_W * GRID_H;
+/// Initial map data; `init()` overwrites this with a checkerboard.
 var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
 
-/// Helper function to calculate the index in the world_tiles array based on tile coordinates.
-/// This allows us to easily access and modify the tile data for our grid-based world.
+/// Converts tile coordinates to a linear index.
 fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * GRID_W + tx));
 }
 
-/// Sets the tile at the given tile coordinates (tx, ty) to the specified kind.
-/// It includes bounds checking to ensure we don't write out of bounds in the world_tiles array.
+/// Sets one tile if coordinates are inside the grid.
 fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= GRID_W or ty >= GRID_H) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
 
-/// Tick is used for simulation.
-/// It should run either round-based or whatever is appropriate for the game.
-/// Most games do less ticks than renders.
+/// Advances simulation by one fixed step.
 export fn tick() void {
     const mousex = input_data.mouse_x;
     const mousey = input_data.mouse_y;
@@ -248,8 +235,7 @@ fn writePixel32(x: u32, y: u32, color: u32) void {
     frame_buffer[index] = color;
 }
 
-/// Simple function to fill a rectangle area with a color.
-/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Fills a clipped rectangle.
 fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     const x0 = x;
     const y0 = y;
@@ -271,8 +257,7 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     }
 }
 
-/// Draws a horizontal line.
-/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a clipped horizontal line.
 fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     if (y >= SCREEN_H) return;
     if (x1 <= x0) return;
@@ -287,8 +272,7 @@ fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     }
 }
 
-/// Draws a vertical line.
-/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a clipped vertical line.
 fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
     if (x >= SCREEN_W) return;
     if (y1 <= y0) return;
@@ -303,8 +287,7 @@ fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
     }
 }
 
-/// Draws a rectangle outline by drawing four lines.
-/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a rectangle outline.
 fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     if (w == 0 or h == 0) return;
 
@@ -319,8 +302,7 @@ fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     drawVerticalLine(xr, y, y1, color);
 }
 
-/// The main render function that draws the current game state to the frame buffer.
-/// This function is called every frame to update the visuals.
+/// Renders the current frame.
 export fn render() void {
     var ty: u32 = 0;
     while (ty < GRID_H) : (ty += 1) {
@@ -343,8 +325,7 @@ export fn render() void {
 
 // INITIALIZATION
 
-/// Initializes the game state.
-/// This function is called once at the start of the game to set up the initial world and any necessary data structures.
+/// Initializes world state.
 export fn init() void {
     var ty: u32 = 0;
     while (ty < GRID_H) : (ty += 1) {

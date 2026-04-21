@@ -11,9 +11,7 @@ function console_log(num) {
 }
 
 /**
- * To bring JS API over into WASM we create an object.
- * For now it only contains our console_log function, 
- * but we could expand it with more features as needed.
+ * JS functions imported by WASM.
  */
 const importObject = {
     env: { console_log }
@@ -50,8 +48,7 @@ const width = instance.exports.width();
 const height = instance.exports.height();
 
 /**
- * The canvas element that will exclusively be used to render the content of the WASM memory.
- * We will write pixel data directly into WASM memory and then use putImageData to copy it to the canvas.
+ * Canvas that displays the WASM frame buffer.
  */
 const canvas = document.getElementById("game");
 if (!canvas) {
@@ -70,11 +67,8 @@ if (!ctx) {
 }
 
 /**
- * The frame buffer is a Uint8ClampedArray that views the WASM memory directly.
- * The WASM module provides a pointer and length for the frame buffer, which we use to create this view.
- * We then create an ImageData object from this frame buffer, which can be drawn onto the canvas. 
- * 
- * FYI: Zig writes u32 pixels as RGBA bytes in little-endian memory; ImageData consumes that byte view directly.
+ * Direct byte view of the WASM frame buffer.
+ * Zig writes u32 RGBA pixels in little-endian order, matching ImageData layout.
  */
 const frame = new Uint8ClampedArray(instance.exports.memory.buffer, instance.exports.framePtr(), instance.exports.frameLen());
 
@@ -154,12 +148,10 @@ function registerMouseUp(e) {
 }
 canvas.addEventListener("mouseup", registerMouseUp);
 
-// If the mouse leaves the canvas, we want to clear all button state to avoid "stuck" buttons 
-// when the user releases outside the canvas.
+// Clear button state when release happens outside the canvas.
 canvas.addEventListener("mouseleave", () => { mouseInput.buttons = 0; });
 
-// Prevent the context menu from appearing on right-click, 
-// since we want to use right-click in our game.
+// Use right-click for gameplay instead of opening the browser menu.
 canvas.addEventListener("contextmenu", (e) => { e.preventDefault(); });
 
 const INPUT_UP = 0;
@@ -171,17 +163,12 @@ const INPUT_CANCEL = 5;
 const INPUT_RESET = 6;
 
 /**
- * The input buffer is a Uint8Array that views the WASM memory directly, starting at the pointer and length provided by the WASM module.
- * We will write the current keyboard and mouse input state into this buffer each frame before ticking the game logic.
- * The WASM module will read from this buffer to know what inputs are active.
+ * Shared input byte buffer in WASM memory.
  */
 const input = new Uint8Array(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
 
 /**
- * Since we need to write both keyboard state (as bytes) and mouse state (as 32-bit integers) into the same input memory region,
- * we create a DataView for the mouse portion to allow writing 32-bit values without affecting the keyboard byte values.
- * The WASM module will need to read the mouse state using the same offsets and sizes to get the correct values.
- * This setup allows us to efficiently share a single contiguous memory region for all input data, while still handling different data types cleanly.
+ * DataView is used for writing u32 mouse fields into the same memory block.
  */
 const inputView = new DataView(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
 
@@ -233,17 +220,7 @@ function registerBlur(e) {
 }
 window.addEventListener("blur", registerBlur);
 
-/**
- * The WASM module provides offsets for where to write the mouse X, Y, and button state within the shared input memory region.
- * We use these offsets with the DataView to write the mouse state as 32-bit integers without interfering with the keyboard byte values.
- * This allows the WASM module to read both keyboard and mouse input from the same contiguous memory region using the defined layout.
- */
-
-/**  
-  * Mouse X offset within the input memory region, as provided by the WASM module. 
-  * 
-  * @type {number}
-  */
+/** Offsets for u32 mouse fields inside shared input memory. */
 const MOUSE_X_OFFSET = instance.exports.inputMouseXOffset();
 
 /** 
