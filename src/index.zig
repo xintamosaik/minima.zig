@@ -5,9 +5,13 @@ extern "env" fn console_log(value: u32) void;
 /// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels.
 /// This keeps calculations simple and close to retro aesthetics.
 const TILE_SIZE: u32 = 8;
-/// We use 16 tiles for now. It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world. This means our world will be 128 pixels wide (16 tiles * 8 pixels per tile).
+/// We use 16 tiles for now.
+/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
+/// This means our world will be 128 pixels wide (16 tiles * 8 pixels per tile).
 const GRID_W: u32 = 16;
-/// We use 12 tiles for now. It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world. This means our world will be 96 pixels high (12 tiles * 8 pixels per tile).
+/// We use 12 tiles for now.
+/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
+/// This means our world will be 96 pixels high (12 tiles * 8 pixels per tile).
 const GRID_H: u32 = 12;
 
 // SCREEN
@@ -115,7 +119,8 @@ const Point = struct {
     y: u32,
 };
 
-/// The other classic struct, a rectangle defined by its top-left corner and dimensions. Used for drawing and collision.
+/// The other classic struct, a rectangle defined by its top-left corner and dimensions.
+/// Used for drawing and collision.
 const Rect = struct {
     x: u32,
     y: u32,
@@ -125,7 +130,10 @@ const Rect = struct {
 
 // PLAYABLE CHARACTER(S)
 
-/// Player is a simple struct that holds what we need to know about the player character: its position, color, and dimensions. For now, it's just a rectangle that we draw on the screen, but we can easily expand it later with more properties like velocity, health, etc.
+/// Player is a simple struct that holds what we need to know about the player character:
+/// its position, color, and dimensions.
+/// For now, it's just a rectangle that we draw on the screen,
+/// but we can easily expand it later with more properties like velocity, health, etc.
 const Player = struct {
     pos: Point,
     color: u32,
@@ -149,17 +157,23 @@ const TileKind = enum(u8) {
     wall,
 };
 
-/// The world is represented as a flat array of tiles. We calculate the index based on tile coordinates (tx, ty) using the tileIndex function. This allows us to easily access and modify the tile data for our grid-based world.
+/// The world is represented as a flat array of tiles.
+/// We calculate the index based on tile coordinates (tx, ty) using the tileIndex function.
+/// This allows us to easily access and modify the tile data for our grid-based world.
 const GRID_LEN: usize = @as(usize, GRID_W * GRID_H);
-/// Initialize the world with all dark tiles. We can change this later in the init() function to create a more interesting world layout. For now, it's just a simple checkerboard pattern of light and dark tiles.
+/// Initialize the world with all dark tiles.
+/// We can change this later in the init() function to create a more interesting world layout.
+/// For now, it's just a simple checkerboard pattern of light and dark tiles.
 var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
 
-/// Helper function to calculate the index in the world_tiles array based on tile coordinates. This allows us to easily access and modify the tile data for our grid-based world.
+/// Helper function to calculate the index in the world_tiles array based on tile coordinates.
+/// This allows us to easily access and modify the tile data for our grid-based world.
 fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * GRID_W + tx));
 }
 
-/// Sets the tile at the given tile coordinates (tx, ty) to the specified kind. It includes bounds checking to ensure we don't write out of bounds in the world_tiles array.
+/// Sets the tile at the given tile coordinates (tx, ty) to the specified kind.
+/// It includes bounds checking to ensure we don't write out of bounds in the world_tiles array.
 fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= GRID_W or ty >= GRID_H) return;
     world_tiles[tileIndex(tx, ty)] = kind;
@@ -257,7 +271,8 @@ fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     }
 }
 
-/// Draws a horizontal line. It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a horizontal line.
+/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
 fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     if (y >= SCREEN_H) return;
     if (x1 <= x0) return;
@@ -272,7 +287,8 @@ fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
     }
 }
 
-/// Draws a vertical line. It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a vertical line.
+/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
 fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
     if (x >= SCREEN_W) return;
     if (y1 <= y0) return;
@@ -287,7 +303,8 @@ fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
     }
 }
 
-/// Draws a rectangle outline by drawing four lines. It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
+/// Draws a rectangle outline by drawing four lines.
+/// It handles clipping to the screen bounds and ensures we don't write out of bounds in the frame buffer.
 fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     if (w == 0 or h == 0) return;
 
@@ -326,7 +343,8 @@ export fn render() void {
 
 // INITIALIZATION
 
-/// Initializes the game state. This function is called once at the start of the game to set up the initial world and any necessary data structures.
+/// Initializes the game state.
+/// This function is called once at the start of the game to set up the initial world and any necessary data structures.
 export fn init() void {
     var ty: u32 = 0;
     while (ty < GRID_H) : (ty += 1) {
