@@ -3,6 +3,8 @@
 /**
  * We share console.log to enable debugging messages in Zig/WASM.
  * Since Zig is strict with types we only allow "error codes"
+ * 
+ * @param {number} num - The number to log, typically an error code or status value from WASM.
  */
 function console_log(num) {
     console.log(num);
@@ -35,11 +37,15 @@ if (!instance) {
 
 /**
  * This is the width of the "game". We want to sync the canvas size.
+ * 
+ * @type {number}
  */
 const width = instance.exports.width();
 
 /**
  * This is the height of the "game". We want to sync the canvas size.
+ * 
+ * @type {number}
  */
 const height = instance.exports.height();
 
@@ -69,7 +75,6 @@ if (!ctx) {
  * We then create an ImageData object from this frame buffer, which can be drawn onto the canvas. 
  * 
  * FYI: Zig writes u32 pixels as RGBA bytes in little-endian memory; ImageData consumes that byte view directly.
-
  */
 const frame = new Uint8ClampedArray(instance.exports.memory.buffer, instance.exports.framePtr(), instance.exports.frameLen());
 
@@ -86,7 +91,10 @@ const MOUSE_BUTTON_LEFT = 1;
 const MOUSE_BUTTON_MIDDLE = 2;
 const MOUSE_BUTTON_RIGHT = 4;
 
-/** Converts a DOM mouse button index into our WASM input bitmask. */
+/** 
+ * Converts a DOM mouse button index into our WASM input bitmask.
+ * @param {number} button - The DOM mouse button index.
+ */
 function mouseButtonBit(button) {
     switch (button) {
         case BUTTON_LEFT:
@@ -105,6 +113,7 @@ const mouseInput = {
     y: 0,
     buttons: 0
 };
+
 /**
  * Writes the current mouse position (relative to the canvas) into our mouseInput object.
  * This is called on mouse move, down, and up to keep the position updated.
@@ -143,7 +152,6 @@ function registerMouseUp(e) {
         mouseInput.buttons &= ~bit;
     }
 }
-
 canvas.addEventListener("mouseup", registerMouseUp);
 
 // If the mouse leaves the canvas, we want to clear all button state to avoid "stuck" buttons 
@@ -231,13 +239,23 @@ window.addEventListener("blur", registerBlur);
  * This allows the WASM module to read both keyboard and mouse input from the same contiguous memory region using the defined layout.
  */
 
-/* Mouse X offset within the input memory region, as provided by the WASM module. */
+/**  
+  * Mouse X offset within the input memory region, as provided by the WASM module. 
+  * 
+  * @type {number}
+  */
 const MOUSE_X_OFFSET = instance.exports.inputMouseXOffset();
 
-/* Mouse Y offset within the input memory region, as provided by the WASM module. */
+/** 
+ * Mouse Y offset within the input memory region, as provided by the WASM module.
+ * @type {number}
+ */
 const MOUSE_Y_OFFSET = instance.exports.inputMouseYOffset();
 
-/* Mouse buttons offset within the input memory region, as provided by the WASM module. */
+/** 
+ * Mouse buttons offset within the input memory region, as provided by the WASM module.
+ * @type {number}
+ */
 const MOUSE_BUTTONS_OFFSET = instance.exports.inputMouseButtonsOffset();
 
 /** 
