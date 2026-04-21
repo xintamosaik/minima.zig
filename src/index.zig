@@ -45,13 +45,12 @@ export fn frameLen() u32 {
 
 // INPUT
 
-/// Number of tracked keys.
-const INPUT_KEY_COUNT = 8;
-
 /// C-layout struct for input data, written to by JS.
 /// The `extern` attribute ensures C-compatible layout and stable byte offsets.
 const InputData = extern struct {
-    keys: [INPUT_KEY_COUNT]u8,
+    buttons_lo: u8,
+    buttons_hi: u8,
+    _reserved: u16,
     mouse_x: u32,
     mouse_y: u32,
     mouse_buttons: u32,
@@ -60,7 +59,9 @@ const InputData = extern struct {
 /// C-layout input block keeps byte offsets stable for JS DataView writes.
 /// JS writes input state into this struct each frame, and Zig reads from it in `tick()`.
 export var input_data: InputData = .{
-    .keys = [_]u8{0} ** INPUT_KEY_COUNT,
+    .buttons_lo = 0,
+    .buttons_hi = 0,
+    ._reserved = 0,
     .mouse_x = 0,
     .mouse_y = 0,
     .mouse_buttons = 0,
@@ -76,6 +77,12 @@ export fn inputLen() u32 {
 }
 
 /// Exports byte offsets for mouse fields so JS stays in sync with InputData layout.
+export fn inputButtonsLoOffset() u32 {
+    return @as(u32, @intCast(@offsetOf(InputData, "buttons_lo")));
+}
+export fn inputButtonsHiOffset() u32 {
+    return @as(u32, @intCast(@offsetOf(InputData, "buttons_hi")));
+}
 export fn inputMouseXOffset() u32 {
     return @as(u32, @intCast(@offsetOf(InputData, "mouse_x")));
 }
@@ -90,10 +97,10 @@ export fn inputMouseButtonsOffset() u32 {
 const MOUSE_BUTTON_LEFT: u32 = 1;
 const MOUSE_BUTTON_RIGHT: u32 = 4;
 
-const INPUT_UP: usize = 0;
-const INPUT_DOWN: usize = 1;
-const INPUT_LEFT: usize = 2;
-const INPUT_RIGHT: usize = 3;
+const BTN_UP: u8 = 1 << 0;
+const BTN_DOWN: u8 = 1 << 1;
+const BTN_LEFT: u8 = 1 << 2;
+const BTN_RIGHT: u8 = 1 << 3;
 
 /// ATTENTION: THESE SHOULD NOT BE WRITTEN TO BY ZIG.
 /// Mouse coordinate (x)
@@ -170,22 +177,23 @@ fn setTile(tx: u32, ty: u32, kind: TileKind) void {
 
 /// Advances simulation by one fixed step.
 export fn tick() void {
+    const buttons_lo = input_data.buttons_lo;
     const mousex = input_data.mouse_x;
     const mousey = input_data.mouse_y;
     const mousebuttons = input_data.mouse_buttons;
     const max_x = SCREEN_W - player1.w;
     const max_y = SCREEN_H - player1.h;
 
-    if (input_data.keys[INPUT_LEFT] != 0 and player1.pos.x > 0) {
+    if ((buttons_lo & BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
     }
-    if (input_data.keys[INPUT_RIGHT] != 0 and player1.pos.x < max_x) {
+    if ((buttons_lo & BTN_RIGHT) != 0 and player1.pos.x < max_x) {
         player1.pos.x += 1;
     }
-    if (input_data.keys[INPUT_UP] != 0 and player1.pos.y > 0) {
+    if ((buttons_lo & BTN_UP) != 0 and player1.pos.y > 0) {
         player1.pos.y -= 1;
     }
-    if (input_data.keys[INPUT_DOWN] != 0 and player1.pos.y < max_y) {
+    if ((buttons_lo & BTN_DOWN) != 0 and player1.pos.y < max_y) {
         player1.pos.y += 1;
     }
 

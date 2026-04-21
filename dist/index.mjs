@@ -107,6 +107,11 @@ const mouseInput = {
 };
 
 /**
+ * Integer scale used for crisp pixel rendering.
+ */
+let scale = 1;
+
+/**
  * Updates mouse position in game-space coordinates.
  * @param {MouseEvent} e 
  */
@@ -148,13 +153,66 @@ canvas.addEventListener("mouseleave", () => { mouseInput.buttons = 0; });
 // Use right-click for gameplay instead of opening the browser menu.
 canvas.addEventListener("contextmenu", (e) => { e.preventDefault(); });
 
-const INPUT_UP = 0;
-const INPUT_DOWN = 1;
-const INPUT_LEFT = 2;
-const INPUT_RIGHT = 3;
-const INPUT_CONFIRM = 4;
-const INPUT_CANCEL = 5;
-const INPUT_RESET = 6;
+const VBTN_UP = "UP";
+const VBTN_DOWN = "DOWN";
+const VBTN_LEFT = "LEFT";
+const VBTN_RIGHT = "RIGHT";
+const VBTN_A = "A";
+const VBTN_B = "B";
+const VBTN_X = "X";
+const VBTN_Y = "Y";
+const VBTN_L = "L";
+const VBTN_R = "R";
+const VBTN_START = "START";
+const VBTN_SELECT = "SELECT";
+
+const VIRTUAL_BUTTONS = [
+    VBTN_UP,
+    VBTN_DOWN,
+    VBTN_LEFT,
+    VBTN_RIGHT,
+    VBTN_A,
+    VBTN_B,
+    VBTN_X,
+    VBTN_Y,
+    VBTN_L,
+    VBTN_R,
+    VBTN_START,
+    VBTN_SELECT
+];
+
+/**
+ * Physical key -> named virtual button binding map.
+ */
+const KEY_BINDINGS = {
+    ArrowUp: VBTN_UP,
+    ArrowDown: VBTN_DOWN,
+    ArrowLeft: VBTN_LEFT,
+    ArrowRight: VBTN_RIGHT,
+    KeyZ: VBTN_A,
+    KeyX: VBTN_B,
+    KeyA: VBTN_X,
+    KeyS: VBTN_Y,
+    KeyQ: VBTN_L,
+    KeyW: VBTN_R,
+    Enter: VBTN_START,
+    ShiftLeft: VBTN_SELECT
+};
+
+const VBTN_TO_MASK = {
+    [VBTN_UP]: { hi: false, mask: 1 << 0 },
+    [VBTN_DOWN]: { hi: false, mask: 1 << 1 },
+    [VBTN_LEFT]: { hi: false, mask: 1 << 2 },
+    [VBTN_RIGHT]: { hi: false, mask: 1 << 3 },
+    [VBTN_A]: { hi: false, mask: 1 << 4 },
+    [VBTN_B]: { hi: false, mask: 1 << 5 },
+    [VBTN_X]: { hi: false, mask: 1 << 6 },
+    [VBTN_Y]: { hi: false, mask: 1 << 7 },
+    [VBTN_L]: { hi: true, mask: 1 << 0 },
+    [VBTN_R]: { hi: true, mask: 1 << 1 },
+    [VBTN_START]: { hi: true, mask: 1 << 2 },
+    [VBTN_SELECT]: { hi: true, mask: 1 << 3 }
+};
 
 /**
  * Shared input byte buffer in WASM memory.
@@ -166,26 +224,21 @@ const input = new Uint8Array(instance.exports.memory.buffer, instance.exports.in
  */
 const inputView = new DataView(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
 
-/** 
- * Keyboard state mapped to the input layout.
+/**
+ * Physical keyboard state keyed by KeyboardEvent.code.
  */
-const keys = {
-    ArrowUp: false,
-    ArrowDown: false,
-    ArrowLeft: false,
-    ArrowRight: false,
-    KeyZ: false,
-    KeyX: false,
-    KeyR: false
-};
+const physicalKeys = {};
+for (const code of Object.keys(KEY_BINDINGS)) {
+    physicalKeys[code] = false;
+}
 
 /** 
  * Captures key presses.
  * @param {KeyboardEvent} e 
  */
 function registerKeyDown(e) {
-    if (e.code in keys) {
-        keys[e.code] = true;
+    if (e.code in physicalKeys) {
+        physicalKeys[e.code] = true;
         e.preventDefault();
     }
 }
@@ -196,8 +249,8 @@ window.addEventListener("keydown", registerKeyDown);
  * @param {KeyboardEvent} e
  */
 function registerKeyUp(e) {
-    if (e.code in keys) {
-        keys[e.code] = false;
+    if (e.code in physicalKeys) {
+        physicalKeys[e.code] = false;
         e.preventDefault();
     }
 }
@@ -208,11 +261,61 @@ window.addEventListener("keyup", registerKeyUp);
  * @param {FocusEvent} e
  */
 function registerBlur(e) {
-    for (const code in keys) {
-        keys[code] = false;
+    for (const code in physicalKeys) {
+        physicalKeys[code] = false;
     }
 }
 window.addEventListener("blur", registerBlur);
+
+/**
+ * Resolves physical inputs into logical virtual button state.
+ */
+function resolveControllerState() {
+    const state = {};
+    for (const button of VIRTUAL_BUTTONS) {
+        state[button] = false;
+    }
+
+    for (const code in KEY_BINDINGS) {
+        if (!physicalKeys[code]) {
+            continue;
+        }
+        state[KEY_BINDINGS[code]] = true;
+    }
+
+    return state;
+}
+
+/**
+ * Packs named button state into low/high controller register bytes.
+ */
+function packControllerState(state) {
+    let buttonsLo = 0;
+    let buttonsHi = 0;
+
+    for (const button of VIRTUAL_BUTTONS) {
+        if (!state[button]) {
+            continue;
+        }
+
+        const mapping = VBTN_TO_MASK[button];
+        if (mapping.hi) {
+            buttonsHi |= mapping.mask;
+        } else {
+            buttonsLo |= mapping.mask;
+        }
+    }
+
+    return { buttonsLo, buttonsHi };
+}
+
+/** Offsets for packed controller bytes in shared input memory. */
+const BUTTONS_LO_OFFSET = (typeof instance.exports.inputButtonsLoOffset === "function")
+    ? instance.exports.inputButtonsLoOffset()
+    : 0;
+const BUTTONS_HI_OFFSET = (typeof instance.exports.inputButtonsHiOffset === "function")
+    ? instance.exports.inputButtonsHiOffset()
+    : 1;
 
 /** Offsets for u32 mouse fields inside shared input memory. */
 const MOUSE_X_OFFSET = instance.exports.inputMouseXOffset();
@@ -233,23 +336,15 @@ const MOUSE_BUTTONS_OFFSET = instance.exports.inputMouseButtonsOffset();
  * Writes current input state into shared WASM memory.
  */
 function writeInput() {
-    input[INPUT_UP] = keys.ArrowUp ? 1 : 0;
-    input[INPUT_DOWN] = keys.ArrowDown ? 1 : 0;
-    input[INPUT_LEFT] = keys.ArrowLeft ? 1 : 0;
-    input[INPUT_RIGHT] = keys.ArrowRight ? 1 : 0;
-    input[INPUT_CONFIRM] = keys.KeyZ ? 1 : 0;
-    input[INPUT_CANCEL] = keys.KeyX ? 1 : 0;
-    input[INPUT_RESET] = keys.KeyR ? 1 : 0;
+    const logicalController = resolveControllerState();
+    const packedController = packControllerState(logicalController);
+    input[BUTTONS_LO_OFFSET] = packedController.buttonsLo;
+    input[BUTTONS_HI_OFFSET] = packedController.buttonsHi;
 
     inputView.setUint32(MOUSE_X_OFFSET, mouseInput.x >>> 0, true);
     inputView.setUint32(MOUSE_Y_OFFSET, mouseInput.y >>> 0, true);
     inputView.setUint32(MOUSE_BUTTONS_OFFSET, mouseInput.buttons >>> 0, true);
 }
-
-/**
- * Integer scale used for crisp pixel rendering.
- */
-let scale = 1
 
 /** 
  * Resizes the canvas using integer scaling.
