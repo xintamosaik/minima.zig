@@ -171,67 +171,54 @@ canvas.addEventListener("mouseleave", () => { pointerState.buttons = 0; });
 // Use right-click for gameplay instead of opening the browser menu.
 canvas.addEventListener("contextmenu", (e: MouseEvent) => { e.preventDefault(); });
 
-const VBTN_UP = "UP";
-const VBTN_DOWN = "DOWN";
-const VBTN_LEFT = "LEFT";
-const VBTN_RIGHT = "RIGHT";
-const VBTN_A = "A";
-const VBTN_B = "B";
-const VBTN_X = "X";
-const VBTN_Y = "Y";
-const VBTN_L = "L";
-const VBTN_R = "R";
-const VBTN_START = "START";
-const VBTN_SELECT = "SELECT";
+const VBTN = {
+    UP: "UP",
+    DOWN: "DOWN",
+    LEFT: "LEFT",
+    RIGHT: "RIGHT",
+    A: "A",
+    B: "B",
+    X: "X",
+    Y: "Y",
+    L: "L",
+    R: "R",
+    START: "START",
+    SELECT: "SELECT"
+} as const;
 
-const VIRTUAL_BUTTONS = [
-    VBTN_UP,
-    VBTN_DOWN,
-    VBTN_LEFT,
-    VBTN_RIGHT,
-    VBTN_A,
-    VBTN_B,
-    VBTN_X,
-    VBTN_Y,
-    VBTN_L,
-    VBTN_R,
-    VBTN_START,
-    VBTN_SELECT
-] as const;
-
-type VirtualButton = (typeof VIRTUAL_BUTTONS)[number];
+type VirtualButton = typeof VBTN[keyof typeof VBTN];
 
 /**
  * Physical key -> named virtual button binding map.
  */
 const KEY_BINDINGS: Record<string, VirtualButton> = {
-    ArrowUp: VBTN_UP,
-    ArrowDown: VBTN_DOWN,
-    ArrowLeft: VBTN_LEFT,
-    ArrowRight: VBTN_RIGHT,
-    KeyZ: VBTN_A,
-    KeyX: VBTN_B,
-    KeyA: VBTN_X,
-    KeyS: VBTN_Y,
-    KeyQ: VBTN_L,
-    KeyW: VBTN_R,
-    Enter: VBTN_START,
-    ShiftLeft: VBTN_SELECT
+    ArrowUp: VBTN.UP,
+    ArrowDown: VBTN.DOWN,
+    ArrowLeft: VBTN.LEFT,
+    ArrowRight: VBTN.RIGHT,
+    KeyZ: VBTN.A,
+    KeyX: VBTN.B,
+    KeyA: VBTN.X,
+    KeyS: VBTN.Y,
+    KeyQ: VBTN.L,
+    KeyW: VBTN.R,
+    Enter: VBTN.START,
+    ShiftLeft: VBTN.SELECT
 };
 
 const VBTN_TO_MASK: Record<VirtualButton, { hi: boolean; mask: number }> = {
-    [VBTN_UP]: { hi: false, mask: 1 << 0 },
-    [VBTN_DOWN]: { hi: false, mask: 1 << 1 },
-    [VBTN_LEFT]: { hi: false, mask: 1 << 2 },
-    [VBTN_RIGHT]: { hi: false, mask: 1 << 3 },
-    [VBTN_A]: { hi: false, mask: 1 << 4 },
-    [VBTN_B]: { hi: false, mask: 1 << 5 },
-    [VBTN_X]: { hi: false, mask: 1 << 6 },
-    [VBTN_Y]: { hi: false, mask: 1 << 7 },
-    [VBTN_L]: { hi: true, mask: 1 << 0 },
-    [VBTN_R]: { hi: true, mask: 1 << 1 },
-    [VBTN_START]: { hi: true, mask: 1 << 2 },
-    [VBTN_SELECT]: { hi: true, mask: 1 << 3 }
+    [VBTN.UP]: { hi: false, mask: 1 << 0 },
+    [VBTN.DOWN]: { hi: false, mask: 1 << 1 },
+    [VBTN.LEFT]: { hi: false, mask: 1 << 2 },
+    [VBTN.RIGHT]: { hi: false, mask: 1 << 3 },
+    [VBTN.A]: { hi: false, mask: 1 << 4 },
+    [VBTN.B]: { hi: false, mask: 1 << 5 },
+    [VBTN.X]: { hi: false, mask: 1 << 6 },
+    [VBTN.Y]: { hi: false, mask: 1 << 7 },
+    [VBTN.L]: { hi: true, mask: 1 << 0 },
+    [VBTN.R]: { hi: true, mask: 1 << 1 },
+    [VBTN.START]: { hi: true, mask: 1 << 2 },
+    [VBTN.SELECT]: { hi: true, mask: 1 << 3 }
 };
 
 /**
