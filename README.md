@@ -30,7 +30,7 @@ A tiny browser-hosted Zig/WASM runtime with explicit shared-memory protocols for
 
 - Build artifacts first
 - Start server: `go run main.go`
-- Open the served page in your browser
+- Open the served page in your browser at http://localhost:3000
 
 ## Protocol Docs
 
