@@ -278,7 +278,6 @@ window.addEventListener("keyup", registerKeyUp);
 
 /** 
  * Clears key state on focus loss to avoid sticky input.
- * @param {FocusEvent} e
  */
 function registerBlur(): void {
     for (const code in physicalKeys) {
@@ -288,36 +287,18 @@ function registerBlur(): void {
 window.addEventListener("blur", registerBlur);
 
 /**
- * Resolves physical inputs into logical virtual button state.
+ * Packs active key bindings directly into low/high controller register bytes.
  */
-function resolveControllerState(): Record<VirtualButton, boolean> {
-    const state = {} as Record<VirtualButton, boolean>;
-    for (const button of VIRTUAL_BUTTONS) {
-        state[button] = false;
-    }
+function packControllerStateFromBindings(): { buttonsLo: number; buttonsHi: number } {
+    let buttonsLo = 0;
+    let buttonsHi = 0;
 
     for (const code in KEY_BINDINGS) {
         if (!physicalKeys[code]) {
             continue;
         }
-        state[KEY_BINDINGS[code]] = true;
-    }
 
-    return state;
-}
-
-/**
- * Packs named button state into low/high controller register bytes.
- */
-function packControllerState(state: Record<VirtualButton, boolean>): { buttonsLo: number; buttonsHi: number } {
-    let buttonsLo = 0;
-    let buttonsHi = 0;
-
-    for (const button of VIRTUAL_BUTTONS) {
-        if (!state[button]) {
-            continue;
-        }
-
+        const button = KEY_BINDINGS[code];
         const mapping = VBTN_TO_MASK[button];
         if (mapping.hi) {
             buttonsHi |= mapping.mask;
@@ -356,8 +337,7 @@ const MOUSE_BUTTONS_OFFSET = wasm.inputMouseButtonsOffset();
  * Writes current input state into shared WASM memory.
  */
 function writeInput() {
-    const logicalController = resolveControllerState();
-    const packedController = packControllerState(logicalController);
+    const packedController = packControllerStateFromBindings();
     input[BUTTONS_LO_OFFSET] = packedController.buttonsLo;
     input[BUTTONS_HI_OFFSET] = packedController.buttonsHi;
 
