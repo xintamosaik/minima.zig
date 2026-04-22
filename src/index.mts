@@ -50,17 +50,14 @@ const wasm = instance.exports as unknown as WasmExports;
 
 /**
  * Game width used to size the canvas.
- * 
- * @type {number}
  */
-const width = wasm.width();
+const width: number = wasm.width();
 
 /**
  * Game height used to size the canvas.
- * 
- * @type {number}
+
  */
-const height = wasm.height();
+const height: number = wasm.height();
 
 /**
  * Canvas that displays the WASM frame buffer.
@@ -240,8 +237,7 @@ for (const code of Object.keys(KEY_BINDINGS)) {
 }
 
 /** 
- * Captures key presses.
- * @param {KeyboardEvent} e 
+ * Captures key presses 
  */
 function registerKeyDown(e: KeyboardEvent): void {
     if (e.code in physicalKeys) {
@@ -253,7 +249,6 @@ window.addEventListener("keydown", registerKeyDown);
 
 /**
  * Captures key releases.
- * @param {KeyboardEvent} e
  */
 function registerKeyUp(e: KeyboardEvent): void {
     if (e.code in physicalKeys) {
@@ -306,15 +301,14 @@ const MOUSE_X_OFFSET = wasm.inputMouseXOffset();
 
 /** 
  * Mouse Y offset within the input memory region, as provided by the WASM module.
- * @type {number}
  */
-const MOUSE_Y_OFFSET = wasm.inputMouseYOffset();
+const MOUSE_Y_OFFSET: number = wasm.inputMouseYOffset();
 
 /** 
  * Mouse buttons offset within the input memory region, as provided by the WASM module.
- * @type {number}
+
  */
-const MOUSE_BUTTONS_OFFSET = wasm.inputMouseButtonsOffset();
+const MOUSE_BUTTONS_OFFSET: number = wasm.inputMouseButtonsOffset();
 
 /** 
  * Writes current input state into shared WASM memory.
@@ -347,27 +341,27 @@ wasm.init();
 /**
  * Target simulation ticks per second.
  */
-const TICK_RATE = 60;
+const TICK_RATE: number = 60;
 
 /**
  * Fixed timestep duration in milliseconds.
  */
-const FIXED_STEP_MS = 1000 / TICK_RATE;
+const FIXED_STEP_MS: number = 1000 / TICK_RATE;
 
 /**
  * Max fixed steps processed in one frame.
  */
-const MAX_CATCH_UP_STEPS = 5;
+const MAX_CATCH_UP_STEPS: number = 5;
 
 /**
  * Accumulated unprocessed frame time for fixed-step updates.
  */
-let accumulatorMs = 0;
+let accumulatorMs: number = 0;
 
 /**
  * Timestamp of the previous frame.
  */
-let lastFrameTimeMs = 0;
+let lastFrameTimeMs: number = 0;
 
 /** Main frame loop: write input, tick game, and present frame. */
 function loop(nowMs: number): void {
@@ -375,7 +369,7 @@ function loop(nowMs: number): void {
         lastFrameTimeMs = nowMs;
     }
 
-    let frameDeltaMs = nowMs - lastFrameTimeMs;
+    let frameDeltaMs: number = nowMs - lastFrameTimeMs;
     lastFrameTimeMs = nowMs;
     if (frameDeltaMs > 250) {
         frameDeltaMs = 250;
@@ -386,7 +380,7 @@ function loop(nowMs: number): void {
     // Input is sampled once per rendered frame, then reused by all fixed ticks in this frame.
     writeInput();
 
-    let steps = 0;
+    let steps: number = 0;
     while (accumulatorMs >= FIXED_STEP_MS && steps < MAX_CATCH_UP_STEPS) {
         wasm.tick();
         accumulatorMs -= FIXED_STEP_MS;
