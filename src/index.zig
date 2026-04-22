@@ -97,12 +97,23 @@ export fn inputMouseButtonsOffset() u32 {
 const MOUSE_BUTTON_LEFT: u32 = 1;
 const MOUSE_BUTTON_RIGHT: u32 = 4;
 
+// Controller low-byte bits.
 const BTN_UP: u8 = 1 << 0;
 const BTN_DOWN: u8 = 1 << 1;
 const BTN_LEFT: u8 = 1 << 2;
 const BTN_RIGHT: u8 = 1 << 3;
+const BTN_A: u8 = 1 << 4;
+const BTN_B: u8 = 1 << 5;
+const BTN_X: u8 = 1 << 6;
+const BTN_Y: u8 = 1 << 7;
 
-/// ATTENTION: THESE SHOULD NOT BE WRITTEN TO BY ZIG.
+// Controller high-byte bits.
+const BTN_L: u8 = 1 << 0;
+const BTN_R: u8 = 1 << 1;
+const BTN_START: u8 = 1 << 2;
+const BTN_SELECT: u8 = 1 << 3;
+
+/// Host-owned pointer fields written by JS each frame.
 /// Mouse coordinate (x)
 export fn mouse_x() u32 {
     return input_data.mouse_x;

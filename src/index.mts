@@ -8,8 +8,8 @@ type WasmExports = {
     frameLen: () => number;
     inputPtr: () => number;
     inputLen: () => number;
-    inputButtonsLoOffset?: () => number;
-    inputButtonsHiOffset?: () => number;
+    inputButtonsLoOffset: () => number;
+    inputButtonsHiOffset: () => number;
     inputMouseXOffset: () => number;
     inputMouseYOffset: () => number;
     inputMouseButtonsOffset: () => number;
@@ -118,7 +118,7 @@ function mouseButtonBit(button: number): number {
     }
 }
 
-const mouseInput: { x: number; y: number; buttons: number } = {
+const pointerState: { x: number; y: number; buttons: number } = {
     x: 0,
     y: 0,
     buttons: 0
@@ -134,8 +134,8 @@ let scale = 1;
  * @param {MouseEvent} e 
  */
 function registerMouseMovement(e: MouseEvent): void {
-    mouseInput.x = Math.floor(e.offsetX / scale);
-    mouseInput.y = Math.floor(e.offsetY / scale);
+    pointerState.x = Math.floor(e.offsetX / scale);
+    pointerState.y = Math.floor(e.offsetY / scale);
 }
 canvas.addEventListener("mousemove", registerMouseMovement);
 
@@ -147,7 +147,7 @@ function registerMouseDown(e: MouseEvent): void {
     registerMouseMovement(e);
     const bit = mouseButtonBit(e.button);
     if (bit !== 0) {
-        mouseInput.buttons |= bit;
+        pointerState.buttons |= bit;
     }
 }
 canvas.addEventListener("mousedown", registerMouseDown);
@@ -160,13 +160,13 @@ function registerMouseUp(e: MouseEvent): void {
     registerMouseMovement(e);
     const bit = mouseButtonBit(e.button);
     if (bit !== 0) {
-        mouseInput.buttons &= ~bit;
+        pointerState.buttons &= ~bit;
     }
 }
 canvas.addEventListener("mouseup", registerMouseUp);
 
 // Clear button state when release happens outside the canvas.
-canvas.addEventListener("mouseleave", () => { mouseInput.buttons = 0; });
+canvas.addEventListener("mouseleave", () => { pointerState.buttons = 0; });
 
 // Use right-click for gameplay instead of opening the browser menu.
 canvas.addEventListener("contextmenu", (e: MouseEvent) => { e.preventDefault(); });
@@ -311,12 +311,8 @@ function packControllerStateFromBindings(): { buttonsLo: number; buttonsHi: numb
 }
 
 /** Offsets for packed controller bytes in shared input memory. */
-const BUTTONS_LO_OFFSET = (typeof wasm.inputButtonsLoOffset === "function")
-    ? wasm.inputButtonsLoOffset()
-    : 0;
-const BUTTONS_HI_OFFSET = (typeof wasm.inputButtonsHiOffset === "function")
-    ? wasm.inputButtonsHiOffset()
-    : 1;
+const BUTTONS_LO_OFFSET = wasm.inputButtonsLoOffset();
+const BUTTONS_HI_OFFSET = wasm.inputButtonsHiOffset();
 
 /** Offsets for u32 mouse fields inside shared input memory. */
 const MOUSE_X_OFFSET = wasm.inputMouseXOffset();
@@ -341,9 +337,9 @@ function writeInput() {
     input[BUTTONS_LO_OFFSET] = packedController.buttonsLo;
     input[BUTTONS_HI_OFFSET] = packedController.buttonsHi;
 
-    inputView.setUint32(MOUSE_X_OFFSET, mouseInput.x >>> 0, true);
-    inputView.setUint32(MOUSE_Y_OFFSET, mouseInput.y >>> 0, true);
-    inputView.setUint32(MOUSE_BUTTONS_OFFSET, mouseInput.buttons >>> 0, true);
+    inputView.setUint32(MOUSE_X_OFFSET, pointerState.x >>> 0, true);
+    inputView.setUint32(MOUSE_Y_OFFSET, pointerState.y >>> 0, true);
+    inputView.setUint32(MOUSE_BUTTONS_OFFSET, pointerState.buttons >>> 0, true);
 }
 
 /** 
