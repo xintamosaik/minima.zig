@@ -1,2 +1,4 @@
 dist/index.wasm
+dist/index.mjs
+dist/index.mjs.map
 node_modules/
