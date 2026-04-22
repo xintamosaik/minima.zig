@@ -37,7 +37,7 @@ const importObject = {
 /**
  * Fetch compiled WASM module.
  */
-void (async function boot(): Promise<void> {
+void (async function main(): Promise<void> {
     const response = await fetch("./index.wasm");
     if (!response.ok) {
         console.error(`Failed to fetch wasm: ${response.status} ${response.statusText}`);
