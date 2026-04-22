@@ -4,6 +4,7 @@ body {
     display: grid; 
     place-items: center; 
     background: #111;
+    font-family: sans-serif;
 }
 
 canvas#game {
