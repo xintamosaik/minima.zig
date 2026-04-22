@@ -137,14 +137,6 @@ const Point = struct {
     y: u32,
 };
 
-/// Axis-aligned rectangle used for drawing and collision.
-const Rect = struct {
-    x: u32,
-    y: u32,
-    w: u32,
-    h: u32,
-};
-
 // PLAYABLE CHARACTER(S)
 
 /// Minimal player state.
