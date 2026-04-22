@@ -9,6 +9,7 @@ A tiny browser-hosted Zig/WASM runtime with explicit shared-memory protocols for
 - Shared RGBA frame buffer for presentation
 - Shared input block for host-driven controls
 - Fixed-step simulation with browser frame presentation
+- see https://xintamosaik.github.io/minima.zig/ for a live demo
 
 ## Project Layout
 
