@@ -1,5 +1,23 @@
 "use strict";
 
+type WasmExports = {
+    width: () => number;
+    height: () => number;
+    memory: WebAssembly.Memory;
+    framePtr: () => number;
+    frameLen: () => number;
+    inputPtr: () => number;
+    inputLen: () => number;
+    inputButtonsLoOffset?: () => number;
+    inputButtonsHiOffset?: () => number;
+    inputMouseXOffset: () => number;
+    inputMouseYOffset: () => number;
+    inputMouseButtonsOffset: () => number;
+    init: () => void;
+    tick: () => void;
+    render: () => void;
+};
+
 /**
  * Exposed to WASM for debug logging.
  * 
@@ -21,38 +39,37 @@ const importObject = {
  */
 const response = await fetch("./index.wasm");
 if (!response.ok) {
-    console.error(`Failed to fetch wasm: ${response.statusText}`);
+    throw new Error(`Failed to fetch wasm: ${response.statusText}`);
 }
 
 /**
  * Instance exposes WASM exports and memory.
  */
 const { instance } = await WebAssembly.instantiateStreaming(response, importObject);
-if (!instance) {
-    console.error("Failed to instantiate wasm");
-}
+const wasm = instance.exports as unknown as WasmExports;
 
 /**
  * Game width used to size the canvas.
  * 
  * @type {number}
  */
-const width = instance.exports.width();
+const width = wasm.width();
 
 /**
  * Game height used to size the canvas.
  * 
  * @type {number}
  */
-const height = instance.exports.height();
+const height = wasm.height();
 
 /**
  * Canvas that displays the WASM frame buffer.
  */
-const canvas = document.getElementById("game");
-if (!canvas) {
-    console.error("Failed to find canvas element");
+const canvasEl = document.getElementById("game");
+if (!(canvasEl instanceof HTMLCanvasElement)) {
+    throw new Error("Failed to find canvas element");
 }
+const canvas = canvasEl;
 canvas.width = width; // Sync width
 canvas.height = height; // Sync height
 
@@ -61,14 +78,15 @@ canvas.height = height; // Sync height
  */
 const ctx = canvas.getContext("2d");
 if (!ctx) {
-    console.error("Failed to get canvas context");
+    throw new Error("Failed to get canvas context");
 }
+const renderCtx: CanvasRenderingContext2D = ctx;
 
 /**
  * Direct byte view of the WASM frame buffer.
  * Zig writes u32 RGBA pixels in little-endian order, matching ImageData layout.
  */
-const frame = new Uint8ClampedArray(instance.exports.memory.buffer, instance.exports.framePtr(), instance.exports.frameLen());
+const frame = new Uint8ClampedArray(wasm.memory.buffer, wasm.framePtr(), wasm.frameLen());
 
 /**
  * ImageData wrapper for the shared frame buffer.
@@ -87,7 +105,7 @@ const MOUSE_BUTTON_RIGHT = 4;
  * Converts DOM mouse button index to WASM bitmask.
  * @param {number} button - The DOM mouse button index.
  */
-function mouseButtonBit(button) {
+function mouseButtonBit(button: number): number {
     switch (button) {
         case BUTTON_LEFT:
             return MOUSE_BUTTON_LEFT;
@@ -100,7 +118,7 @@ function mouseButtonBit(button) {
     }
 }
 
-const mouseInput = {
+const mouseInput: { x: number; y: number; buttons: number } = {
     x: 0,
     y: 0,
     buttons: 0
@@ -115,7 +133,7 @@ let scale = 1;
  * Updates mouse position in game-space coordinates.
  * @param {MouseEvent} e 
  */
-function registerMouseMovement(e) {
+function registerMouseMovement(e: MouseEvent): void {
     mouseInput.x = Math.floor(e.offsetX / scale);
     mouseInput.y = Math.floor(e.offsetY / scale);
 }
@@ -125,7 +143,7 @@ canvas.addEventListener("mousemove", registerMouseMovement);
  * Updates position and sets the pressed mouse button bit.
  * @param {MouseEvent} e 
  */
-function registerMouseDown(e) {
+function registerMouseDown(e: MouseEvent): void {
     registerMouseMovement(e);
     const bit = mouseButtonBit(e.button);
     if (bit !== 0) {
@@ -138,7 +156,7 @@ canvas.addEventListener("mousedown", registerMouseDown);
  * Updates position and clears the released mouse button bit.
  * @param {MouseEvent} e 
  */
-function registerMouseUp(e) {
+function registerMouseUp(e: MouseEvent): void {
     registerMouseMovement(e);
     const bit = mouseButtonBit(e.button);
     if (bit !== 0) {
@@ -151,7 +169,7 @@ canvas.addEventListener("mouseup", registerMouseUp);
 canvas.addEventListener("mouseleave", () => { mouseInput.buttons = 0; });
 
 // Use right-click for gameplay instead of opening the browser menu.
-canvas.addEventListener("contextmenu", (e) => { e.preventDefault(); });
+canvas.addEventListener("contextmenu", (e: MouseEvent) => { e.preventDefault(); });
 
 const VBTN_UP = "UP";
 const VBTN_DOWN = "DOWN";
@@ -179,12 +197,14 @@ const VIRTUAL_BUTTONS = [
     VBTN_R,
     VBTN_START,
     VBTN_SELECT
-];
+] as const;
+
+type VirtualButton = (typeof VIRTUAL_BUTTONS)[number];
 
 /**
  * Physical key -> named virtual button binding map.
  */
-const KEY_BINDINGS = {
+const KEY_BINDINGS: Record<string, VirtualButton> = {
     ArrowUp: VBTN_UP,
     ArrowDown: VBTN_DOWN,
     ArrowLeft: VBTN_LEFT,
@@ -199,7 +219,7 @@ const KEY_BINDINGS = {
     ShiftLeft: VBTN_SELECT
 };
 
-const VBTN_TO_MASK = {
+const VBTN_TO_MASK: Record<VirtualButton, { hi: boolean; mask: number }> = {
     [VBTN_UP]: { hi: false, mask: 1 << 0 },
     [VBTN_DOWN]: { hi: false, mask: 1 << 1 },
     [VBTN_LEFT]: { hi: false, mask: 1 << 2 },
@@ -217,17 +237,17 @@ const VBTN_TO_MASK = {
 /**
  * Shared input byte buffer in WASM memory.
  */
-const input = new Uint8Array(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
+const input = new Uint8Array(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
 
 /**
  * DataView for writing u32 mouse fields in shared input memory.
  */
-const inputView = new DataView(instance.exports.memory.buffer, instance.exports.inputPtr(), instance.exports.inputLen());
+const inputView = new DataView(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
 
 /**
  * Physical keyboard state keyed by KeyboardEvent.code.
  */
-const physicalKeys = {};
+const physicalKeys: Record<string, boolean> = {};
 for (const code of Object.keys(KEY_BINDINGS)) {
     physicalKeys[code] = false;
 }
@@ -236,7 +256,7 @@ for (const code of Object.keys(KEY_BINDINGS)) {
  * Captures key presses.
  * @param {KeyboardEvent} e 
  */
-function registerKeyDown(e) {
+function registerKeyDown(e: KeyboardEvent): void {
     if (e.code in physicalKeys) {
         physicalKeys[e.code] = true;
         e.preventDefault();
@@ -248,7 +268,7 @@ window.addEventListener("keydown", registerKeyDown);
  * Captures key releases.
  * @param {KeyboardEvent} e
  */
-function registerKeyUp(e) {
+function registerKeyUp(e: KeyboardEvent): void {
     if (e.code in physicalKeys) {
         physicalKeys[e.code] = false;
         e.preventDefault();
@@ -260,7 +280,7 @@ window.addEventListener("keyup", registerKeyUp);
  * Clears key state on focus loss to avoid sticky input.
  * @param {FocusEvent} e
  */
-function registerBlur(e) {
+function registerBlur(): void {
     for (const code in physicalKeys) {
         physicalKeys[code] = false;
     }
@@ -270,8 +290,8 @@ window.addEventListener("blur", registerBlur);
 /**
  * Resolves physical inputs into logical virtual button state.
  */
-function resolveControllerState() {
-    const state = {};
+function resolveControllerState(): Record<VirtualButton, boolean> {
+    const state = {} as Record<VirtualButton, boolean>;
     for (const button of VIRTUAL_BUTTONS) {
         state[button] = false;
     }
@@ -289,7 +309,7 @@ function resolveControllerState() {
 /**
  * Packs named button state into low/high controller register bytes.
  */
-function packControllerState(state) {
+function packControllerState(state: Record<VirtualButton, boolean>): { buttonsLo: number; buttonsHi: number } {
     let buttonsLo = 0;
     let buttonsHi = 0;
 
@@ -310,27 +330,27 @@ function packControllerState(state) {
 }
 
 /** Offsets for packed controller bytes in shared input memory. */
-const BUTTONS_LO_OFFSET = (typeof instance.exports.inputButtonsLoOffset === "function")
-    ? instance.exports.inputButtonsLoOffset()
+const BUTTONS_LO_OFFSET = (typeof wasm.inputButtonsLoOffset === "function")
+    ? wasm.inputButtonsLoOffset()
     : 0;
-const BUTTONS_HI_OFFSET = (typeof instance.exports.inputButtonsHiOffset === "function")
-    ? instance.exports.inputButtonsHiOffset()
+const BUTTONS_HI_OFFSET = (typeof wasm.inputButtonsHiOffset === "function")
+    ? wasm.inputButtonsHiOffset()
     : 1;
 
 /** Offsets for u32 mouse fields inside shared input memory. */
-const MOUSE_X_OFFSET = instance.exports.inputMouseXOffset();
+const MOUSE_X_OFFSET = wasm.inputMouseXOffset();
 
 /** 
  * Mouse Y offset within the input memory region, as provided by the WASM module.
  * @type {number}
  */
-const MOUSE_Y_OFFSET = instance.exports.inputMouseYOffset();
+const MOUSE_Y_OFFSET = wasm.inputMouseYOffset();
 
 /** 
  * Mouse buttons offset within the input memory region, as provided by the WASM module.
  * @type {number}
  */
-const MOUSE_BUTTONS_OFFSET = instance.exports.inputMouseButtonsOffset();
+const MOUSE_BUTTONS_OFFSET = wasm.inputMouseButtonsOffset();
 
 /** 
  * Writes current input state into shared WASM memory.
@@ -359,7 +379,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-instance.exports.init();
+wasm.init();
 
 /**
  * Target simulation ticks per second.
@@ -387,7 +407,7 @@ let accumulatorMs = 0;
 let lastFrameTimeMs = 0;
 
 /** Main frame loop: write input, tick game, and present frame. */
-function loop(nowMs) {
+function loop(nowMs: number): void {
     if (lastFrameTimeMs === 0) {
         lastFrameTimeMs = nowMs;
     }
@@ -405,7 +425,7 @@ function loop(nowMs) {
 
     let steps = 0;
     while (accumulatorMs >= FIXED_STEP_MS && steps < MAX_CATCH_UP_STEPS) {
-        instance.exports.tick();
+        wasm.tick();
         accumulatorMs -= FIXED_STEP_MS;
         steps += 1;
     }
@@ -413,9 +433,9 @@ function loop(nowMs) {
         accumulatorMs = FIXED_STEP_MS;
     }
 
-    instance.exports.render();
+    wasm.render();
 
-    ctx.putImageData(image, 0, 0);
+    renderCtx.putImageData(image, 0, 0);
     requestAnimationFrame(loop);
 }
 
