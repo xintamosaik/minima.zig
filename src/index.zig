@@ -1,56 +1,19 @@
 extern "env" fn console_log(value: u32) void;
 
 const renderer = @import("render.zig");     
-const constants = @import("constants.zig");       
+const grid = @import("grid.zig");       
 const input = @import("input.zig");
-
-//                                                                      
-// ████████   ██████   ██        ████████  ███  ███    ▒██▒    ██████▒  
-// ████████   ██████   ██        ████████  ███  ███    ▓██▓    ███████▒ 
-//    ██        ██     ██        ██        ███▒▒███    ████    ██   ▒██ 
-//    ██        ██     ██        ██        ███▓▓███    ████    ██    ██ 
-//    ██        ██     ██        ██        ██▓██▓██   ▒█▓▓█▒   ██   ▒██ 
-//    ██        ██     ██        ███████   ██▒██▒██   ▓█▒▒█▓   ███████▒ 
-//    ██        ██     ██        ███████   ██░██░██   ██  ██   ██████▒  
-//    ██        ██     ██        ██        ██ ██ ██   ██████   ██       
-//    ██        ██     ██        ██        ██    ██  ░██████░  ██       
-//    ██        ██     ██        ██        ██    ██  ▒██  ██▒  ██       
-//    ██      ██████   ████████  ████████  ██    ██  ███  ███  ██       
-//    ██      ██████   ████████  ████████  ██    ██  ██▒  ▒██  ██       
-//                                                                      
-//                                                                      
-
-
-                                                                                                                  
-//                                                            
-//  ▒████▒     ▒████▒  ██████▒   ████████  ████████  ███   ██ 
-// ▒██████    ▓██████  ███████▓  ████████  ████████  ███   ██ 
-// ██▒  ▒█   ▒██▒  ░█  ██   ▒██  ██        ██        ███▒  ██ 
-// ██        ██▓       ██    ██  ██        ██        ████  ██ 
-// ███▒      ██░       ██   ▒██  ██        ██        ██▒█▒ ██ 
-// ▒█████▒   ██        ███████▒  ███████   ███████   ██ ██ ██ 
-//  ░█████▒  ██        ██████▓   ███████   ███████   ██ ██ ██ 
-//     ▒███  ██░       ██  ▓██░  ██        ██        ██ ▒█▒██ 
-//       ██  ██▓       ██   ██▓  ██        ██        ██  ████ 
-// █▒░  ▒██  ▒██▒  ░█  ██   ▒██  ██        ██        ██  ▒███ 
-// ███████▒   ▓██████  ██    ██▒ ████████  ████████  ██   ███ 
-// ░█████▒     ▒████▒  ██    ███ ████████  ████████  ██   ███ 
-//                                                            
-//                                                            
-
+const colors = @import("colors.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
     return renderer.SCREEN_W;
 }
 
-
 /// Exported for calculations in JS (Height);
 export fn height() i32 {
     return renderer.SCREEN_H;
 }
-
-
 
 /// Exports the byte offset of the frame buffer for JS to write pixel data into.
 export fn framePtr() u32 {
@@ -77,20 +40,9 @@ export fn frameLen() u32 {
 //                                                  
 //                                                  
 
-/// C-layout struct for input data, written to by JS.
-/// The `extern` attribute ensures C-compatible layout and stable byte offsets.
-const InputData = extern struct {
-    buttons_lo: u8,
-    buttons_hi: u8,
-    _reserved: u16,
-    mouse_x: u32,
-    mouse_y: u32,
-    mouse_buttons: u32,
-};
-
 /// C-layout input block keeps byte offsets stable for JS DataView writes.
 /// JS writes input state into this struct each frame, and Zig reads from it in `tick()`.
-export var input_data: InputData = .{
+export var input_data: input.InputData = .{
     .buttons_lo = 0,
     .buttons_hi = 0,
     ._reserved = 0,
@@ -105,26 +57,25 @@ export fn inputPtr() u32 {
 }
 /// Exports the byte length of the input data block for JS memory management.
 export fn inputLen() u32 {
-    return @sizeOf(InputData);
+    return @sizeOf(input.InputData);
 }
 
 /// Exports byte offsets for mouse fields so JS stays in sync with InputData layout.
 export fn inputButtonsLoOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(InputData, "buttons_lo")));
+    return @as(u32, @intCast(@offsetOf(input.InputData, "buttons_lo")));
 }
 export fn inputButtonsHiOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(InputData, "buttons_hi")));
+    return @as(u32, @intCast(@offsetOf(input.InputData, "buttons_hi")));
 }
 export fn inputMouseXOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(InputData, "mouse_x")));
+    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_x")));
 }
 export fn inputMouseYOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(InputData, "mouse_y")));
+    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_y")));
 }
 export fn inputMouseButtonsOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(InputData, "mouse_buttons")));
+    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_buttons")));
 }
-
 
 /// Host-owned pointer fields written by JS each frame.
 /// Mouse coordinate (x)
@@ -142,14 +93,7 @@ export fn mouse_buttons() u32 {
     return input_data.mouse_buttons;
 }
 
-// 2D GEOMETRY
-
-/// 2D position.
-const Point = struct {
-    x: u32,
-    y: u32,
-};
-                                                                      
+                                                                  
 //                                                                      
 // ██████▒   ██          ▒██▒   ███    ███ ████████  ██████▒    ▒████▒  
 // ███████▒  ██          ▓██▓   ░██▒  ▒██░ ████████  ███████▓  ▒██████  
@@ -165,7 +109,14 @@ const Point = struct {
 // ██        ████████  ██▒  ▒██     ██     ████████  ██    ███ ░█████▒  
 //                                                                      
 //                                                                      
+// 2D GEOMETRY
 
+/// 2D position.
+const Point = struct {
+    x: u32,
+    y: u32,
+};
+    
 /// Minimal player state.
 const Player = struct {
     pos: Point,
@@ -177,7 +128,7 @@ const Player = struct {
 /// Single active player.
 var player1 = Player{
     .pos = Point{ .x = 60, .y = 40 },
-    .color = C64_BLUE,
+    .color = colors.C64_BLUE,
 };
                                                   
 //                                                  
@@ -196,27 +147,8 @@ var player1 = Player{
 //                                                  
 //                                                  
 
-/// Tile types used by the world grid.
-const TileKind = enum(u8) {
-    light,
-    dark,
-    wall,
-};
 
 
-/// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [constants.GRID_LEN]TileKind = [_]TileKind{.dark} ** constants.GRID_LEN;
-
-/// Converts tile coordinates to a linear index.
-fn tileIndex(tx: u32, ty: u32) usize {
-    return @as(usize, @intCast(ty * constants.GRID_W + tx));
-}
-
-/// Sets one tile if coordinates are inside the grid.
-fn setTile(tx: u32, ty: u32, kind: TileKind) void {
-    if (tx >= constants.GRID_W or ty >= constants.GRID_H) return;
-    world_tiles[tileIndex(tx, ty)] = kind;
-}
 
 /// Advances simulation by one fixed step.
 export fn tick() void {
@@ -241,102 +173,50 @@ export fn tick() void {
     }
 
     if (mousebuttons > 0) {
-        const tx = if (mousex >= renderer.SCREEN_W) (constants.GRID_W - 1) else (mousex / constants.TILE_SIZE);
-        const ty = if (mousey >= renderer.SCREEN_H) (constants.GRID_H - 1) else (mousey / constants.TILE_SIZE);
+        const tx = if (mousex >= renderer.SCREEN_W) (grid.GRID_W - 1) else (mousex / grid.TILE_SIZE);
+        const ty = if (mousey >= renderer.SCREEN_H) (grid.GRID_H - 1) else (mousey / grid.TILE_SIZE);
 
         if ((mousebuttons & input.MOUSE_BUTTON_LEFT) != 0) {
-            setTile(tx, ty, .light);
+            grid.setTile(tx, ty, .light);
         }
         if ((mousebuttons & input.MOUSE_BUTTON_RIGHT) != 0) {
-            setTile(tx, ty, .dark);
+            grid.setTile(tx, ty, .dark);
         }
         if ((mousebuttons & input.MOUSE_BUTTON_MIDDLE) != 0) {
-            setTile(tx, ty, .wall);
+            grid.setTile(tx, ty, .wall);
         }
     }
 }
-                                                                                          
-//                                                                                          
-// ██████▒   ████████  ███   ██  █████▒    ████████  ██████▒    ██████   ███   ██    ▒████▒ 
-// ███████▓  ████████  ███   ██  ███████   ████████  ███████▓   ██████   ███   ██   ▓██████ 
-// ██   ▒██  ██        ███▒  ██  ██  ▒██▒  ██        ██   ▒██     ██     ███▒  ██  ▒██▒  ░█ 
-// ██    ██  ██        ████  ██  ██   ▒██  ██        ██    ██     ██     ████  ██  ██▒      
-// ██   ▒██  ██        ██▒█▒ ██  ██   ░██  ██        ██   ▒██     ██     ██▒█▒ ██  ██░      
-// ███████▒  ███████   ██ ██ ██  ██    ██  ███████   ███████▒     ██     ██ ██ ██  ██       
-// ██████▓   ███████   ██ ██ ██  ██    ██  ███████   ██████▓      ██     ██ ██ ██  ██  ████ 
-// ██  ▓██░  ██        ██ ▒█▒██  ██   ░██  ██        ██  ▓██░     ██     ██ ▒█▒██  ██░ ████ 
-// ██   ██▓  ██        ██  ████  ██   ▒██  ██        ██   ██▓     ██     ██  ████  ██▒   ██ 
-// ██   ▒██  ██        ██  ▒███  ██  ▒██▒  ██        ██   ▒██     ██     ██  ▒███  ▒██▒  ██ 
-// ██    ██▒ ████████  ██   ███  ███████   ████████  ██    ██▒  ██████   ██   ███   ███████ 
-// ██    ███ ████████  ██   ███  █████▒    ████████  ██    ███  ██████   ██   ███    ▒████░ 
-//
-//
-
-// Commodore 64 palette (Pepto-inspired RGB values)
-const C64_BLACK: u32 = renderer.rgba(0x00, 0x00, 0x00, 0xFF);
-const C64_WHITE: u32 = renderer.rgba(0xFF, 0xFF, 0xFF, 0xFF);
-const C64_RED: u32 = renderer.rgba(0x68, 0x37, 0x2B, 0xFF);
-const C64_CYAN: u32 = renderer.rgba(0x70, 0xA4, 0xB2, 0xFF);
-const C64_PURPLE: u32 = renderer.rgba(0x6F, 0x3D, 0x86, 0xFF);
-const C64_GREEN: u32 = renderer.rgba(0x58, 0x8D, 0x43, 0xFF);
-const C64_BLUE: u32 = renderer.rgba(0x35, 0x28, 0x79, 0xFF);
-const C64_YELLOW: u32 = renderer.rgba(0xB8, 0xC7, 0x6F, 0xFF);
-const C64_ORANGE: u32 = renderer.rgba(0x6F, 0x4F, 0x25, 0xFF);
-const C64_BROWN: u32 = renderer.rgba(0x43, 0x39, 0x00, 0xFF);
-const C64_LIGHT_RED: u32 = renderer.rgba(0x9A, 0x67, 0x59, 0xFF);
-const C64_DARK_GRAY: u32 = renderer.rgba(0x44, 0x44, 0x44, 0xFF);
-const C64_GRAY: u32 = renderer.rgba(0x6C, 0x6C, 0x6C, 0xFF);
-const C64_LIGHT_GREEN: u32 = renderer.rgba(0x9A, 0xD2, 0x84, 0xFF);
-const C64_LIGHT_BLUE: u32 = renderer.rgba(0x6C, 0x5E, 0xB5, 0xFF);
-const C64_LIGHT_GRAY: u32 = renderer.rgba(0x95, 0x95, 0x95, 0xFF);
-
-
-
 
 /// Renders the current frame
 export fn render() void {
     var ty: u32 = 0;
-    while (ty < constants.GRID_H) : (ty += 1) {
+    while (ty < grid.GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < constants.GRID_W) : (tx += 1) {
-            const x = tx * constants.TILE_SIZE;
-            const y = ty * constants.TILE_SIZE;
-            const kind = world_tiles[tileIndex(tx, ty)];
+        while (tx < grid.GRID_W) : (tx += 1) {
+            const x = tx * grid.TILE_SIZE;
+            const y = ty * grid.TILE_SIZE;
+            const kind = grid.getTile(tx, ty);
             const color = switch (kind) {
-                .light => C64_LIGHT_GRAY,
-                .dark => C64_DARK_GRAY,
-                .wall => C64_BLACK,
+                .light => colors.C64_LIGHT_GRAY,
+                .dark => colors.C64_DARK_GRAY,
+                .wall => colors.C64_BLACK,
             };
-            renderer.fillRect(x, y, constants.TILE_SIZE, constants.TILE_SIZE, color);
+            renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, color);
         }
     }
 
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
                                                                                                     
-//                                                                                                    
-//  ██████   ███   ██   ██████   ████████   ██████     ▒██▒    ██         ██████   ████████  ████████ 
-//  ██████   ███   ██   ██████   ████████   ██████     ▓██▓    ██         ██████   ████████  ████████ 
-//    ██     ███▒  ██     ██        ██        ██       ████    ██           ██         ░███  ██       
-//    ██     ████  ██     ██        ██        ██       ████    ██           ██         ███   ██       
-//    ██     ██▒█▒ ██     ██        ██        ██      ▒█▓▓█▒   ██           ██        ▒██▒   ██       
-//    ██     ██ ██ ██     ██        ██        ██      ▓█▒▒█▓   ██           ██        ███    ███████  
-//    ██     ██ ██ ██     ██        ██        ██      ██  ██   ██           ██       ███     ███████  
-//    ██     ██ ▒█▒██     ██        ██        ██      ██████   ██           ██      ▒██▒     ██       
-//    ██     ██  ████     ██        ██        ██     ░██████░  ██           ██      ██▓      ██       
-//    ██     ██  ▒███     ██        ██        ██     ▒██  ██▒  ██           ██     ███       ██       
-//  ██████   ██   ███   ██████      ██      ██████   ███  ███  ████████   ██████   ████████  ████████ 
-//  ██████   ██   ███   ██████      ██      ██████   ██▒  ▒██  ████████   ██████   ████████  ████████ 
-//                                                                                                    
-
 /// Initializes world state.
 export fn init() void {
     var ty: u32 = 0;
-    while (ty < constants.GRID_H) : (ty += 1) {
+    while (ty < grid.GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < constants.GRID_W) : (tx += 1) {
+        while (tx < grid.GRID_W) : (tx += 1) {
             const use_light = ((tx + ty) & 1) == 0;
-            setTile(tx, ty, if (use_light) .light else .dark);
+            grid.setTile(tx, ty, if (use_light) .light else .dark);
         }
     }
 }

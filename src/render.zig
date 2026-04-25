@@ -1,20 +1,15 @@
-const constants = @import("constants.zig");
+const grid = @import("grid.zig");
 
 /// 128 = 8 * 16. 128 is somewhat close to retro resolutions
-pub const SCREEN_W: u32 = constants.GRID_W * constants.TILE_SIZE;
+pub const SCREEN_W: u32 = grid.GRID_W * grid.TILE_SIZE;
 /// 96 = 8 * 12. 96 is somewhat close to retro resolutions
-pub const SCREEN_H: u32 = constants.GRID_H * constants.TILE_SIZE;
+pub const SCREEN_H: u32 = grid.GRID_H * grid.TILE_SIZE;
 
 
 /// Raw pixel count of the frame buffer.
 const FRAME_PIXELS = SCREEN_W * SCREEN_H;
 /// Zig allocates this in module memory; JS can query its base via `framePtr()`.
 pub var frame_buffer: [FRAME_PIXELS]u32 = undefined;
-/// Packs RGBA channels into one 32-bit pixel.
-pub fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
-    // In wasm32 little-endian memory this is laid out as [R, G, B, A], matching ImageData.
-    return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
-}
 
 
 /// Writes one 32-bit pixel into the frame buffer.

@@ -1,0 +1,23 @@
+/// Packs RGBA channels into one 32-bit pixel.
+fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
+    // In wasm32 little-endian memory this is laid out as [R, G, B, A], matching ImageData.
+    return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
+}
+
+// Commodore 64 palette (Pepto-inspired RGB values)
+pub const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
+pub const C64_WHITE: u32 = rgba(0xFF, 0xFF, 0xFF, 0xFF);
+pub const C64_RED: u32 = rgba(0x68, 0x37, 0x2B, 0xFF);
+pub const C64_CYAN: u32 = rgba(0x70, 0xA4, 0xB2, 0xFF);
+pub const C64_PURPLE: u32 = rgba(0x6F, 0x3D, 0x86, 0xFF);
+pub const C64_GREEN: u32 = rgba(0x58, 0x8D, 0x43, 0xFF);
+pub const C64_BLUE: u32 = rgba(0x35, 0x28, 0x79, 0xFF);
+pub const C64_YELLOW: u32 = rgba(0xB8, 0xC7, 0x6F, 0xFF);
+pub const C64_ORANGE: u32 = rgba(0x6F, 0x4F, 0x25, 0xFF);
+pub const C64_BROWN: u32 = rgba(0x43, 0x39, 0x00, 0xFF);
+pub const C64_LIGHT_RED: u32 = rgba(0x9A, 0x67, 0x59, 0xFF);
+pub const C64_DARK_GRAY: u32 = rgba(0x44, 0x44, 0x44, 0xFF);
+pub const C64_GRAY: u32 = rgba(0x6C, 0x6C, 0x6C, 0xFF);
+pub const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
+pub const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
+pub const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
