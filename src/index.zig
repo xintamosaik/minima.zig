@@ -87,8 +87,8 @@ const Point = struct {
 const Player = struct {
     pos: Point,
     color: u32,
-    h: u32 = 8,
-    w: u32 = 8,
+    h: u32 = 2,
+    w: u32 = 2,
 };
 
 /// Single active player.
@@ -145,6 +145,11 @@ export fn tick() void {
             grid.setTile(tx, ty, .wall);
         }
     }
+    const playerTileX  = if (player1.pos.x >= renderer.SCREEN_W) (grid.GRID_W - 1) else (player1.pos.x / grid.TILE_SIZE);
+    const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.GRID_H - 1) else (player1.pos.y / grid.TILE_SIZE);
+    const activeGrid = grid.tileIndex(playerTileX, playerTileY);
+    grid.setTile(playerTileX, playerTileY, .wall);
+    console_log(activeGrid);
 }
 
 /// Renders the current frame
