@@ -5,12 +5,10 @@ pub const SCREEN_W: u32 = grid.GRID_W * grid.TILE_SIZE;
 /// 96 = 8 * 12. 96 is somewhat close to retro resolutions
 pub const SCREEN_H: u32 = grid.GRID_H * grid.TILE_SIZE;
 
-
 /// Raw pixel count of the frame buffer.
 const FRAME_PIXELS = SCREEN_W * SCREEN_H;
 /// Zig allocates this in module memory; JS can query its base via `framePtr()`.
 pub var frame_buffer: [FRAME_PIXELS]u32 = undefined;
-
 
 /// Writes one 32-bit pixel into the frame buffer.
 fn writePixel32(x: u32, y: u32, color: u32) void {

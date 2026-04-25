@@ -1,7 +1,7 @@
 extern "env" fn console_log(value: u32) void;
 
-const renderer = @import("render.zig");     
-const grid = @import("grid.zig");       
+const renderer = @import("render.zig");
+const grid = @import("grid.zig");
 const input = @import("input.zig");
 const colors = @import("colors.zig");
 
@@ -82,7 +82,7 @@ const Point = struct {
     x: u32,
     y: u32,
 };
-    
+
 /// Minimal player state.
 const Player = struct {
     pos: Point,
@@ -96,7 +96,7 @@ var player1 = Player{
     .pos = Point{ .x = 60, .y = 40 },
     .color = colors.C64_BLUE,
 };
-                                                  
+
 /// Advances simulation by one fixed step.
 export fn tick() void {
     const buttons_lo = input_data.buttons_lo;
@@ -130,7 +130,6 @@ export fn tick() void {
     if ((buttons_lo & input.BTN_Y) != 0) {
         player1.color = colors.C64_PURPLE;
     }
-
 
     if (mousebuttons > 0) {
         const tx = if (mousex >= renderer.SCREEN_W) (grid.GRID_W - 1) else (mousex / grid.TILE_SIZE);
@@ -168,7 +167,7 @@ export fn render() void {
 
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
-                                                                                                    
+
 /// Initializes world state.
 export fn init() void {
     var ty: u32 = 0;
