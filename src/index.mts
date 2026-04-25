@@ -177,14 +177,14 @@ void (async function main(): Promise<void> {
         DOWN: "DOWN",
         LEFT: "LEFT",
         RIGHT: "RIGHT",
-        A: "A",
-        B: "B",
-        X: "X",
-        Y: "Y",
-        L: "L",
-        R: "R",
-        START: "START",
-        SELECT: "SELECT"
+        A: "Y",
+        B: "X",
+        X: "A",
+        Y: "S",
+        L: "Q",
+        R: "W",
+        START: "SPACE",
+        SELECT: "ENTER"
     } as const;
 
     type VirtualButton = typeof VBTN[keyof typeof VBTN];
