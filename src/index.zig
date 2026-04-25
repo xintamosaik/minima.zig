@@ -1,5 +1,9 @@
 extern "env" fn console_log(value: u32) void;
-                                                                      
+
+const renderer = @import("render.zig");     
+const constants = @import("constants.zig");       
+const input = @import("input.zig");
+
 //                                                                      
 // ████████   ██████   ██        ████████  ███  ███    ▒██▒    ██████▒  
 // ████████   ██████   ██        ████████  ███  ███    ▓██▓    ███████▒ 
@@ -16,17 +20,7 @@ extern "env" fn console_log(value: u32) void;
 //                                                                      
 //                                                                      
 
-/// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels.
-/// This keeps calculations simple and close to retro aesthetics.
-const TILE_SIZE: u32 = 8;
-/// We use 16 tiles for now.
-/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
-/// This means our world will be 128 pixels wide (16 tiles * 8 pixels per tile).
-const GRID_W: u32 = 16;
-/// We use 12 tiles for now.
-/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
-/// This means our world will be 96 pixels high (12 tiles * 8 pixels per tile).
-const GRID_H: u32 = 12;
+
                                                                                                                   
 //                                                            
 //  ▒████▒     ▒████▒  ██████▒   ████████  ████████  ███   ██ 
@@ -44,31 +38,27 @@ const GRID_H: u32 = 12;
 //                                                            
 //                                                            
 
-/// 128 = 8 * 16. 128 is somewhat close to retro resolutions
-const SCREEN_W: u32 = GRID_W * TILE_SIZE;
+
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
-    return SCREEN_W;
+    return renderer.SCREEN_W;
 }
 
-/// 96 = 8 * 12. 96 is somewhat close to retro resolutions
-const SCREEN_H: u32 = GRID_H * TILE_SIZE;
+
 /// Exported for calculations in JS (Height);
 export fn height() i32 {
-    return SCREEN_H;
+    return renderer.SCREEN_H;
 }
 
-/// Raw pixel count of the frame buffer.
-const FRAME_PIXELS = SCREEN_W * SCREEN_H;
-/// Zig allocates this in module memory; JS can query its base via `framePtr()`.
-export var frame_buffer: [FRAME_PIXELS]u32 = undefined;
+
+
 /// Exports the byte offset of the frame buffer for JS to write pixel data into.
 export fn framePtr() u32 {
-    return @as(u32, @intCast(@intFromPtr(&frame_buffer[0])));
+    return @as(u32, @intCast(@intFromPtr(&renderer.frame_buffer[0])));
 }
 /// Exports the byte length of the frame buffer for JS memory management.
 export fn frameLen() u32 {
-    return @sizeOf(@TypeOf(frame_buffer));
+    return @sizeOf(@TypeOf(renderer.frame_buffer));
 }
 
 //                                                  
@@ -135,26 +125,6 @@ export fn inputMouseButtonsOffset() u32 {
     return @as(u32, @intCast(@offsetOf(InputData, "mouse_buttons")));
 }
 
-/// Mouse button bitmask values shared with JS.
-const MOUSE_BUTTON_LEFT: u32 = 1;
-const MOUSE_BUTTON_RIGHT: u32 = 4;
-const MOUSE_BUTTON_MIDDLE: u32 = 2;
-
-// Controller low-byte bits.
-const BTN_UP: u8 = 1 << 0;
-const BTN_DOWN: u8 = 1 << 1;
-const BTN_LEFT: u8 = 1 << 2;
-const BTN_RIGHT: u8 = 1 << 3;
-const BTN_A: u8 = 1 << 4;
-const BTN_B: u8 = 1 << 5;
-const BTN_X: u8 = 1 << 6;
-const BTN_Y: u8 = 1 << 7;
-
-// Controller high-byte bits.
-const BTN_L: u8 = 1 << 0;
-const BTN_R: u8 = 1 << 1;
-const BTN_START: u8 = 1 << 2;
-const BTN_SELECT: u8 = 1 << 3;
 
 /// Host-owned pointer fields written by JS each frame.
 /// Mouse coordinate (x)
@@ -233,19 +203,18 @@ const TileKind = enum(u8) {
     wall,
 };
 
-/// Flat tile storage; index is computed by `tileIndex`.
-const GRID_LEN = GRID_W * GRID_H;
+
 /// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
+var world_tiles: [constants.GRID_LEN]TileKind = [_]TileKind{.dark} ** constants.GRID_LEN;
 
 /// Converts tile coordinates to a linear index.
 fn tileIndex(tx: u32, ty: u32) usize {
-    return @as(usize, @intCast(ty * GRID_W + tx));
+    return @as(usize, @intCast(ty * constants.GRID_W + tx));
 }
 
 /// Sets one tile if coordinates are inside the grid.
 fn setTile(tx: u32, ty: u32, kind: TileKind) void {
-    if (tx >= GRID_W or ty >= GRID_H) return;
+    if (tx >= constants.GRID_W or ty >= constants.GRID_H) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
 
@@ -255,33 +224,33 @@ export fn tick() void {
     const mousex = input_data.mouse_x;
     const mousey = input_data.mouse_y;
     const mousebuttons = input_data.mouse_buttons;
-    const max_x = SCREEN_W - player1.w;
-    const max_y = SCREEN_H - player1.h;
+    const max_x = renderer.SCREEN_W - player1.w;
+    const max_y = renderer.SCREEN_H - player1.h;
 
-    if ((buttons_lo & BTN_LEFT) != 0 and player1.pos.x > 0) {
+    if ((buttons_lo & input.BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
     }
-    if ((buttons_lo & BTN_RIGHT) != 0 and player1.pos.x < max_x) {
+    if ((buttons_lo & input.BTN_RIGHT) != 0 and player1.pos.x < max_x) {
         player1.pos.x += 1;
     }
-    if ((buttons_lo & BTN_UP) != 0 and player1.pos.y > 0) {
+    if ((buttons_lo & input.BTN_UP) != 0 and player1.pos.y > 0) {
         player1.pos.y -= 1;
     }
-    if ((buttons_lo & BTN_DOWN) != 0 and player1.pos.y < max_y) {
+    if ((buttons_lo & input.BTN_DOWN) != 0 and player1.pos.y < max_y) {
         player1.pos.y += 1;
     }
 
     if (mousebuttons > 0) {
-        const tx = if (mousex >= SCREEN_W) (GRID_W - 1) else (mousex / TILE_SIZE);
-        const ty = if (mousey >= SCREEN_H) (GRID_H - 1) else (mousey / TILE_SIZE);
+        const tx = if (mousex >= renderer.SCREEN_W) (constants.GRID_W - 1) else (mousex / constants.TILE_SIZE);
+        const ty = if (mousey >= renderer.SCREEN_H) (constants.GRID_H - 1) else (mousey / constants.TILE_SIZE);
 
-        if ((mousebuttons & MOUSE_BUTTON_LEFT) != 0) {
+        if ((mousebuttons & input.MOUSE_BUTTON_LEFT) != 0) {
             setTile(tx, ty, .light);
         }
-        if ((mousebuttons & MOUSE_BUTTON_RIGHT) != 0) {
+        if ((mousebuttons & input.MOUSE_BUTTON_RIGHT) != 0) {
             setTile(tx, ty, .dark);
         }
-        if ((mousebuttons & MOUSE_BUTTON_MIDDLE) != 0) {
+        if ((mousebuttons & input.MOUSE_BUTTON_MIDDLE) != 0) {
             setTile(tx, ty, .wall);
         }
     }
@@ -304,122 +273,45 @@ export fn tick() void {
 //
 
 // Commodore 64 palette (Pepto-inspired RGB values)
-const C64_BLACK: u32 = rgba(0x00, 0x00, 0x00, 0xFF);
-const C64_WHITE: u32 = rgba(0xFF, 0xFF, 0xFF, 0xFF);
-const C64_RED: u32 = rgba(0x68, 0x37, 0x2B, 0xFF);
-const C64_CYAN: u32 = rgba(0x70, 0xA4, 0xB2, 0xFF);
-const C64_PURPLE: u32 = rgba(0x6F, 0x3D, 0x86, 0xFF);
-const C64_GREEN: u32 = rgba(0x58, 0x8D, 0x43, 0xFF);
-const C64_BLUE: u32 = rgba(0x35, 0x28, 0x79, 0xFF);
-const C64_YELLOW: u32 = rgba(0xB8, 0xC7, 0x6F, 0xFF);
-const C64_ORANGE: u32 = rgba(0x6F, 0x4F, 0x25, 0xFF);
-const C64_BROWN: u32 = rgba(0x43, 0x39, 0x00, 0xFF);
-const C64_LIGHT_RED: u32 = rgba(0x9A, 0x67, 0x59, 0xFF);
-const C64_DARK_GRAY: u32 = rgba(0x44, 0x44, 0x44, 0xFF);
-const C64_GRAY: u32 = rgba(0x6C, 0x6C, 0x6C, 0xFF);
-const C64_LIGHT_GREEN: u32 = rgba(0x9A, 0xD2, 0x84, 0xFF);
-const C64_LIGHT_BLUE: u32 = rgba(0x6C, 0x5E, 0xB5, 0xFF);
-const C64_LIGHT_GRAY: u32 = rgba(0x95, 0x95, 0x95, 0xFF);
+const C64_BLACK: u32 = renderer.rgba(0x00, 0x00, 0x00, 0xFF);
+const C64_WHITE: u32 = renderer.rgba(0xFF, 0xFF, 0xFF, 0xFF);
+const C64_RED: u32 = renderer.rgba(0x68, 0x37, 0x2B, 0xFF);
+const C64_CYAN: u32 = renderer.rgba(0x70, 0xA4, 0xB2, 0xFF);
+const C64_PURPLE: u32 = renderer.rgba(0x6F, 0x3D, 0x86, 0xFF);
+const C64_GREEN: u32 = renderer.rgba(0x58, 0x8D, 0x43, 0xFF);
+const C64_BLUE: u32 = renderer.rgba(0x35, 0x28, 0x79, 0xFF);
+const C64_YELLOW: u32 = renderer.rgba(0xB8, 0xC7, 0x6F, 0xFF);
+const C64_ORANGE: u32 = renderer.rgba(0x6F, 0x4F, 0x25, 0xFF);
+const C64_BROWN: u32 = renderer.rgba(0x43, 0x39, 0x00, 0xFF);
+const C64_LIGHT_RED: u32 = renderer.rgba(0x9A, 0x67, 0x59, 0xFF);
+const C64_DARK_GRAY: u32 = renderer.rgba(0x44, 0x44, 0x44, 0xFF);
+const C64_GRAY: u32 = renderer.rgba(0x6C, 0x6C, 0x6C, 0xFF);
+const C64_LIGHT_GREEN: u32 = renderer.rgba(0x9A, 0xD2, 0x84, 0xFF);
+const C64_LIGHT_BLUE: u32 = renderer.rgba(0x6C, 0x5E, 0xB5, 0xFF);
+const C64_LIGHT_GRAY: u32 = renderer.rgba(0x95, 0x95, 0x95, 0xFF);
 
-/// Packs RGBA channels into one 32-bit pixel.
-fn rgba(r: u8, g: u8, b: u8, a: u8) u32 {
-    // In wasm32 little-endian memory this is laid out as [R, G, B, A], matching ImageData.
-    return @as(u32, r) | (@as(u32, g) << 8) | (@as(u32, b) << 16) | (@as(u32, a) << 24);
-}
 
-/// Writes one 32-bit pixel into the frame buffer.
-fn writePixel32(x: u32, y: u32, color: u32) void {
-    if (x >= SCREEN_W or y >= SCREEN_H) return;
-    const index = @as(usize, @intCast(y * SCREEN_W + x));
-    frame_buffer[index] = color;
-}
 
-/// Fills a clipped rectangle.
-fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
-    const x0 = x;
-    const y0 = y;
-    var x1 = x +| w;
-    var y1 = y +| h;
 
-    if (x1 > SCREEN_W) x1 = SCREEN_W;
-    if (y1 > SCREEN_H) y1 = SCREEN_H;
-
-    if (x0 >= x1 or y0 >= y1) return;
-
-    var py = y0;
-    while (py < y1) : (py += 1) {
-        const row_start = @as(usize, @intCast(py * SCREEN_W));
-        var px = x0;
-        while (px < x1) : (px += 1) {
-            frame_buffer[row_start + @as(usize, @intCast(px))] = color;
-        }
-    }
-}
-
-/// Draws a clipped horizontal line.
-fn drawHorizontalLine(x0: u32, x1: u32, y: u32, color: u32) void {
-    if (y >= SCREEN_H) return;
-    if (x1 <= x0) return;
-
-    const cx0 = if (x0 > SCREEN_W) SCREEN_W else x0;
-    const cx1 = if (x1 > SCREEN_W) SCREEN_W else x1;
-    if (cx1 <= cx0) return;
-
-    var px = cx0;
-    while (px < cx1) : (px += 1) {
-        writePixel32(px, y, color);
-    }
-}
-
-/// Draws a clipped vertical line.
-fn drawVerticalLine(x: u32, y0: u32, y1: u32, color: u32) void {
-    if (x >= SCREEN_W) return;
-    if (y1 <= y0) return;
-
-    const cy0 = if (y0 > SCREEN_H) SCREEN_H else y0;
-    const cy1 = if (y1 > SCREEN_H) SCREEN_H else y1;
-    if (cy1 <= cy0) return;
-
-    var py = cy0;
-    while (py < cy1) : (py += 1) {
-        writePixel32(x, py, color);
-    }
-}
-
-/// Draws a rectangle outline.
-fn drawRectOutline(x: u32, y: u32, w: u32, h: u32, color: u32) void {
-    if (w == 0 or h == 0) return;
-
-    const x1 = x +| w;
-    const y1 = y +| h;
-    const xr = x +| (w - 1);
-    const yb = y +| (h - 1);
-
-    drawHorizontalLine(x, x1, y, color);
-    drawHorizontalLine(x, x1, yb, color);
-    drawVerticalLine(x, y, y1, color);
-    drawVerticalLine(xr, y, y1, color);
-}
-
-/// Renders the current frame.
+/// Renders the current frame
 export fn render() void {
     var ty: u32 = 0;
-    while (ty < GRID_H) : (ty += 1) {
+    while (ty < constants.GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < GRID_W) : (tx += 1) {
-            const x = tx * TILE_SIZE;
-            const y = ty * TILE_SIZE;
+        while (tx < constants.GRID_W) : (tx += 1) {
+            const x = tx * constants.TILE_SIZE;
+            const y = ty * constants.TILE_SIZE;
             const kind = world_tiles[tileIndex(tx, ty)];
             const color = switch (kind) {
                 .light => C64_LIGHT_GRAY,
                 .dark => C64_DARK_GRAY,
                 .wall => C64_BLACK,
             };
-            fillRect(x, y, TILE_SIZE, TILE_SIZE, color);
+            renderer.fillRect(x, y, constants.TILE_SIZE, constants.TILE_SIZE, color);
         }
     }
 
-    drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
+    renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
 }
                                                                                                     
 //                                                                                                    
@@ -440,9 +332,9 @@ export fn render() void {
 /// Initializes world state.
 export fn init() void {
     var ty: u32 = 0;
-    while (ty < GRID_H) : (ty += 1) {
+    while (ty < constants.GRID_H) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < GRID_W) : (tx += 1) {
+        while (tx < constants.GRID_W) : (tx += 1) {
             const use_light = ((tx + ty) & 1) == 0;
             setTile(tx, ty, if (use_light) .light else .dark);
         }
