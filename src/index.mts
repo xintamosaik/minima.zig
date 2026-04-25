@@ -340,7 +340,7 @@ void (async function main(): Promise<void> {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    wasm.init();
+    // wasm.init();
 
     /**
      * Target simulation ticks per second.

@@ -13,12 +13,14 @@ pub const GRID_H: u32 = 12;
 pub const GRID_LEN = GRID_W * GRID_H;
 /// Tile types used by the world grid.
 const TileKind = enum(u8) {
-    light,
-    dark,
     wall,
+    water,
+    grass,
+    dirt,
+    stone,
 };
 /// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.dark} ** GRID_LEN;
+var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.grass} ** GRID_LEN;
 /// Converts tile coordinates to a linear index.
 pub fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * GRID_W + tx));
