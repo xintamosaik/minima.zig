@@ -82,11 +82,7 @@ const Point = struct {
     x: u32,
     y: u32,
 };
-const Cursor = struct {
-    now: u32,
-    former: u32,
-    last_move: u32 
-};
+const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 /// Minimal player state.
@@ -129,23 +125,22 @@ export fn tick() void {
     if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
         cursor.now -= 1;
         cursor.last_move = 0;
-    } 
+    }
 
     if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.GRID_LEN - 1 and cursor.last_move > 16) {
         cursor.now += 1;
         cursor.last_move = 0;
-    } 
+    }
 
-       if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.GRID_W - 1 and cursor.last_move > 16) {
+    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.GRID_W - 1 and cursor.last_move > 16) {
         cursor.now -= grid.GRID_W;
         cursor.last_move = 0;
-    } 
+    }
 
     if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.GRID_LEN - grid.GRID_W and cursor.last_move > 16) {
         cursor.now += grid.GRID_W;
         cursor.last_move = 0;
-    } 
-
+    }
 
     if ((buttons_lo & input.BTN_A) != 0) {
         player1.color = colors.C64_CYAN;
