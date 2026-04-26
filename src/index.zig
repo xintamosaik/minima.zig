@@ -111,7 +111,6 @@ export fn tick() void {
     if ((buttons_lo & input.BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
     }
-
     if ((buttons_lo & input.BTN_RIGHT) != 0 and player1.pos.x < max_x) {
         player1.pos.x += 1;
     }
@@ -121,27 +120,22 @@ export fn tick() void {
     if ((buttons_lo & input.BTN_DOWN) != 0 and player1.pos.y < max_y) {
         player1.pos.y += 1;
     }
-
     if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
         cursor.now -= 1;
         cursor.last_move = 0;
     }
-
     if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.GRID_LEN - 1 and cursor.last_move > 16) {
         cursor.now += 1;
         cursor.last_move = 0;
     }
-
     if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.GRID_W - 1 and cursor.last_move > 16) {
         cursor.now -= grid.GRID_W;
         cursor.last_move = 0;
     }
-
     if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.GRID_LEN - grid.GRID_W and cursor.last_move > 16) {
         cursor.now += grid.GRID_W;
         cursor.last_move = 0;
     }
-
     if ((buttons_lo & input.BTN_A) != 0) {
         player1.color = colors.C64_CYAN;
         grid.setTileRaw(cursor.now, .wall);
@@ -158,7 +152,6 @@ export fn tick() void {
         player1.color = colors.C64_PURPLE;
         grid.setTileRaw(cursor.now, .water);
     }
-
     if (mousebuttons > 0) {
         const tx = if (mousex >= renderer.SCREEN_W) (grid.GRID_W - 1) else (mousex / grid.TILE_SIZE);
         const ty = if (mousey >= renderer.SCREEN_H) (grid.GRID_H - 1) else (mousey / grid.TILE_SIZE);
@@ -177,7 +170,6 @@ export fn tick() void {
     const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.GRID_H - 1) else (player1.pos.y / grid.TILE_SIZE);
 
     grid.setTile(playerTileX, playerTileY, .stone);
-
 }
 
 /// Renders the current frame
