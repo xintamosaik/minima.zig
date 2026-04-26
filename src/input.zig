@@ -21,7 +21,7 @@ pub const BTN_SELECT: u8 = 1 << 3;
 
 /// C-layout struct for input data, written to by JS.
 /// The `extern` attribute ensures C-compatible layout and stable byte offsets.
-pub const InputData = extern struct {
+pub const Layout = extern struct {
     buttons_lo: u8,
     buttons_hi: u8,
     _reserved: u16,

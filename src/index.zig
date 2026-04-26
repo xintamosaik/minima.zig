@@ -26,7 +26,7 @@ export fn frameLen() u32 {
 
 /// C-layout input block keeps byte offsets stable for JS DataView writes.
 /// JS writes input state into this struct each frame, and Zig reads from it in `tick()`.
-export var input_data: input.InputData = .{
+export var input_data: input.Layout = .{
     .buttons_lo = 0,
     .buttons_hi = 0,
     ._reserved = 0,
@@ -41,24 +41,24 @@ export fn inputPtr() u32 {
 }
 /// Exports the byte length of the input data block for JS memory management.
 export fn inputLen() u32 {
-    return @sizeOf(input.InputData);
+    return @sizeOf(input.Layout);
 }
 
 /// Exports byte offsets for mouse fields so JS stays in sync with InputData layout.
 export fn inputButtonsLoOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(input.InputData, "buttons_lo")));
+    return @as(u32, @intCast(@offsetOf(input.Layout, "buttons_lo")));
 }
 export fn inputButtonsHiOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(input.InputData, "buttons_hi")));
+    return @as(u32, @intCast(@offsetOf(input.Layout, "buttons_hi")));
 }
 export fn inputMouseXOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_x")));
+    return @as(u32, @intCast(@offsetOf(input.Layout, "mouse_x")));
 }
 export fn inputMouseYOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_y")));
+    return @as(u32, @intCast(@offsetOf(input.Layout, "mouse_y")));
 }
 export fn inputMouseButtonsOffset() u32 {
-    return @as(u32, @intCast(@offsetOf(input.InputData, "mouse_buttons")));
+    return @as(u32, @intCast(@offsetOf(input.Layout, "mouse_buttons")));
 }
 
 /// Host-owned pointer fields written by JS each frame.
