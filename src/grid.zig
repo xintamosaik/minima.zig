@@ -45,7 +45,7 @@ pub fn getTile(tx: u32, ty: u32) TileKind {
 /// Gets the kind of a tile with the index
 pub fn getTileRaw(index: u32) TileKind {
     if (index > GRID_LEN) {
-        return;
+        return .stone;
     }
     return world_tiles[index];
 }
