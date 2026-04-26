@@ -1,9 +1,9 @@
 const grid = @import("grid.zig");
 
 /// 128 = 8 * 16. 128 is somewhat close to retro resolutions
-pub const SCREEN_W: u32 = grid.GRID_W * grid.TILE_SIZE;
+pub const SCREEN_W: u32 = grid.WIDTH * grid.TILE_SIZE;
 /// 96 = 8 * 12. 96 is somewhat close to retro resolutions
-pub const SCREEN_H: u32 = grid.GRID_H * grid.TILE_SIZE;
+pub const SCREEN_H: u32 = grid.HEIGHT * grid.TILE_SIZE;
 
 /// Raw pixel count of the frame buffer.
 const FRAME_PIXELS = SCREEN_W * SCREEN_H;

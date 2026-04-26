@@ -124,16 +124,16 @@ export fn tick() void {
         cursor.now -= 1;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.GRID_LEN - 1 and cursor.last_move > 16) {
+    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.LENGTH - 1 and cursor.last_move > 16) {
         cursor.now += 1;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.GRID_W - 1 and cursor.last_move > 16) {
-        cursor.now -= grid.GRID_W;
+    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.WIDTH - 1 and cursor.last_move > 16) {
+        cursor.now -= grid.WIDTH;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.GRID_LEN - grid.GRID_W and cursor.last_move > 16) {
-        cursor.now += grid.GRID_W;
+    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.LENGTH - grid.WIDTH and cursor.last_move > 16) {
+        cursor.now += grid.WIDTH;
         cursor.last_move = 0;
     }
     if ((buttons_lo & input.BTN_A) != 0) {
@@ -153,8 +153,8 @@ export fn tick() void {
         grid.setTileRaw(cursor.now, .water);
     }
     if (mousebuttons > 0) {
-        const tx = if (mousex >= renderer.SCREEN_W) (grid.GRID_W - 1) else (mousex / grid.TILE_SIZE);
-        const ty = if (mousey >= renderer.SCREEN_H) (grid.GRID_H - 1) else (mousey / grid.TILE_SIZE);
+        const tx = if (mousex >= renderer.SCREEN_W) (grid.WIDTH - 1) else (mousex / grid.TILE_SIZE);
+        const ty = if (mousey >= renderer.SCREEN_H) (grid.HEIGHT - 1) else (mousey / grid.TILE_SIZE);
 
         if ((mousebuttons & input.MOUSE_BUTTON_LEFT) != 0) {
             grid.setTile(tx, ty, .dirt);
@@ -166,8 +166,8 @@ export fn tick() void {
             grid.setTile(tx, ty, .wall);
         }
     }
-    const playerTileX = if (player1.pos.x >= renderer.SCREEN_W) (grid.GRID_W - 1) else (player1.pos.x / grid.TILE_SIZE);
-    const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.GRID_H - 1) else (player1.pos.y / grid.TILE_SIZE);
+    const playerTileX = if (player1.pos.x >= renderer.SCREEN_W) (grid.WIDTH - 1) else (player1.pos.x / grid.TILE_SIZE);
+    const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.HEIGHT - 1) else (player1.pos.y / grid.TILE_SIZE);
 
     grid.setTile(playerTileX, playerTileY, .stone);
 }
@@ -175,9 +175,9 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     var ty: u32 = 0;
-    while (ty < grid.GRID_H) : (ty += 1) {
+    while (ty < grid.HEIGHT) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < grid.GRID_W) : (tx += 1) {
+        while (tx < grid.WIDTH) : (tx += 1) {
             const x = tx * grid.TILE_SIZE;
             const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
