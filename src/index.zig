@@ -208,8 +208,6 @@ export fn render() void {
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
     font.drawString(16, 16, "minima", colors.C64_BLACK, colors.C64_CYAN);
     font.drawString(16, 32, "a retro game written in zig/wasm", colors.C64_BLACK, colors.C64_CYAN);
-
-    
 }
 
 /// Initializes world state.
