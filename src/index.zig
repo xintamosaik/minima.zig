@@ -85,9 +85,10 @@ const Point = struct {
 const Cursor = struct {
     now: u32,
     former: u32,
+    last_move: u32 
 };
 
-var cursor = Cursor{ .now = 0, .former = 0 };
+var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 /// Minimal player state.
 const Player = struct {
     pos: Point,
@@ -110,7 +111,7 @@ export fn tick() void {
     const mousebuttons = input_data.mouse_buttons;
     const max_x = renderer.SCREEN_W - player1.w;
     const max_y = renderer.SCREEN_H - player1.h;
-
+    cursor.last_move += 1;
     if ((buttons_lo & input.BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
     }
@@ -125,17 +126,26 @@ export fn tick() void {
         player1.pos.y += 1;
     }
 
-    if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.now == cursor.former) {
+    if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
         cursor.now -= 1;
-    } else {
-        cursor.former = cursor.now;
-    }
+        cursor.last_move = 0;
+    } 
 
-    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.GRID_LEN and cursor.now == cursor.former) {
+    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.GRID_LEN - 1 and cursor.last_move > 16) {
         cursor.now += 1;
-    } else {
-        cursor.former = cursor.now;
-    }
+        cursor.last_move = 0;
+    } 
+
+       if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > 0 and cursor.last_move > 16) {
+        cursor.now -= grid.GRID_W;
+        cursor.last_move = 0;
+    } 
+
+    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.GRID_LEN - grid.GRID_W and cursor.last_move > 16) {
+        cursor.now += grid.GRID_W;
+        cursor.last_move = 0;
+    } 
+
 
     if ((buttons_lo & input.BTN_A) != 0) {
         player1.color = colors.C64_CYAN;
@@ -189,7 +199,7 @@ export fn render() void {
             };
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
-                renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
+                renderer.drawRectOutline(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
             } else {
                 renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, color);
             }
