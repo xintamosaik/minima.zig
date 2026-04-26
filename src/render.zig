@@ -41,6 +41,8 @@ pub fn drawBitmap8x8(
         }
     }
 }
+
+ 
 /// Fills a clipped rectangle.
 pub fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     const x0 = x;
