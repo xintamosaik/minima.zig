@@ -6,6 +6,8 @@ const input = @import("input.zig");
 const font = @import("font.zig");
 const colors = @import("colors.zig");
 
+const patterns = @import("patterns.zig");
+
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
     return renderer.WIDTH;
@@ -183,24 +185,25 @@ export fn render() void {
             const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
             const color = switch (kind) {
-                .wall => colors.C64_WHITE,
+                .wall => colors.C64_DARK_GRAY,
                 .dirt => colors.C64_BROWN,
-                .stone => colors.C64_DARK_GRAY,
+                .stone => colors.C64_PURPLE,
                 .water => colors.C64_LIGHT_BLUE,
                 .grass => colors.C64_GREEN,
             };
-            const char: u8 = switch (kind) {
-                .wall => '+',
-                .dirt => '.',
-                .stone => '.',
-                .water => '/',
-                .grass => ',',
+ 
+            const pattern = switch (kind) {
+                .grass => patterns.GRASS,
+                .water => patterns.WATER,
+                .dirt => patterns.DIRT,
+                .stone => patterns.STONE,
+                .wall => patterns.WALL,
             };
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
                 renderer.drawRectOutline(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
             } else {
-                font.drawChar(x, y, char, color, colors.C64_BLACK);
+                renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
             }
         }
     }
