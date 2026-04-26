@@ -136,7 +136,7 @@ export fn tick() void {
         cursor.last_move = 0;
     } 
 
-       if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > 0 and cursor.last_move > 16) {
+       if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.GRID_W - 1 and cursor.last_move > 16) {
         cursor.now -= grid.GRID_W;
         cursor.last_move = 0;
     } 
