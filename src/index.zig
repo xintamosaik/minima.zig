@@ -176,7 +176,7 @@ export fn tick() void {
     const playerTileX = if (player1.pos.x >= renderer.SCREEN_W) (grid.GRID_W - 1) else (player1.pos.x / grid.TILE_SIZE);
     const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.GRID_H - 1) else (player1.pos.y / grid.TILE_SIZE);
 
-    grid.setTile(playerTileX, playerTileY, .wall);
+    grid.setTile(playerTileX, playerTileY, .stone);
 
 }
 
