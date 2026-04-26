@@ -87,10 +87,7 @@ const Cursor = struct {
     former: u32,
 };
 
-var cursor = Cursor{
-    .now = 0,
-    .former = 0
-};
+var cursor = Cursor{ .now = 0, .former = 0 };
 /// Minimal player state.
 const Player = struct {
     pos: Point,
@@ -117,7 +114,6 @@ export fn tick() void {
     if ((buttons_lo & input.BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
     }
-  
 
     if ((buttons_lo & input.BTN_RIGHT) != 0 and player1.pos.x < max_x) {
         player1.pos.x += 1;
@@ -193,18 +189,14 @@ export fn render() void {
             };
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
-            renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
-
+                renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
             } else {
-            renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, color);
-
+                renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, color);
             }
-
         }
     }
 
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
-    
 }
 
 /// Initializes world state.
