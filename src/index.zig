@@ -144,15 +144,19 @@ export fn tick() void {
 
     if ((buttons_lo & input.BTN_A) != 0) {
         player1.color = colors.C64_CYAN;
+        grid.setTileRaw(cursor.now, .wall);
     }
     if ((buttons_lo & input.BTN_B) != 0) {
         player1.color = colors.C64_ORANGE;
+        grid.setTileRaw(cursor.now, .dirt);
     }
     if ((buttons_lo & input.BTN_X) != 0) {
         player1.color = colors.C64_GREEN;
+        grid.setTileRaw(cursor.now, .grass);
     }
     if ((buttons_lo & input.BTN_Y) != 0) {
         player1.color = colors.C64_PURPLE;
+        grid.setTileRaw(cursor.now, .water);
     }
 
     if (mousebuttons > 0) {
@@ -171,9 +175,9 @@ export fn tick() void {
     }
     const playerTileX = if (player1.pos.x >= renderer.SCREEN_W) (grid.GRID_W - 1) else (player1.pos.x / grid.TILE_SIZE);
     const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.GRID_H - 1) else (player1.pos.y / grid.TILE_SIZE);
-    const activeGrid = grid.tileIndex(playerTileX, playerTileY);
+
     grid.setTile(playerTileX, playerTileY, .wall);
-    console_log(activeGrid);
+
 }
 
 /// Renders the current frame
@@ -186,8 +190,8 @@ export fn render() void {
             const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
             const color = switch (kind) {
-                .wall => player1.color,
-                .dirt => colors.C64_GREEN,
+                .wall => colors.C64_WHITE,
+                .dirt => colors.C64_BROWN,
                 .stone => colors.C64_DARK_GRAY,
                 .water => colors.C64_LIGHT_BLUE,
                 .grass => colors.C64_GREEN,

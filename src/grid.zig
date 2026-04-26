@@ -20,7 +20,7 @@ const TileKind = enum(u8) {
     stone,
 };
 /// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.grass} ** GRID_LEN;
+var world_tiles: [GRID_LEN]TileKind = [_]TileKind{.stone} ** GRID_LEN;
 /// Converts tile coordinates to a linear index.
 pub fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * GRID_W + tx));
@@ -30,7 +30,22 @@ pub fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= GRID_W or ty >= GRID_H) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
+/// Sets one tile if the index is inside the grid.
+pub fn setTileRaw(index: u32, kind: TileKind) void {
+    if (index > GRID_LEN) {
+        return;
+    }
+    world_tiles[index] = kind;
+}
 /// Gets the kind of a tile
 pub fn getTile(tx: u32, ty: u32) TileKind {
     return world_tiles[tileIndex(tx, ty)];
+}
+
+/// Gets the kind of a tile with the index
+pub fn getTileRaw(index: u32) TileKind {
+    if (index > GRID_LEN) {
+        return;
+    }
+    return world_tiles[index];
 }
