@@ -6,7 +6,8 @@ const input = @import("input.zig");
 const font = @import("font.zig");
 const colors = @import("colors.zig");
 
-const patterns = @import("patterns.zig");
+const patterns_world = @import("patterns_world.zig");
+const patterns_outside = @import("patterns_outside.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -141,19 +142,19 @@ export fn tick() void {
     }
     if ((buttons_lo & input.BTN_A) != 0) {
         player1.color = colors.C64_CYAN;
-        grid.setTileRaw(cursor.now, .wall);
+        grid.setTileRaw(cursor.now, .plains);
     }
     if ((buttons_lo & input.BTN_B) != 0) {
         player1.color = colors.C64_ORANGE;
-        grid.setTileRaw(cursor.now, .dirt);
+        grid.setTileRaw(cursor.now, .mountain);
     }
     if ((buttons_lo & input.BTN_X) != 0) {
         player1.color = colors.C64_GREEN;
-        grid.setTileRaw(cursor.now, .grass);
+        grid.setTileRaw(cursor.now, .river);
     }
     if ((buttons_lo & input.BTN_Y) != 0) {
         player1.color = colors.C64_PURPLE;
-        grid.setTileRaw(cursor.now, .water);
+        grid.setTileRaw(cursor.now, .forest);
     }
     if (mousebuttons > 0) {
         const tx = if (mousex >= renderer.WIDTH) (grid.WIDTH - 1) else (mousex / grid.TILE_SIZE);
@@ -190,14 +191,22 @@ export fn render() void {
                 .stone => colors.C64_PURPLE,
                 .water => colors.C64_LIGHT_BLUE,
                 .grass => colors.C64_GREEN,
+                .plains => colors.C64_LIGHT_GREEN,
+                .forest => colors.C64_GREEN,
+                .mountain => colors.C64_LIGHT_GRAY,
+                .river => colors.C64_BLUE
             };
  
             const pattern = switch (kind) {
-                .grass => patterns.GRASS,
-                .water => patterns.WATER,
-                .dirt => patterns.DIRT,
-                .stone => patterns.STONE,
-                .wall => patterns.WALL,
+                .grass => patterns_outside.GRASS,
+                .water => patterns_outside.WATER,
+                .dirt => patterns_outside.DIRT,
+                .stone => patterns_outside.STONE,
+                .wall => patterns_outside.WALL,
+                .plains => patterns_world.PLAINS,
+                .forest => patterns_world.FOREST,
+                .mountain => patterns_world.MOUNTAIN,
+                .river => patterns_world.RIVER
             };
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {

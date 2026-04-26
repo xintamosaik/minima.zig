@@ -18,6 +18,10 @@ const TileKind = enum(u8) {
     grass,
     dirt,
     stone,
+    plains,
+    forest,
+    mountain,
+    river
 };
 /// Initial map data; `init()` overwrites this with a checkerboard.
 var world_tiles: [LENGTH]TileKind = [_]TileKind{.stone} ** LENGTH;
