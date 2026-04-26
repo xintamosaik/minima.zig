@@ -3,6 +3,7 @@ extern "env" fn console_log(value: u32) void;
 const renderer = @import("render.zig");
 const grid = @import("grid.zig");
 const input = @import("input.zig");
+const font = @import("font.zig");
 const colors = @import("colors.zig");
 
 /// Exported for calculations in JS (Width);
@@ -198,6 +199,71 @@ export fn render() void {
     }
 
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
+    renderer.drawBitmap8x8(
+        8,
+        8,
+        font.M,
+        colors.C64_WHITE,
+        colors.C64_BLACK,
+    );
+    renderer.drawBitmap8x8(
+        8 * 2,
+        8,
+        font.I,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+    renderer.drawBitmap8x8(
+        8 * 3,
+        8,
+        font.N,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+    renderer.drawBitmap8x8(
+        8 * 4,
+        8,
+        font.I,
+        colors.C64_WHITE,
+        colors.C64_BLACK,
+    );
+    renderer.drawBitmap8x8(
+        8 * 5,
+        8,
+        font.M,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+    renderer.drawBitmap8x8(
+        8 * 6,
+        8,
+        font.A,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+
+    renderer.drawBitmap8x8(
+        8 * 6,
+        8,
+        font.A,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+
+    renderer.drawBitmap8x8(
+        8 * 6,
+        8,
+        font.A,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
+    renderer.drawBitmap8x8(
+        8 * 6,
+        8,
+        font.A,
+        colors.C64_WHITE,
+        colors.C64_RED,
+    );
 }
 
 /// Initializes world state.

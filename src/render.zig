@@ -16,7 +16,31 @@ fn writePixel32(x: u32, y: u32, color: u32) void {
     const index = @as(usize, @intCast(y * WIDTH + x));
     frame_buffer[index] = color;
 }
+pub const Bitmap8x8 = [8]u8;
+pub fn drawBitmap8x8(
+    x: u32,
+    y: u32,
+    rows: Bitmap8x8,
+    fg: u32,
+    bg: u32,
+) void {
+    var row: u32 = 0;
+    while (row < 8) : (row += 1) {
+        const bits = rows[row];
 
+        var col: u32 = 0;
+        while (col < 8) : (col += 1) {
+            const shift: u3 = @intCast(7 - col);
+            const is_fg = ((bits >> shift) & 1) != 0;
+
+            writePixel32(
+                x + col,
+                y + row,
+                if (is_fg) fg else bg,
+            );
+        }
+    }
+}
 /// Fills a clipped rectangle.
 pub fn fillRect(x: u32, y: u32, w: u32, h: u32, color: u32) void {
     const x0 = x;
