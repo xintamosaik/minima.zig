@@ -7,12 +7,12 @@ const colors = @import("colors.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
-    return renderer.SCREEN_W;
+    return renderer.WIDTH;
 }
 
 /// Exported for calculations in JS (Height);
 export fn height() i32 {
-    return renderer.SCREEN_H;
+    return renderer.HEIGHT;
 }
 
 /// Exports the byte offset of the frame buffer for JS to write pixel data into.
@@ -105,8 +105,8 @@ export fn tick() void {
     const mousex = input_data.mouse_x;
     const mousey = input_data.mouse_y;
     const mousebuttons = input_data.mouse_buttons;
-    const max_x = renderer.SCREEN_W - player1.w;
-    const max_y = renderer.SCREEN_H - player1.h;
+    const max_x = renderer.WIDTH - player1.w;
+    const max_y = renderer.HEIGHT - player1.h;
     cursor.last_move += 1;
     if ((buttons_lo & input.BTN_LEFT) != 0 and player1.pos.x > 0) {
         player1.pos.x -= 1;
@@ -153,8 +153,8 @@ export fn tick() void {
         grid.setTileRaw(cursor.now, .water);
     }
     if (mousebuttons > 0) {
-        const tx = if (mousex >= renderer.SCREEN_W) (grid.WIDTH - 1) else (mousex / grid.TILE_SIZE);
-        const ty = if (mousey >= renderer.SCREEN_H) (grid.HEIGHT - 1) else (mousey / grid.TILE_SIZE);
+        const tx = if (mousex >= renderer.WIDTH) (grid.WIDTH - 1) else (mousex / grid.TILE_SIZE);
+        const ty = if (mousey >= renderer.HEIGHT) (grid.HEIGHT - 1) else (mousey / grid.TILE_SIZE);
 
         if ((mousebuttons & input.MOUSE_BUTTON_LEFT) != 0) {
             grid.setTile(tx, ty, .dirt);
@@ -166,8 +166,8 @@ export fn tick() void {
             grid.setTile(tx, ty, .wall);
         }
     }
-    const playerTileX = if (player1.pos.x >= renderer.SCREEN_W) (grid.WIDTH - 1) else (player1.pos.x / grid.TILE_SIZE);
-    const playerTileY = if (player1.pos.y >= renderer.SCREEN_H) (grid.HEIGHT - 1) else (player1.pos.y / grid.TILE_SIZE);
+    const playerTileX = if (player1.pos.x >= renderer.WIDTH) (grid.WIDTH - 1) else (player1.pos.x / grid.TILE_SIZE);
+    const playerTileY = if (player1.pos.y >= renderer.HEIGHT) (grid.HEIGHT - 1) else (player1.pos.y / grid.TILE_SIZE);
 
     grid.setTile(playerTileX, playerTileY, .stone);
 }
