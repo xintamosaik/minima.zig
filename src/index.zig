@@ -189,11 +189,18 @@ export fn render() void {
                 .water => colors.C64_LIGHT_BLUE,
                 .grass => colors.C64_GREEN,
             };
+            const char: u8 = switch (kind) {
+                .wall => '+',
+                .dirt => '.',
+                .stone => '.',
+                .water => '/',
+                .grass => ',',
+            };
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
                 renderer.drawRectOutline(x, y, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_RED);
             } else {
-                renderer.fillRect(x, y, grid.TILE_SIZE, grid.TILE_SIZE, color);
+                font.drawChar(x, y, char, color, colors.C64_BLACK);
             }
         }
     }
@@ -201,7 +208,7 @@ export fn render() void {
     renderer.drawRectOutline(player1.pos.x, player1.pos.y, player1.w, player1.h, player1.color);
     font.drawString(16, 16, "minima", colors.C64_BLACK, colors.C64_CYAN);
     font.drawString(16, 32, "a retro game written in zig/wasm", colors.C64_BLACK, colors.C64_CYAN);
-    
+
     
 }
 
