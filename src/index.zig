@@ -89,6 +89,18 @@ const Point = struct {
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
+const Cursor2DRaw = struct {
+    pos: Point,
+    color: u32,
+    h: u32 = 8,
+    w: u32 = 8,
+};
+
+var cursor2DRaw= Cursor2DRaw {
+    .pos = Point{ .x = 60, .y = 40 },
+    .color = colors.C64_BLUE,
+};
+
 /// Minimal player state.
 const Player = struct {
     pos: Point,
@@ -119,9 +131,30 @@ const BTN_ANY_CONFIRM =
     input.BTN_X |
     input.BTN_Y |
     input.BTN_START;
+
 fn tick_intro() void {
     if ((input_data.buttons_lo & BTN_ANY_CONFIRM) != 0 or (input_data.mouse_buttons & input.MOUSE_BUTTON_LEFT) != 0) {
         scene = .menu;
+    }
+}
+
+fn tick_menu() void {
+    const buttons_lo = input_data.buttons_lo;
+    if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
+        cursor.now -= 1;
+        cursor.last_move = 0;
+    }
+    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.LENGTH - 1 and cursor.last_move > 16) {
+        cursor.now += 1;
+        cursor.last_move = 0;
+    }
+    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.WIDTH - 1 and cursor.last_move > 16) {
+        cursor.now -= grid.WIDTH;
+        cursor.last_move = 0;
+    }
+    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.LENGTH - grid.WIDTH and cursor.last_move > 16) {
+        cursor.now += grid.WIDTH;
+        cursor.last_move = 0;
     }
 }
 
@@ -201,8 +234,8 @@ fn tick_old() void {
 export fn tick() void {
     switch (scene) {
         .intro => tick_intro(),
-        .menu => tick_old(),
-        .new => {}, // or whatever "game" render is
+        .menu => tick_menu(),
+        .new => tick_old(), // or whatever "game" render is
         .load => {}, // placeholder
         .exit => {}, // placeholder
     }
@@ -271,6 +304,8 @@ fn render_menu() void {
     font.drawString(24, 8 * 20, "                                  ", BG, colors.C64_RED);
     font.drawString(24, 8 * 21, " exit                             ", BG, colors.C64_RED);
     font.drawString(24, 8 * 22, "                                  ", BG, colors.C64_RED);
+
+    renderer.drawRectOutline(cursor2DRaw.pos.x, cursor2DRaw.pos.y, cursor2DRaw.w , cursor2DRaw.h, colors.C64_RED);
 }
 
 fn render_intro() void {
