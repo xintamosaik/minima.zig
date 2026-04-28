@@ -89,17 +89,6 @@ const Point = struct {
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
-const Cursor2DRaw = struct {
-    pos: Point,
-    color: u32,
-    h: u32 = 8,
-    w: u32 = 8,
-};
-
-var cursor2DRaw= Cursor2DRaw {
-    .pos = Point{ .x = 60, .y = 40 },
-    .color = colors.C64_BLUE,
-};
 
 /// Minimal player state.
 const Player = struct {
@@ -129,8 +118,7 @@ const BTN_ANY_CONFIRM =
     input.BTN_A |
     input.BTN_B |
     input.BTN_X |
-    input.BTN_Y |
-    input.BTN_START;
+    input.BTN_Y;
 
 fn tick_intro() void {
     if ((input_data.buttons_lo & BTN_ANY_CONFIRM) != 0 or (input_data.mouse_buttons & input.MOUSE_BUTTON_LEFT) != 0) {
@@ -138,23 +126,48 @@ fn tick_intro() void {
     }
 }
 
+const Cursor2DRaw = struct {
+    movedLast: u32,
+    pos: Point,
+    color: u32,
+    h: u32 = 24,
+    w: u32 = 24,
+};
+
+var menuCursor = Cursor2DRaw{ .movedLast = 0, .pos = Point{ .x = 24, .y = 8 }, .color = colors.C64_BLUE, .w = 8 * 35, .h = 24 };
+
+const WAIT = 16;
 fn tick_menu() void {
     const buttons_lo = input_data.buttons_lo;
-    if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
-        cursor.now -= 1;
-        cursor.last_move = 0;
+    const buttons_hi = input_data.buttons_hi;
+    const JUMP = 32;
+    const MENU_MIN = 8 + JUMP;
+    const MENU_MAX = 8 * 20;
+    menuCursor.movedLast += 1;
+
+    if ((buttons_lo & input.BTN_UP) != 0 and menuCursor.pos.y >= MENU_MIN and menuCursor.movedLast > WAIT) {
+        menuCursor.movedLast = 0;
+        menuCursor.pos.y -= JUMP;
     }
-    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < grid.LENGTH - 1 and cursor.last_move > 16) {
-        cursor.now += 1;
-        cursor.last_move = 0;
+    if ((buttons_lo & input.BTN_DOWN) != 0 and menuCursor.pos.y <= MENU_MAX and menuCursor.movedLast > WAIT) {
+        menuCursor.movedLast = 0;
+        menuCursor.pos.y += JUMP;
     }
-    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > grid.WIDTH - 1 and cursor.last_move > 16) {
-        cursor.now -= grid.WIDTH;
-        cursor.last_move = 0;
-    }
-    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < grid.LENGTH - grid.WIDTH and cursor.last_move > 16) {
-        cursor.now += grid.WIDTH;
-        cursor.last_move = 0;
+
+    if ((buttons_hi & input.BTN_START) != 0) {
+        if (menuCursor.pos.y == 8 + (JUMP * 0)) {
+            console_log(1);
+        } else if (menuCursor.pos.y == 8 + (JUMP * 1)) {
+            console_log(2);
+        } else if (menuCursor.pos.y == 8 + (JUMP * 2)) {
+            console_log(3);
+        } else if (menuCursor.pos.y == 8 + (JUMP * 3)) {
+            console_log(4);
+        } else if (menuCursor.pos.y == 8 + (JUMP * 4)) {
+            console_log(5);
+        } else if (menuCursor.pos.y == 8 + (JUMP * 5)) {
+            console_log(6);
+        }
     }
 }
 
@@ -289,23 +302,31 @@ fn render_old() void {
 fn render_menu() void {
     const BG = colors.C64_DARK_GRAY;
     renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, BG);
-    font.drawString(24, 8 * 1, "                                   ", BG, colors.C64_GREEN);
-    font.drawString(24, 8 * 2, " new                               ", BG, colors.C64_GREEN); 
-    font.drawString(24, 8 * 3, "                                   ", BG, colors.C64_GREEN);
-    
+    font.drawString(24, 8 * 1, "                                   ", BG, colors.C64_YELLOW);
+    font.drawString(24, 8 * 2, " continue                          ", BG, colors.C64_YELLOW);
+    font.drawString(24, 8 * 3, "                                   ", BG, colors.C64_YELLOW);
+
     font.drawString(24, 8 * 5, "                                   ", BG, colors.C64_BLUE);
     font.drawString(24, 8 * 6, " load                              ", BG, colors.C64_BLUE);
     font.drawString(24, 8 * 7, "                                   ", BG, colors.C64_BLUE);
 
-    font.drawString(24, 8 * 16, "                                  ", BG, colors.C64_PURPLE);
-    font.drawString(24, 8 * 17, " options                          ", BG, colors.C64_PURPLE);
-    font.drawString(24, 8 * 18, "                                  ", BG, colors.C64_PURPLE);
+    font.drawString(24, 8 * 9, "                                   ", BG, colors.C64_GREEN);
+    font.drawString(24, 8 * 10, " new                               ", BG, colors.C64_GREEN);
+    font.drawString(24, 8 * 11, "                                   ", BG, colors.C64_GREEN);
 
-    font.drawString(24, 8 * 20, "                                  ", BG, colors.C64_RED);
-    font.drawString(24, 8 * 21, " exit                             ", BG, colors.C64_RED);
-    font.drawString(24, 8 * 22, "                                  ", BG, colors.C64_RED);
+    font.drawString(24, 8 * 13, "                                   ", BG, colors.C64_ORANGE);
+    font.drawString(24, 8 * 14, " credits                           ", BG, colors.C64_ORANGE);
+    font.drawString(24, 8 * 15, "                                   ", BG, colors.C64_ORANGE);
 
-    renderer.drawRectOutline(cursor2DRaw.pos.x, cursor2DRaw.pos.y, cursor2DRaw.w , cursor2DRaw.h, colors.C64_RED);
+    font.drawString(24, 8 * 17, "                                   ", BG, colors.C64_PURPLE);
+    font.drawString(24, 8 * 18, " options                           ", BG, colors.C64_PURPLE);
+    font.drawString(24, 8 * 19, "                                   ", BG, colors.C64_PURPLE);
+
+    font.drawString(24, 8 * 21, "                                   ", BG, colors.C64_RED);
+    font.drawString(24, 8 * 22, " exit                              ", BG, colors.C64_RED);
+    font.drawString(24, 8 * 23, "                                   ", BG, colors.C64_RED);
+
+    renderer.drawRectOutline(menuCursor.pos.x, menuCursor.pos.y, menuCursor.w, menuCursor.h, colors.C64_WHITE);
 }
 
 fn render_intro() void {
