@@ -254,8 +254,23 @@ fn render_old() void {
 }
 
 fn render_menu() void {
-    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, colors.C64_DARK_GRAY);
+    const BG = colors.C64_DARK_GRAY;
+    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, BG);
+    font.drawString(24, 8 * 1, "                                   ", BG, colors.C64_GREEN);
+    font.drawString(24, 8 * 2, " new                               ", BG, colors.C64_GREEN); 
+    font.drawString(24, 8 * 3, "                                   ", BG, colors.C64_GREEN);
+    
+    font.drawString(24, 8 * 5, "                                   ", BG, colors.C64_BLUE);
+    font.drawString(24, 8 * 6, " load                              ", BG, colors.C64_BLUE);
+    font.drawString(24, 8 * 7, "                                   ", BG, colors.C64_BLUE);
 
+    font.drawString(24, 8 * 16, "                                  ", BG, colors.C64_PURPLE);
+    font.drawString(24, 8 * 17, " options                          ", BG, colors.C64_PURPLE);
+    font.drawString(24, 8 * 18, "                                  ", BG, colors.C64_PURPLE);
+
+    font.drawString(24, 8 * 20, "                                  ", BG, colors.C64_RED);
+    font.drawString(24, 8 * 21, " exit                             ", BG, colors.C64_RED);
+    font.drawString(24, 8 * 22, "                                  ", BG, colors.C64_RED);
 }
 
 fn render_intro() void {
