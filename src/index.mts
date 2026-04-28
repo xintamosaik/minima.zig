@@ -177,14 +177,14 @@ void (async function main(): Promise<void> {
         DOWN: "DOWN",
         LEFT: "LEFT",
         RIGHT: "RIGHT",
-        A: "Y",
-        B: "X",
-        X: "A",
-        Y: "S",
-        L: "Q",
-        R: "W",
-        START: "SPACE",
-        SELECT: "ENTER"
+        A: "A",
+        B: "B",
+        X: "X",
+        Y: "Y",
+        L: "L",
+        R: "R",
+        START: "START",
+        SELECT: "SELECT",
     } as const;
 
     type VirtualButton = typeof VBTN[keyof typeof VBTN];
@@ -197,14 +197,14 @@ void (async function main(): Promise<void> {
         ArrowDown: VBTN.DOWN,
         ArrowLeft: VBTN.LEFT,
         ArrowRight: VBTN.RIGHT,
-        KeyZ: VBTN.A,
+        KeyY: VBTN.A,
         KeyX: VBTN.B,
         KeyA: VBTN.X,
         KeyS: VBTN.Y,
         KeyQ: VBTN.L,
         KeyW: VBTN.R,
-        Enter: VBTN.START,
-        ShiftLeft: VBTN.SELECT
+        Space: VBTN.START,
+        Enter: VBTN.SELECT
     };
 
     const VBTN_TO_MASK: Record<VirtualButton, { hi: boolean; mask: number }> = {
