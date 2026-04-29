@@ -14,7 +14,6 @@ const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
 const battle = @import("scenes/battle.zig");
 
-
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
     return renderer.WIDTH;

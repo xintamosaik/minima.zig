@@ -4,6 +4,8 @@ const scene = @import("../scene.zig");
 const colors = @import("../colors.zig");
 const font = @import("../font.zig");
 const ui = @import("../ui.zig");
+const maps = @import("../maps/maps.zig");
+const grid = @import("../grid.zig"); 
 const patterns_outside = @import("../patterns_outside.zig");
 const patterns_general = @import("../patterns_general.zig");
 const plain = @import("../maps/battle/plain.zig");
@@ -13,38 +15,9 @@ const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
 const LENGTH = WIDTH * HEIGHT;
 
-const TileKind = enum(u8) { wall, water, grass, dirt, stone, empty };
+
 /// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [LENGTH]TileKind = [_]TileKind{.empty} ** LENGTH;
-
-/// Converts tile coordinates to a linear index.
-fn tileIndex(tx: u32, ty: u32) usize {
-    return @as(usize, @intCast(ty * WIDTH + tx));
-}
-/// Sets one tile if coordinates are inside the
-fn setTile(tx: u32, ty: u32, kind: TileKind) void {
-    if (tx >= WIDTH or ty >= HEIGHT) return;
-    world_tiles[tileIndex(tx, ty)] = kind;
-}
-/// Sets one tile if the index is inside the
-fn setTileRaw(index: u32, kind: TileKind) void {
-    if (index >= LENGTH) {
-        return;
-    }
-    world_tiles[index] = kind;
-}
-/// Gets the kind of a tile
-fn getTile(tx: u32, ty: u32) TileKind {
-    return world_tiles[tileIndex(tx, ty)];
-}
-
-/// Gets the kind of a tile with the index
-fn getTileRaw(index: u32) TileKind {
-    if (index >= LENGTH) {
-        return .stone;
-    }
-    return world_tiles[index];
-}
+var world_tiles: [LENGTH]grid.TileKind = [_]grid.TileKind{.empty} ** LENGTH;
 
 const BG = colors.C64_BLACK;
 
@@ -52,36 +25,11 @@ const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 
-const TileMapping = struct {
-    base: TileKind,
-    a: TileKind,
-    b: TileKind,
-};
 
-const PatternMap = struct {
-    a: [24]u32,
-    b: [24]u32,
-};
 
-fn bitAt(rows: [24]u32, x: u32, y: u32) bool {
-    const row = rows[y];
-    const shift: u5 = @intCast(31 - x);
-    return ((row >> shift) & 1) != 0;
-}
 
-fn loadMap(map: PatternMap, mapping: TileMapping) void {
-    var y: u32 = 0;
-    while (y < 24) : (y += 1) {
-        var x: u32 = 0;
-        while (x < 32) : (x += 1) {
-            const kind =
-                if (bitAt(map.b, x, y)) mapping.b else if (bitAt(map.a, x, y)) mapping.a else mapping.base;
 
-            setTile(x, y, kind);
-        }
-    }
-}
-const tile_mapping = TileMapping{
+const tile_mapping = maps.TileMapping{
     .base = .empty,
     .a = .dirt,
     .b = .water,
@@ -91,7 +39,7 @@ var loaded = false;
 
 pub fn tick(input_data: input.Layout) void {
     if (!loaded) {
-        loadMap(.{
+        maps.loadMap(.{
         .a = plain.A,
         .b = plain.B,
     }, tile_mapping);
@@ -120,24 +68,16 @@ pub fn tick(input_data: input.Layout) void {
     // Buttons
 
     // A
-    if ((buttons_lo & input.BTN_A) != 0) {
-        setTileRaw(cursor.now, .water);
-    }
+    if ((buttons_lo & input.BTN_A) != 0) {}
 
     // B
-    if ((buttons_lo & input.BTN_B) != 0) {
-        setTileRaw(cursor.now, .stone);
-    }
+    if ((buttons_lo & input.BTN_B) != 0) {}
 
     // X
-    if ((buttons_lo & input.BTN_X) != 0) {
-        setTileRaw(cursor.now, .grass);
-    }
+    if ((buttons_lo & input.BTN_X) != 0) {}
 
     // Y
-    if ((buttons_lo & input.BTN_Y) != 0) {
-        setTileRaw(cursor.now, .dirt);
-    }
+    if ((buttons_lo & input.BTN_Y) != 0) {}
 }
 
 pub fn render() void {
@@ -148,7 +88,7 @@ pub fn render() void {
         while (tx < WIDTH) : (tx += 1) {
             const x = tx * TILE_SIZE;
             const y = ty * TILE_SIZE;
-            const kind = getTile(tx, ty);
+            const kind = grid.getTile(tx, ty);
             const color = switch (kind) {
                 .wall => colors.C64_DARK_GRAY,
                 .dirt => colors.C64_BROWN,
@@ -168,7 +108,7 @@ pub fn render() void {
             };
 
             renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
-            const gridPosition = tileIndex(tx, ty);
+            const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
                 renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_RED);
             }
