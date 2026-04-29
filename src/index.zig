@@ -11,7 +11,7 @@ const menu = @import("scenes/menu.zig");
 const new = @import("scenes/new.zig");
 const load = @import("scenes/load.zig");
 const credits = @import("scenes/credits.zig");
-
+const options = @import("scenes/options.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -92,7 +92,7 @@ export fn tick() void {
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
-        .options => {},
+        .options => options.tick(input_data),
         .new => new.tick(input_data), // or whatever "game" render is
         .load => load.tick(input_data), // placeholder
         .exit => {}, // placeholder
@@ -103,7 +103,7 @@ export fn tick() void {
 export fn render() void {
     switch (scene.scene) {
         .last => {},
-        .options => {},
+        .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
         .credits => credits.render(),
