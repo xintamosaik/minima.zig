@@ -6,8 +6,8 @@ const font = @import("../font.zig");
 const ui = @import("../ui.zig");
 const patterns_outside = @import("../patterns_outside.zig");
 const patterns_general = @import("../patterns_general.zig");
-/// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels.
-/// This keeps calculations simple and close to retro aesthetics.
+const plain = @import("../maps/battle/plain.zig");
+
 const TILE_SIZE: u32 = 8;
 const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
@@ -47,12 +47,56 @@ fn getTileRaw(index: u32) TileKind {
 }
 
 const BG = colors.C64_BLACK;
- 
+
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 
+const TileMapping = struct {
+    base: TileKind,
+    a: TileKind,
+    b: TileKind,
+};
+
+const PatternMap = struct {
+    a: [24]u32,
+    b: [24]u32,
+};
+
+fn bitAt(rows: [24]u32, x: u32, y: u32) bool {
+    const row = rows[y];
+    const shift: u5 = @intCast(31 - x);
+    return ((row >> shift) & 1) != 0;
+}
+
+fn loadMap(map: PatternMap, mapping: TileMapping) void {
+    var y: u32 = 0;
+    while (y < 24) : (y += 1) {
+        var x: u32 = 0;
+        while (x < 32) : (x += 1) {
+            const kind =
+                if (bitAt(map.b, x, y)) mapping.b else if (bitAt(map.a, x, y)) mapping.a else mapping.base;
+
+            setTile(x, y, kind);
+        }
+    }
+}
+const tile_mapping = TileMapping{
+    .base = .empty,
+    .a = .dirt,
+    .b = .water,
+};
+
+var loaded = false;
+
 pub fn tick(input_data: input.Layout) void {
+    if (!loaded) {
+        loadMap(.{
+        .a = plain.A,
+        .b = plain.B,
+    }, tile_mapping);
+        loaded = true;
+    }
     const buttons_lo = input_data.buttons_lo;
     // move around cursor
     cursor.last_move += 1;
@@ -127,8 +171,7 @@ pub fn render() void {
             const gridPosition = tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
                 renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_RED);
-            }      
-             
+            }
         }
     }
 }
