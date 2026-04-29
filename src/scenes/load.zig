@@ -15,8 +15,9 @@ pub fn tick(input_data: input.Layout) void {
     }
 }
 
+const BG = colors.C64_BLACK;
+
 pub fn render() void {
-    const BG = colors.C64_BLACK;
     ui.clearScreen(BG);
     ui.drawMenuItem(8 * 1, "load game", BG, colors.C64_BLUE);
 }

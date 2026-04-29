@@ -15,9 +15,10 @@ pub fn tick(input_data: input.Layout) void {
         scene.scene = .menu;
     }
 }
+ 
+const BG = colors.C64_BLACK;
 
-pub fn render() void {
-    const BG = colors.C64_BLACK;
+pub fn render() void {   
     ui.clearScreen(BG);
     ui.drawMenuItem(8 * 1, "credits", BG, colors.C64_ORANGE);
 }
