@@ -1,8 +1,7 @@
 const input = @import("../input.zig");
-const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
 const colors = @import("../colors.zig");
-const ui = @import("ui.zig");
+const ui = @import("../ui.zig");
 
 const BTN_ANY_CONFIRM =
     input.BTN_A |
@@ -17,6 +16,7 @@ pub fn tick(input_data: input.Layout) void {
 }
 
 pub fn render() void {
-    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, colors.C64_BLACK);
-    ui.drawMenuItem(8 * 1, "new game", colors.C64_BLACK, colors.C64_GREEN);
+    const BG = colors.C64_BLACK;
+    ui.clearScreen(BG);
+    ui.drawMenuItem(8 * 1, "new game", BG, colors.C64_GREEN);
 }

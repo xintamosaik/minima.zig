@@ -2,7 +2,7 @@ const input = @import("../input.zig");
 const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
 const colors = @import("../colors.zig");
-const ui = @import("ui.zig");
+const ui = @import("../ui.zig");
 
 const Cursor2DRaw = struct {
     movedLast: u32,
@@ -52,8 +52,9 @@ pub fn tick(input_data: input.Layout) void {
 }
 
 pub fn render() void {
-    const BG = colors.C64_DARK_GRAY;
-    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, BG);
+      const BG = colors.C64_BLACK;
+
+    ui.clearScreen(BG);
 
     ui.drawMenuItem(8 * 1, "continue", BG, colors.C64_YELLOW);
     ui.drawMenuItem(8 * 5, "load", BG, colors.C64_BLUE);

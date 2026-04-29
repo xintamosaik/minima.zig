@@ -1,8 +1,7 @@
 const input = @import("../input.zig");
-const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
 const colors = @import("../colors.zig");
-const font = @import("../font.zig");
+const ui = @import("../ui.zig");
 
 const BTN_ANY_CONFIRM =
     input.BTN_A |
@@ -17,16 +16,12 @@ pub fn tick(input_data: input.Layout) void {
 }
 
 pub fn render() void {
-    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, colors.C64_BLACK);
-    font.drawString(24, 8 * 1, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 2, " minima                           ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 3, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 4, " a retro game written in zig/wasm ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 5, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
+    const BG = colors.C64_BLACK;
+    ui.clearScreen(BG);
 
-    font.drawString(24, 8 * 10, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 11, " Press any key                    ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 12, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 13, " to continue                      ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 14, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
+    ui.drawMenuItem(8 * 1, "minima", BG, colors.C64_CYAN);
+    ui.drawMenuItem(8 * 3, "a retro game written in zig/wasm", BG, colors.C64_CYAN);
+
+    ui.drawMenuItem(8 * 10, "Press any key", BG, colors.C64_YELLOW);
+    ui.drawMenuItem(8 * 12, "to continue", BG, colors.C64_YELLOW);
 }
