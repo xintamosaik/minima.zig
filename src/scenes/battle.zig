@@ -68,7 +68,9 @@ pub fn tick(input_data: input.Layout) void {
     // Buttons
 
     // A
-    if ((buttons_lo & input.BTN_A) != 0) {}
+    if ((buttons_lo & input.BTN_A) != 0) {
+       
+    }
 
     // B
     if ((buttons_lo & input.BTN_B) != 0) {}
@@ -114,4 +116,8 @@ pub fn render() void {
             }
         }
     }
+    font.drawString(0, 24*8, "BARBARIAN", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(32*8, 0, "HP: 120", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(32*8, 8, "AP:   9", colors.C64_CYAN, colors.C64_BLACK);
+    
 }
