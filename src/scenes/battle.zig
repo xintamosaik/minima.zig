@@ -15,9 +15,6 @@ const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
 const LENGTH = WIDTH * HEIGHT;
 
-/// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [LENGTH]grid.TileKind = [_]grid.TileKind{.empty} ** LENGTH;
-
 const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
@@ -105,7 +102,7 @@ pub fn render() void {
             renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
-                renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_RED);
+                renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
             }
         }
     }
@@ -115,4 +112,6 @@ pub fn render() void {
     font.drawString(32 * TILE_SIZE, 1 * TILE_SIZE, "AP:    9", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
+
+    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 }

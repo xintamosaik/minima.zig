@@ -14,7 +14,7 @@ pub const LENGTH = WIDTH * HEIGHT;
 /// Tile types used by the world grid.
 pub const TileKind = enum(u8) { wall, water, grass, dirt, stone, empty };
 /// Initial map data; `init()` overwrites this with a checkerboard.
-var world_tiles: [LENGTH]TileKind = [_]TileKind{.stone} ** LENGTH;
+var world_tiles: [LENGTH]TileKind = [_]TileKind{.empty} ** LENGTH;
 /// Converts tile coordinates to a linear index.
 pub fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * WIDTH + tx));
