@@ -88,28 +88,28 @@ export fn mouse_buttons() u32 {
 /// Advances simulation by one fixed step.
 export fn tick() void {
     switch (scene.scene) {
-        .last => {},
+        .last => menu.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
         .options => options.tick(input_data),
         .new => new.tick(input_data), // or whatever "game" render is
         .load => load.tick(input_data), // placeholder
-        .exit => {}, // placeholder
+        .exit => intro.tick(input_data), // placeholder
     }
 }
 
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
-        .last => {},
+        .last => menu.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
         .credits => credits.render(),
         .new => new.render(), // or whatever "game" render is
         .load => load.render(), // placeholder
-        .exit => {}, // placeholder
+        .exit => intro.render(), // placeholder
     }
 }
 
