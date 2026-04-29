@@ -38,6 +38,7 @@ pub fn tick(input_data: input.Layout) void {
         loaded = true;
     }
     const buttons_lo = input_data.buttons_lo;
+    const buttons_hi = input_data.buttons_hi;
     // move around cursor
     cursor.last_move += 1;
     if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
@@ -70,6 +71,10 @@ pub fn tick(input_data: input.Layout) void {
 
     // Y
     if ((buttons_lo & input.BTN_Y) != 0) {}
+
+    if ((buttons_hi & input.BTN_SELECT) != 0 ) {
+        scene.scene = .menu;
+    }
 }
 
 pub fn render() void {
