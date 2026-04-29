@@ -26,7 +26,7 @@ const tile_mapping = maps.TileMapping{
     .a = .dirt,
     .b = .water,
 };
-
+var active: u32 = 0;
 var loaded = false;
 
 pub fn tick(input_data: input.Layout) void {
@@ -37,8 +37,10 @@ pub fn tick(input_data: input.Layout) void {
         }, tile_mapping);
         loaded = true;
     }
+    
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
+
     // move around cursor
     cursor.last_move += 1;
     if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
@@ -61,7 +63,9 @@ pub fn tick(input_data: input.Layout) void {
     // Buttons
 
     // A
-    if ((buttons_lo & input.BTN_A) != 0) {}
+    if ((buttons_lo & input.BTN_A) != 0) {
+        active = cursor.now;
+    }
 
     // B
     if ((buttons_lo & input.BTN_B) != 0) {}
@@ -118,5 +122,7 @@ pub fn render() void {
     font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
 
+    const position = ui.u999ToChars(active);
+    font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 }
