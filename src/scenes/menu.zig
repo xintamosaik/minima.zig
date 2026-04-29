@@ -4,6 +4,11 @@ const scene = @import("../scene.zig");
 const colors = @import("../colors.zig");
 const ui = @import("../ui.zig");
 
+const WAIT = 16;
+const JUMP = 32;
+const MENU_MIN = 8 + JUMP;
+const MENU_MAX = 8 * 20;
+
 const Cursor2DRaw = struct {
     movedLast: u32,
     x: u32,
@@ -13,16 +18,12 @@ const Cursor2DRaw = struct {
     w: u32 = 24,
 };
 
-const WAIT = 16;
-
 var menuCursor = Cursor2DRaw{ .movedLast = 0, .x = 24, .y = 8, .color = colors.C64_BLUE, .w = 8 * 35, .h = 24 };
 
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
-    const JUMP = 32;
-    const MENU_MIN = 8 + JUMP;
-    const MENU_MAX = 8 * 20;
+
     menuCursor.movedLast += 1;
 
     if ((buttons_lo & input.BTN_UP) != 0 and menuCursor.y >= MENU_MIN and menuCursor.movedLast > WAIT) {
@@ -52,7 +53,7 @@ pub fn tick(input_data: input.Layout) void {
 }
 
 pub fn render() void {
-      const BG = colors.C64_BLACK;
+    const BG = colors.C64_BLACK;
 
     ui.clearScreen(BG);
 
@@ -62,6 +63,6 @@ pub fn render() void {
     ui.drawMenuItem(8 * 13, "credits", BG, colors.C64_ORANGE);
     ui.drawMenuItem(8 * 17, "options", BG, colors.C64_PURPLE);
     ui.drawMenuItem(8 * 21, "exit", BG, colors.C64_RED);
-    
+
     renderer.drawRectOutline(menuCursor.x, menuCursor.y, menuCursor.w, menuCursor.h, colors.C64_WHITE);
 }
