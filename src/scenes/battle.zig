@@ -9,30 +9,24 @@ const patterns_general = @import("../patterns_general.zig");
 /// The tile size will always be 8. For larger sprites we use 2x8 or 4x8 tiles, but the basic unit is 8 pixels.
 /// This keeps calculations simple and close to retro aesthetics.
 const TILE_SIZE: u32 = 8;
-/// We use 16 tiles for now.
-/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
-/// This means our world will be 128 pixels wide (16 tiles * 8 pixels per tile).
 const WIDTH: u32 = 40;
-/// We use 12 tiles for now.
-/// It's just a nice number that somewhat fits retro resolutions and allows for a simple grid-based world.
-/// This means our world will be 96 pixels high (12 tiles * 8 pixels per tile).
 const HEIGHT: u32 = 25;
-/// Flat tile storage; index is computed by `tileIndex`.
 const LENGTH = WIDTH * HEIGHT;
-/// Tile types used by the world 
+
 const TileKind = enum(u8) { wall, water, grass, dirt, stone, empty };
 /// Initial map data; `init()` overwrites this with a checkerboard.
 var world_tiles: [LENGTH]TileKind = [_]TileKind{.empty} ** LENGTH;
+
 /// Converts tile coordinates to a linear index.
 fn tileIndex(tx: u32, ty: u32) usize {
     return @as(usize, @intCast(ty * WIDTH + tx));
 }
-/// Sets one tile if coordinates are inside the 
+/// Sets one tile if coordinates are inside the
 fn setTile(tx: u32, ty: u32, kind: TileKind) void {
     if (tx >= WIDTH or ty >= HEIGHT) return;
     world_tiles[tileIndex(tx, ty)] = kind;
 }
-/// Sets one tile if the index is inside the 
+/// Sets one tile if the index is inside the
 fn setTileRaw(index: u32, kind: TileKind) void {
     if (index >= LENGTH) {
         return;
@@ -52,21 +46,7 @@ fn getTileRaw(index: u32) TileKind {
     return world_tiles[index];
 }
 
-
-
-const BTN_ANY_CONFIRM =
-    input.BTN_A |
-    input.BTN_B |
-    input.BTN_X |
-    input.BTN_Y;
-
 const BG = colors.C64_BLACK;
-
-/// 2D position.
-const Point = struct {
-    x: u32,
-    y: u32,
-};
  
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
@@ -97,25 +77,21 @@ pub fn tick(input_data: input.Layout) void {
 
     // A
     if ((buttons_lo & input.BTN_A) != 0) {
-   
         setTileRaw(cursor.now, .water);
     }
 
     // B
     if ((buttons_lo & input.BTN_B) != 0) {
-   
         setTileRaw(cursor.now, .stone);
     }
 
     // X
     if ((buttons_lo & input.BTN_X) != 0) {
-      
         setTileRaw(cursor.now, .grass);
     }
 
     // Y
     if ((buttons_lo & input.BTN_Y) != 0) {
-    
         setTileRaw(cursor.now, .dirt);
     }
 }
@@ -146,12 +122,13 @@ pub fn render() void {
                 .wall => patterns_outside.WALL,
                 .empty => patterns_general.EMPTY,
             };
+
+            renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
             const gridPosition = tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
                 renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_RED);
-            } else {
-                renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
-            }
+            }      
+             
         }
     }
 }
