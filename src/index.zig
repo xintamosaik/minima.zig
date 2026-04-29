@@ -5,10 +5,12 @@ const grid = @import("grid.zig");
 const input = @import("input.zig");
 const font = @import("font.zig");
 const colors = @import("colors.zig");
+const scene = @import("scene.zig");
 
 const patterns_world = @import("patterns_world.zig");
 const patterns_outside = @import("patterns_outside.zig");
 
+const intro = @import("scenes/intro.zig");
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
     return renderer.WIDTH;
@@ -103,28 +105,6 @@ var player1 = Player{
     .pos = Point{ .x = 60, .y = 40 },
     .color = colors.C64_BLUE,
 };
-
-const Scene = enum(u8) {
-    intro,
-    menu,
-    new,
-    load,
-    exit,
-};
-
-var scene: Scene = .intro;
-
-const BTN_ANY_CONFIRM =
-    input.BTN_A |
-    input.BTN_B |
-    input.BTN_X |
-    input.BTN_Y;
-
-fn tick_intro() void {
-    if ((input_data.buttons_lo & BTN_ANY_CONFIRM) != 0 or (input_data.mouse_buttons & input.MOUSE_BUTTON_LEFT) != 0) {
-        scene = .menu;
-    }
-}
 
 const Cursor2DRaw = struct {
     movedLast: u32,
@@ -245,8 +225,8 @@ fn tick_old() void {
 
 /// Advances simulation by one fixed step.
 export fn tick() void {
-    switch (scene) {
-        .intro => tick_intro(),
+    switch (scene.scene) {
+        .intro => intro.tick(input_data),
         .menu => tick_menu(),
         .new => tick_old(), // or whatever "game" render is
         .load => {}, // placeholder
@@ -329,25 +309,11 @@ fn render_menu() void {
     renderer.drawRectOutline(menuCursor.pos.x, menuCursor.pos.y, menuCursor.w, menuCursor.h, colors.C64_WHITE);
 }
 
-fn render_intro() void {
-    renderer.fillRect(0, 0, renderer.WIDTH, renderer.HEIGHT, colors.C64_BLACK);
-    font.drawString(24, 8 * 1, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 2, " minima                           ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 3, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 4, " a retro game written in zig/wasm ", colors.C64_BLACK, colors.C64_CYAN);
-    font.drawString(24, 8 * 5, "                                  ", colors.C64_BLACK, colors.C64_CYAN);
-
-    font.drawString(24, 8 * 10, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 11, " Press any key                    ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 12, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 13, " to continue                      ", colors.C64_BLACK, colors.C64_YELLOW);
-    font.drawString(24, 8 * 14, "                                  ", colors.C64_BLACK, colors.C64_YELLOW);
-}
 
 /// Renders the current frame
 export fn render() void {
-    switch (scene) {
-        .intro => render_intro(),
+    switch (scene.scene) {
+        .intro => intro.render(),
         .menu => render_menu(),
         .new => render_old(), // or whatever "game" render is
         .load => {}, // placeholder
