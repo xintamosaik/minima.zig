@@ -5,7 +5,7 @@ const colors = @import("../colors.zig");
 const font = @import("../font.zig");
 const ui = @import("../ui.zig");
 const maps = @import("../maps/maps.zig");
-const grid = @import("../grid.zig"); 
+const grid = @import("../grid.zig");
 const patterns_outside = @import("../patterns_outside.zig");
 const patterns_general = @import("../patterns_general.zig");
 const plain = @import("../maps/battle/plain.zig");
@@ -15,7 +15,6 @@ const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
 const LENGTH = WIDTH * HEIGHT;
 
-
 /// Initial map data; `init()` overwrites this with a checkerboard.
 var world_tiles: [LENGTH]grid.TileKind = [_]grid.TileKind{.empty} ** LENGTH;
 
@@ -24,10 +23,6 @@ const BG = colors.C64_BLACK;
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
-
-
-
-
 
 const tile_mapping = maps.TileMapping{
     .base = .empty,
@@ -40,9 +35,9 @@ var loaded = false;
 pub fn tick(input_data: input.Layout) void {
     if (!loaded) {
         maps.loadMap(.{
-        .a = plain.A,
-        .b = plain.B,
-    }, tile_mapping);
+            .a = plain.A,
+            .b = plain.B,
+        }, tile_mapping);
         loaded = true;
     }
     const buttons_lo = input_data.buttons_lo;
@@ -68,9 +63,7 @@ pub fn tick(input_data: input.Layout) void {
     // Buttons
 
     // A
-    if ((buttons_lo & input.BTN_A) != 0) {
-       
-    }
+    if ((buttons_lo & input.BTN_A) != 0) {}
 
     // B
     if ((buttons_lo & input.BTN_B) != 0) {}
@@ -116,8 +109,10 @@ pub fn render() void {
             }
         }
     }
-    font.drawString(0, 24*8, "BARBARIAN", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(32*8, 0, "HP: 120", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(32*8, 8, "AP:   9", colors.C64_CYAN, colors.C64_BLACK);
-    
+
+    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "BARBARIAN", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(32 * TILE_SIZE, 0 * TILE_SIZE, "HP:  120", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(32 * TILE_SIZE, 1 * TILE_SIZE, "AP:    9", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
+    font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
 }
