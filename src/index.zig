@@ -12,6 +12,8 @@ const new = @import("scenes/new.zig");
 const load = @import("scenes/load.zig");
 const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
+const battle = @import("scenes/battle.zig");
+
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -88,7 +90,7 @@ export fn mouse_buttons() u32 {
 /// Advances simulation by one fixed step.
 export fn tick() void {
     switch (scene.scene) {
-        .last => menu.tick(input_data),
+        .last => battle.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
@@ -102,7 +104,7 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
-        .last => menu.render(),
+        .last => battle.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
@@ -116,4 +118,5 @@ export fn render() void {
 /// Initializes world state.
 export fn init() void {
     console_log(0);
+    scene.scene = .last;
 }
