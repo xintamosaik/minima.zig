@@ -5,9 +5,9 @@ Shared video memory block written by the VM and read by the host runtime.
 ## Layout
 
 - Pixel format: RGBA8888
-- Width: 128
-- Height: 96
-- Total size: 49152 bytes
+- Width: 320 (40 x 8)
+- Height: 200 (25 x 8)
+- Total size: 256000 bytes 
 - Ownership: VM writes, host reads and presents
 
 ## Encoding Rules
