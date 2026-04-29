@@ -14,7 +14,7 @@ const Cursor2DRaw = struct {
 
 const WAIT = 16;
 
-var menuCursor = Cursor2DRaw{ .movedLast = 0, .x = 24, .y = 8,  .color = colors.C64_BLUE, .w = 8 * 35, .h = 24 };
+var menuCursor = Cursor2DRaw{ .movedLast = 0, .x = 24, .y = 8, .color = colors.C64_BLUE, .w = 8 * 35, .h = 24 };
 
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;

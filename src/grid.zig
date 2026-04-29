@@ -12,17 +12,7 @@ pub const HEIGHT: u32 = 25;
 /// Flat tile storage; index is computed by `tileIndex`.
 pub const LENGTH = WIDTH * HEIGHT;
 /// Tile types used by the world grid.
-pub const TileKind = enum(u8) {
-    wall,
-    water,
-    grass,
-    dirt,
-    stone,
-    plains,
-    forest,
-    mountain,
-    river
-};
+pub const TileKind = enum(u8) { wall, water, grass, dirt, stone, plains, forest, mountain, river };
 /// Initial map data; `init()` overwrites this with a checkerboard.
 var world_tiles: [LENGTH]TileKind = [_]TileKind{.stone} ** LENGTH;
 /// Converts tile coordinates to a linear index.

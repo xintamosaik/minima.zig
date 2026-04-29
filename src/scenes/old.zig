@@ -32,8 +32,6 @@ const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 
-
-
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;
     const mousex = input_data.mouse_x;
@@ -150,4 +148,3 @@ pub fn render() void {
     font.drawString(16, 16, "minima", colors.C64_BLACK, colors.C64_CYAN);
     font.drawString(16, 32, "a retro game written in zig/wasm", colors.C64_BLACK, colors.C64_CYAN);
 }
-
