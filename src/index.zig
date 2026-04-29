@@ -8,7 +8,10 @@ const scene = @import("scene.zig");
 // Scenes
 const intro = @import("scenes/intro.zig");
 const menu = @import("scenes/menu.zig");
-const old = @import("scenes/old.zig");
+const new = @import("scenes/new.zig");
+const load = @import("scenes/load.zig");
+const credits = @import("scenes/credits.zig");
+
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -85,10 +88,13 @@ export fn mouse_buttons() u32 {
 /// Advances simulation by one fixed step.
 export fn tick() void {
     switch (scene.scene) {
+        .last => {},
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
-        .new => old.tick(input_data), // or whatever "game" render is
-        .load => {}, // placeholder
+        .credits => credits.tick(input_data),
+        .options => {},
+        .new => new.tick(input_data), // or whatever "game" render is
+        .load => load.tick(input_data), // placeholder
         .exit => {}, // placeholder
     }
 }
@@ -96,10 +102,13 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
+        .last => {},
+        .options => {},
         .intro => intro.render(),
         .menu => menu.render(),
-        .new => old.render(), // or whatever "game" render is
-        .load => {}, // placeholder
+        .credits => credits.render(),
+        .new => new.render(), // or whatever "game" render is
+        .load => load.render(), // placeholder
         .exit => {}, // placeholder
     }
 }
