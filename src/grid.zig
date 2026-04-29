@@ -12,7 +12,7 @@ pub const HEIGHT: u32 = 25;
 /// Flat tile storage; index is computed by `tileIndex`.
 pub const LENGTH = WIDTH * HEIGHT;
 /// Tile types used by the world grid.
-const TileKind = enum(u8) {
+pub const TileKind = enum(u8) {
     wall,
     water,
     grass,
@@ -36,7 +36,7 @@ pub fn setTile(tx: u32, ty: u32, kind: TileKind) void {
 }
 /// Sets one tile if the index is inside the grid.
 pub fn setTileRaw(index: u32, kind: TileKind) void {
-    if (index > LENGTH) {
+    if (index >= LENGTH) {
         return;
     }
     world_tiles[index] = kind;
@@ -48,7 +48,7 @@ pub fn getTile(tx: u32, ty: u32) TileKind {
 
 /// Gets the kind of a tile with the index
 pub fn getTileRaw(index: u32) TileKind {
-    if (index > LENGTH) {
+    if (index >= LENGTH) {
         return .stone;
     }
     return world_tiles[index];
