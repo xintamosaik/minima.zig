@@ -6,10 +6,14 @@ const font = @import("../font.zig");
 const ui = @import("../ui.zig");
 const maps = @import("../maps/maps.zig");
 const grid = @import("../grid.zig");
+
 const patterns_outside = @import("../patterns/outside.zig");
 const patterns_general = @import("../patterns/general.zig");
+const patterns_enemy = @import("../patterns/enemy.zig");
+
 const plain = @import("../maps/battle/plain.zig");
-const wolfpack = @import("../encounters/pack_of_wolves.zig");   
+const wolfpack = @import("../encounters/pack_of_wolves.zig");
+
 const TILE_SIZE: u32 = 8;
 const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
@@ -36,8 +40,6 @@ pub fn tick(input_data: input.Layout) void {
             .b = plain.B,
         }, tile_mapping);
 
-
-        
         loaded = true;
     }
 
@@ -83,7 +85,8 @@ pub fn tick(input_data: input.Layout) void {
         scene.scene = .menu;
     }
 }
-
+var cur_x: u32 = 0;
+var cur_y: u32 = 0;
 pub fn render() void {
     ui.clearScreen(BG);
     var ty: u32 = 0;
@@ -114,7 +117,8 @@ pub fn render() void {
             renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
             const gridPosition = grid.tileIndex(tx, ty);
             if (gridPosition == cursor.now) {
-                renderer.drawRectOutline(x, y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
+                cur_x = x;
+                cur_y = y;
             }
         }
     }
@@ -124,8 +128,11 @@ pub fn render() void {
     font.drawString(32 * TILE_SIZE, 1 * TILE_SIZE, "AP:    9", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
-
+    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
-    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
+    renderer.drawBitmap8x8(8 * 3, 8 * 3, patterns_enemy.WOLF, colors.C64_GRAY, colors.C64_BLACK);
+
+    renderer.drawBitmap8x8(8 * 5, 8 * 7, patterns_enemy.GOBLIN, colors.C64_GREEN, colors.C64_BLACK);
+    renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
 }
