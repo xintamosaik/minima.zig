@@ -6,8 +6,8 @@ const font = @import("../font.zig");
 const ui = @import("../ui.zig");
 const maps = @import("../maps/maps.zig");
 const grid = @import("../grid.zig");
-const patterns_outside = @import("../patterns_outside.zig");
-const patterns_general = @import("../patterns_general.zig");
+const patterns_outside = @import("../patterns/outside.zig");
+const patterns_general = @import("../patterns/general.zig");
 const plain = @import("../maps/battle/plain.zig");
 
 const TILE_SIZE: u32 = 8;
