@@ -1,10 +1,9 @@
-pub const Weapon = enum(u8) {
-    .sword,
-    .club,
-    .axe,
-
+const weapons = @import("../weapons/weapons.zig");
+pub const enemies = enum (u8) {
+    wolf,
+    goblin,
 };
 pub const Enemy = struct {
-    weapon: Weapon,
-
+    weapon: weapons.Weapon,
 };
+
