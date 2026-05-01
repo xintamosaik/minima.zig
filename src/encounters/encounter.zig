@@ -1,8 +1,8 @@
-const enemy = @import("../enemies/enemies.zig");
+const enemies = @import("../enemies/enemies.zig");
 
 pub const Group = struct {
-    enemy: enemy.Enemy,
+    enemy: enemies.Enemy,
     quantity: u8,
 };
 
-pub const Encounter = []Group;
+pub const Encounter = []const Group;

@@ -1,4 +1,9 @@
 const encounter = @import("encounter.zig");
-pub const spawn = encounter.Encounter {
-    { .wolf, 7 },
+const enemies = @import("../enemies/enemies.zig");
+
+pub const spawn: encounter.Encounter = &.{
+    .{
+        .enemy = enemies.wolf,
+        .quantity = 7,
+    },
 };
