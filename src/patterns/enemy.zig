@@ -8,7 +8,7 @@ pub const WOLF: [8]u8 = .{
     0b0001_0001,
     0b0011_0011,
 };
-pub const GOBLINE: [8]u8 = .{
+pub const GOBLIN: [8]u8 = .{
     0b0000_0000,
     0b0000_0000,
     0b0000_0000,

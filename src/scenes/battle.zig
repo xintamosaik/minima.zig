@@ -7,9 +7,9 @@ const ui = @import("../ui.zig");
 const maps = @import("../maps/maps.zig");
 const grid = @import("../grid.zig");
 const patterns_outside = @import("../patterns/outside.zig");
-const patterns_general = @import("../patterns_general.zig");
+const patterns_general = @import("../patterns/general.zig");
 const plain = @import("../maps/battle/plain.zig");
-
+const wolfpack = @import("../encounters/pack_of_wolves.zig");   
 const TILE_SIZE: u32 = 8;
 const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
@@ -37,6 +37,7 @@ pub fn tick(input_data: input.Layout) void {
         }, tile_mapping);
 
 
+        
         loaded = true;
     }
 
