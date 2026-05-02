@@ -71,6 +71,27 @@ pub fn init() void {
             actor_index = actor_index + 1;
         }
     }
+    rng_state = 0x87654321;
+    for (goblingroup.spawn) |spawn| {
+        const group = spawn;
+
+        var i: u8 = 0;
+        while (i < group.quantity) {
+            i = i + 1;
+
+            actors[actor_index] = .{
+                .x = 16 + rand() % 16,
+                .y = rand() % 16,
+                .color = switch (spawn.enemy.kind) {
+                    .wolf => enemies.wolf.color,
+                    .goblin => enemies.goblin.color,
+                },
+                .type = spawn.enemy.kind,
+                .active = true,
+            };
+            actor_index = actor_index + 1;
+        }
+    }
     loaded = true;
 }
 pub fn tick(input_data: input.Layout) void {
@@ -157,7 +178,6 @@ pub fn render() void {
 
     font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_index), colors.C64_CYAN, colors.C64_BLACK);
-    
 
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
@@ -177,7 +197,6 @@ pub fn render() void {
             actor.color,
         );
     }
-    renderer.drawBitmap8x8(8 * 5, 8 * 7, patterns_enemy.GOBLIN, colors.C64_GREEN, colors.C64_BLACK);
 
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 
