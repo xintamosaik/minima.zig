@@ -45,36 +45,36 @@ const tile_mapping = maps.TileMapping{
 var active: u32 = 0;
 var loaded = false;
 var actor_index: u32 = 0;
-pub fn tick(input_data: input.Layout) void {
-    if (!loaded) {
-        maps.loadMap(.{
-            .a = plain.A,
-            .b = plain.B,
-        }, tile_mapping);
+pub fn init() void {
+    maps.loadMap(.{
+        .a = plain.A,
+        .b = plain.B,
+    }, tile_mapping);
 
-        for (wolfpack.spawn) |spawn| {
-            const group = spawn;
+    for (wolfpack.spawn) |spawn| {
+        const group = spawn;
 
-            var i: u8 = 0;
-            while (i < group.quantity) {
-                i = i + 1;
+        var i: u8 = 0;
+        while (i < group.quantity) {
+            i = i + 1;
 
-                actors[actor_index] = .{
-                    .x = 16 + rand() % 16,
-                    .y = rand() % 16,
-                    .color = switch (spawn.enemy.kind) {
-                        .wolf => enemies.wolf.color,
-                        .goblin => enemies.goblin.color,
-                    },
-                    .type = spawn.enemy.kind,
-                    .active = true,
-                };
-                actor_index = actor_index + 1;
-            }
+            actors[actor_index] = .{
+                .x = 16 + rand() % 16,
+                .y = rand() % 16,
+                .color = switch (spawn.enemy.kind) {
+                    .wolf => enemies.wolf.color,
+                    .goblin => enemies.goblin.color,
+                },
+                .type = spawn.enemy.kind,
+                .active = true,
+            };
+            actor_index = actor_index + 1;
         }
-        loaded = true;
     }
-
+    loaded = true;
+}
+pub fn tick(input_data: input.Layout) void {
+    if (!loaded) init();
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
 
@@ -155,11 +155,10 @@ pub fn render() void {
         }
     }
 
-    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "BARBARIAN", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(32 * TILE_SIZE, 0 * TILE_SIZE, "HP:  120", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(32 * TILE_SIZE, 1 * TILE_SIZE, "AP:    9", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
-    font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
+    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_index), colors.C64_CYAN, colors.C64_BLACK);
+    
+
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
     var i: u32 = 0;
