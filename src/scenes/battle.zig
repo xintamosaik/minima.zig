@@ -44,7 +44,7 @@ const tile_mapping = maps.TileMapping{
 
 var active: u32 = 0;
 var loaded = false;
-var actor_index: u32 = 0;
+var actor_count: u32 = 0;
 
 pub fn init() void {
     maps.loadMap(.{
@@ -59,7 +59,7 @@ pub fn init() void {
         while (i < group.quantity) {
             i = i + 1;
 
-            actors[actor_index] = .{
+            actors[actor_count] = .{
                 .x = 16 + rand() % 16,
                 .y = rand() % 16,
                 .color = switch (spawn.enemy.kind) {
@@ -69,7 +69,7 @@ pub fn init() void {
                 .type = spawn.enemy.kind,
                 .active = true,
             };
-            actor_index = actor_index + 1;
+            actor_count = actor_count + 1;
         }
     }
     rng_state = 0x87654321;
@@ -80,7 +80,7 @@ pub fn init() void {
         while (i < group.quantity) {
             i = i + 1;
 
-            actors[actor_index] = .{
+            actors[actor_count] = .{
                 .x = 16 + rand() % 16,
                 .y = rand() % 16,
                 .color = switch (spawn.enemy.kind) {
@@ -90,7 +90,7 @@ pub fn init() void {
                 .type = spawn.enemy.kind,
                 .active = true,
             };
-            actor_index = actor_index + 1;
+            actor_count = actor_count + 1;
         }
     }
     loaded = true;
@@ -168,7 +168,7 @@ fn render_tiles() void {
 }
 fn render_actors() void {
     var i: u32 = 0;
-    while (i < actor_index) : (i += 1) {
+    while (i < actor_count) : (i += 1) {
         const actor = actors[i];
 
         if (!actor.active) continue;
@@ -189,7 +189,7 @@ pub fn render() void {
     render_tiles();
 
     font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_index), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_count), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
