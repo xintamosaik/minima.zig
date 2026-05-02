@@ -1,3 +1,5 @@
+extern "env" fn console_log(value: u32) void;
+
 const input = @import("../input.zig");
 const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
@@ -13,6 +15,7 @@ const patterns_enemy = @import("../patterns/enemy.zig");
 
 const plain = @import("../maps/battle/plain.zig");
 const wolfpack = @import("../encounters/pack_of_wolves.zig");
+const goblingroup = @import("../encounters/goblin_group.zig");
 
 const TILE_SIZE: u32 = 8;
 const WIDTH: u32 = 40;
@@ -22,14 +25,15 @@ const LENGTH = WIDTH * HEIGHT;
 const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
-
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 
+const Actor = struct { x: u32, y: u32, color: u32 };
 const tile_mapping = maps.TileMapping{
     .base = .empty,
     .a = .dirt,
     .b = .water,
 };
+
 var active: u32 = 0;
 var loaded = false;
 
@@ -40,6 +44,8 @@ pub fn tick(input_data: input.Layout) void {
             .b = plain.B,
         }, tile_mapping);
 
+        console_log(wolfpack.spawn.len);
+        console_log(wolfpack.spawn[0].quantity);
         loaded = true;
     }
 
@@ -131,8 +137,9 @@ pub fn render() void {
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
-    renderer.drawBitmap8x8(8 * 3, 8 * 3, patterns_enemy.WOLF, colors.C64_GRAY, colors.C64_BLACK);
 
+    renderer.drawBitmap8x8(8 * 3, 8 * 3, patterns_enemy.WOLF, colors.C64_GRAY, colors.C64_BLACK);
     renderer.drawBitmap8x8(8 * 5, 8 * 7, patterns_enemy.GOBLIN, colors.C64_GREEN, colors.C64_BLACK);
+
     renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
 }
