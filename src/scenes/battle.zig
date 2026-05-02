@@ -155,7 +155,6 @@ pub fn render() void {
     font.drawString(32 * TILE_SIZE, 1 * TILE_SIZE, "AP:    9", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 4 * TILE_SIZE, "STATUS", colors.C64_WHITE, colors.C64_BLACK);
     font.drawString(32 * TILE_SIZE, 5 * TILE_SIZE, "POISON", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
-    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
     var i: u32 = 0;
@@ -164,7 +163,7 @@ pub fn render() void {
 
         if (!actor.active) continue;
 
-        renderer.drawBitmap8x8(
+        renderer.drawBitmap8x8Mono(
             actor.x * TILE_SIZE,
             actor.y * TILE_SIZE,
             switch (actor.type) {
@@ -172,10 +171,11 @@ pub fn render() void {
                 .goblin => patterns_enemy.GOBLIN,
             },
             actor.color,
-            colors.C64_BLACK,
         );
     }
     renderer.drawBitmap8x8(8 * 5, 8 * 7, patterns_enemy.GOBLIN, colors.C64_GREEN, colors.C64_BLACK);
+
+    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 
     renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
 }
