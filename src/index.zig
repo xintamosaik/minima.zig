@@ -12,7 +12,7 @@ const new = @import("scenes/new.zig");
 const load = @import("scenes/load.zig");
 const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
-const battle = @import("scenes/battle.zig");
+const battle = @import("scenes/battle_old.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
