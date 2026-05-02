@@ -45,6 +45,7 @@ const tile_mapping = maps.TileMapping{
 var active: u32 = 0;
 var loaded = false;
 var actor_index: u32 = 0;
+
 pub fn init() void {
     maps.loadMap(.{
         .a = plain.A,
@@ -94,54 +95,43 @@ pub fn init() void {
     }
     loaded = true;
 }
-pub fn tick(input_data: input.Layout) void {
-    if (!loaded) init();
-    const buttons_lo = input_data.buttons_lo;
-    const buttons_hi = input_data.buttons_hi;
-
-    // move around cursor
+pub fn input_cursor(input_data: input.Layout) void {
     cursor.last_move += 1;
-    if ((buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
         cursor.now -= 1;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < LENGTH - 1 and cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < LENGTH - 1 and cursor.last_move > 16) {
         cursor.now += 1;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_UP) != 0 and cursor.now > WIDTH - 1 and cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and cursor.now > WIDTH - 1 and cursor.last_move > 16) {
         cursor.now -= WIDTH;
         cursor.last_move = 0;
     }
-    if ((buttons_lo & input.BTN_DOWN) != 0 and cursor.now < LENGTH - WIDTH and cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and cursor.now < LENGTH - WIDTH and cursor.last_move > 16) {
         cursor.now += WIDTH;
         cursor.last_move = 0;
     }
-
-    // Buttons
-
-    // A
-    if ((buttons_lo & input.BTN_A) != 0) {
+    if ((input_data.buttons_lo & input.BTN_A) != 0) {
         active = cursor.now;
     }
-
-    // B
-    if ((buttons_lo & input.BTN_B) != 0) {}
-
-    // X
-    if ((buttons_lo & input.BTN_X) != 0) {}
-
-    // Y
-    if ((buttons_lo & input.BTN_Y) != 0) {}
-
-    if ((buttons_hi & input.BTN_SELECT) != 0) {
+    // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
+    // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
+    // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
+    if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.scene = .menu;
     }
 }
+pub fn tick(input_data: input.Layout) void {
+    if (!loaded) init();
+    input_cursor(input_data);
+}
+
 var cur_x: u32 = 0;
 var cur_y: u32 = 0;
-pub fn render() void {
-    ui.clearScreen(BG);
+
+fn render_tiles() void {
     var ty: u32 = 0;
     while (ty < HEIGHT) : (ty += 1) {
         var tx: u32 = 0;
@@ -175,12 +165,8 @@ pub fn render() void {
             }
         }
     }
-
-    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_index), colors.C64_CYAN, colors.C64_BLACK);
-
-    const position = ui.u999ToChars(active);
-    font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+}
+fn render_actors() void {
     var i: u32 = 0;
     while (i < actor_index) : (i += 1) {
         const actor = actors[i];
@@ -197,7 +183,18 @@ pub fn render() void {
             actor.color,
         );
     }
+}
+pub fn render() void {
+    ui.clearScreen(BG);
+    render_tiles();
 
+    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_index), colors.C64_CYAN, colors.C64_BLACK);
+
+    const position = ui.u999ToChars(active);
+    font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+
+    render_actors();
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 
     renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
