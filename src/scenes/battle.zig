@@ -14,6 +14,8 @@ const patterns_general = @import("../patterns/general.zig");
 const patterns_enemy = @import("../patterns/enemy.zig");
 
 const plain = @import("../maps/battle/plain.zig");
+
+const enemies = @import("../enemies/enemies.zig");
 const wolfpack = @import("../encounters/pack_of_wolves.zig");
 const goblingroup = @import("../encounters/goblin_group.zig");
 
@@ -27,7 +29,8 @@ const BG = colors.C64_BLACK;
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
 
-const Actor = struct { x: u32, y: u32, color: u32 };
+const Actor = struct { x: u32, y: u32, color: u32, type: enemies.Enemies, active: bool = false };
+var actors: [16]Actor = undefined;
 const tile_mapping = maps.TileMapping{
     .base = .empty,
     .a = .dirt,
@@ -36,7 +39,7 @@ const tile_mapping = maps.TileMapping{
 
 var active: u32 = 0;
 var loaded = false;
-
+var actor_index: u32 = 0;
 pub fn tick(input_data: input.Layout) void {
     if (!loaded) {
         maps.loadMap(.{
@@ -44,8 +47,26 @@ pub fn tick(input_data: input.Layout) void {
             .b = plain.B,
         }, tile_mapping);
 
-        console_log(wolfpack.spawn.len);
-        console_log(wolfpack.spawn[0].quantity);
+        for (wolfpack.spawn) |spawn| {
+            const group = spawn;
+
+            var i: u8 = 0;
+            while (i < group.quantity) {
+                i = i + 1;
+
+                actors[actor_index] = .{
+                    .x = actor_index,
+                    .y = actor_index,
+                    .color = switch (spawn.enemy.kind) {
+                        .wolf => enemies.wolf.color,
+                        .goblin => enemies.goblin.color,
+                    },
+                    .type = spawn.enemy.kind,
+                    .active = true,
+                };
+                actor_index = actor_index + 1;
+            }
+        }
         loaded = true;
     }
 
@@ -137,8 +158,23 @@ pub fn render() void {
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
     const position = ui.u999ToChars(active);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+    var i: u32 = 0;
+    while (i < actor_index) : (i += 1) {
+        const actor = actors[i];
 
-    renderer.drawBitmap8x8(8 * 3, 8 * 3, patterns_enemy.WOLF, colors.C64_GRAY, colors.C64_BLACK);
+        if (!actor.active) continue;
+
+        renderer.drawBitmap8x8(
+            actor.x * TILE_SIZE,
+            actor.y * TILE_SIZE,
+            switch (actor.type) {
+                .wolf => patterns_enemy.WOLF,
+                .goblin => patterns_enemy.GOBLIN,
+            },
+            actor.color,
+            colors.C64_BLACK,
+        );
+    }
     renderer.drawBitmap8x8(8 * 5, 8 * 7, patterns_enemy.GOBLIN, colors.C64_GREEN, colors.C64_BLACK);
 
     renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
