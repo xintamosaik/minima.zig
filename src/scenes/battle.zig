@@ -46,6 +46,7 @@ var active: u32 = 0;
 var loaded = false;
 var actor_count: u32 = 0;
 fn spawnEncounter(encounter: anytype, seed: u32) void {
+    if (actor_count >= actors.len) return;
     rng_state = seed;
 
     for (encounter) |spawn| {
