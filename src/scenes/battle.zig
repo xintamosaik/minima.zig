@@ -28,7 +28,12 @@ const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
+var rng_state: u32 = 0x12345678;
 
+fn rand() u32 {
+    rng_state = rng_state *% 1664525 +% 1013904223;
+    return rng_state;
+}
 const Actor = struct { x: u32, y: u32, color: u32, type: enemies.Enemies, active: bool = false };
 var actors: [16]Actor = undefined;
 const tile_mapping = maps.TileMapping{
@@ -55,8 +60,8 @@ pub fn tick(input_data: input.Layout) void {
                 i = i + 1;
 
                 actors[actor_index] = .{
-                    .x = actor_index,
-                    .y = actor_index,
+                    .x = 16 + rand() % 16,
+                    .y = rand() % 16,
                     .color = switch (spawn.enemy.kind) {
                         .wolf => enemies.wolf.color,
                         .goblin => enemies.goblin.color,
