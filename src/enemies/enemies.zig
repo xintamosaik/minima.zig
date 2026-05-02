@@ -14,7 +14,7 @@ pub const Enemy = struct {
 
 pub const wolf = Enemy{
     .kind = .wolf,
-    .weapon = weapons.wolf_bite,
+    .weapon = weapons.fangs,
     .pattern = pattern_enemies.WOLF,
 };
 
