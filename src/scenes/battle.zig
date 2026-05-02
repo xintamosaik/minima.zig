@@ -45,54 +45,35 @@ const tile_mapping = maps.TileMapping{
 var active: u32 = 0;
 var loaded = false;
 var actor_count: u32 = 0;
+fn spawnEncounter(encounter: anytype, seed: u32) void {
+    rng_state = seed;
 
+    for (encounter) |spawn| {
+        var i: u8 = 0;
+        while (i < spawn.quantity) : (i += 1) {
+            actors[actor_count] = .{
+                .x = 16 + rand() % 16,
+                .y = rand() % 16,
+                .color = switch (spawn.enemy.kind) {
+                    .wolf => enemies.wolf.color,
+                    .goblin => enemies.goblin.color,
+                },
+                .type = spawn.enemy.kind,
+                .active = true,
+            };
+
+            actor_count += 1;
+        }
+    }
+}
 pub fn init() void {
     maps.loadMap(.{
         .a = plain.A,
         .b = plain.B,
     }, tile_mapping);
 
-    for (wolfpack.spawn) |spawn| {
-        const group = spawn;
-
-        var i: u8 = 0;
-        while (i < group.quantity) {
-            i = i + 1;
-
-            actors[actor_count] = .{
-                .x = 16 + rand() % 16,
-                .y = rand() % 16,
-                .color = switch (spawn.enemy.kind) {
-                    .wolf => enemies.wolf.color,
-                    .goblin => enemies.goblin.color,
-                },
-                .type = spawn.enemy.kind,
-                .active = true,
-            };
-            actor_count = actor_count + 1;
-        }
-    }
-    rng_state = 0x87654321;
-    for (goblingroup.spawn) |spawn| {
-        const group = spawn;
-
-        var i: u8 = 0;
-        while (i < group.quantity) {
-            i = i + 1;
-
-            actors[actor_count] = .{
-                .x = 16 + rand() % 16,
-                .y = rand() % 16,
-                .color = switch (spawn.enemy.kind) {
-                    .wolf => enemies.wolf.color,
-                    .goblin => enemies.goblin.color,
-                },
-                .type = spawn.enemy.kind,
-                .active = true,
-            };
-            actor_count = actor_count + 1;
-        }
-    }
+    spawnEncounter(wolfpack.spawn, 0x12345678);
+    spawnEncounter(goblingroup.spawn, 0x87654321);
     loaded = true;
 }
 pub fn input_cursor(input_data: input.Layout) void {
