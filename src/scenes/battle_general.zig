@@ -3,21 +3,17 @@ extern "env" fn console_log(value: u32) void;
 const input = @import("../input.zig");
 const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
+const maps = @import("../maps/maps.zig");
 const colors = @import("../colors.zig");
 const font = @import("../font.zig");
 const ui = @import("../ui.zig");
-// const maps = @import("../maps/maps.zig");
 const grid = @import("../grid.zig");
-
+const encounters = @import("../encounters/encounter.zig");
 const patterns_outside = @import("../patterns/outside.zig");
 const patterns_general = @import("../patterns/general.zig");
 const patterns_enemy = @import("../patterns/enemy.zig");
 
-// const plain = @import("../maps/battle/plain.zig");
-
 const enemies = @import("../enemies/enemies.zig");
-// const wolfpack = @import("../encounters/pack_of_wolves.zig");
-// const goblingroup = @import("../encounters/goblin_group.zig");
 
 const TILE_SIZE: u32 = 8;
 const WIDTH: u32 = 40;
@@ -36,11 +32,15 @@ fn rand() u32 {
 }
 const Actor = struct { x: u32, y: u32, color: u32, type: enemies.Enemies, active: bool = false };
 var actors: [16]Actor = undefined;
-// const tile_mapping = maps.TileMapping{
-//     .base = .empty,
-//     .a = .dirt,
-//     .b = .water,
-// };
+pub const EncounterConfig = struct {
+    spawn: encounters.Group,
+    seed: u32,
+};
+pub const BattleDef = struct {
+    tile_mapping: maps.TileMapping,
+    pattern_map: maps.PatternMap,
+    encounterConfig: []EncounterConfig,
+};
 
 var active: u32 = 0;
 var loaded = false;
@@ -67,14 +67,11 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
         }
     }
 }
-pub fn init() void {
-//     maps.loadMap(.{
-//         .a = plain.A,
-//         .b = plain.B,
-//     }, tile_mapping);
+pub fn init(battle_def: BattleDef) void {
+    maps.loadMap(battle_def.tile_mapping, battle_def.pattern_map);
 
-//     spawnEncounter(wolfpack.spawn, 0x12345678);
-//     spawnEncounter(goblingroup.spawn, 0x87654321);
+    //spawnEncounter(wolfpack.spawn, 0x12345678);
+    //spawnEncounter(goblingroup.spawn, 0x87654321);
     loaded = true;
 }
 pub fn input_cursor(input_data: input.Layout) void {

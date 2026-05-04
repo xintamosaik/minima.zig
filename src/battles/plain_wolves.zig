@@ -5,9 +5,7 @@ const wolfpack = @import("../encounters/pack_of_wolves.zig");
 const goblingroup = @import("../encounters/goblin_group.zig");
 
 const input = @import("../input.zig");
-const battle = @import("../battle_general.zig");
- 
-
+const battle = @import("../scenes/battle_general.zig");
 
 pub const tile_mapping = maps.TileMapping{
     .base = .empty,
@@ -31,16 +29,15 @@ pub const encounterConfig: EncounterConfig = .{
 };
 
 const BattleDef = struct {
-        tile_mapping: maps.TileMapping,
-        pattern_map: maps.PatternMap,
-        encounterConfig: EncounterConfig,
+    tile_mapping: maps.TileMapping,
+    pattern_map: maps.PatternMap,
+    encounterConfig: EncounterConfig,
 };
 
 const battle_def: BattleDef = .{
     .tile_mapping = tile_mapping,
     .pattern_map = map,
     .encounterConfig = encounterConfig,
-
 };
 var loaded = false;
 
