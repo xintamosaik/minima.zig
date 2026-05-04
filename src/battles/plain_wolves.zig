@@ -18,23 +18,13 @@ pub const map = maps.PatternMap{
     .b = plain.B,
 };
 
-const EncounterConfig = struct {
-    spawn: encounters.Group,
-    seed: u32,
-};
 
-pub const encounterConfig: EncounterConfig = .{
+pub const encounterConfig: [2]battle.EncounterConfig = .{
     .{ .spawn = wolfpack.spawn, .seed = 0x12345678 },
     .{ .spawn = goblingroup.spawn, .seed = 0x87654321 },
 };
 
-const BattleDef = struct {
-    tile_mapping: maps.TileMapping,
-    pattern_map: maps.PatternMap,
-    encounterConfig: EncounterConfig,
-};
-
-const battle_def: BattleDef = .{
+const battle_def: battle.BattleDef = .{
     .tile_mapping = tile_mapping,
     .pattern_map = map,
     .encounterConfig = encounterConfig,

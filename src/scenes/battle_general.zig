@@ -39,7 +39,7 @@ pub const EncounterConfig = struct {
 pub const BattleDef = struct {
     tile_mapping: maps.TileMapping,
     pattern_map: maps.PatternMap,
-    encounterConfig: []EncounterConfig,
+    encounterConfig: []const EncounterConfig,
 };
 
 var active: u32 = 0;
@@ -68,10 +68,12 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
     }
 }
 pub fn init(battle_def: BattleDef) void {
-    maps.loadMap(battle_def.tile_mapping, battle_def.pattern_map);
+    maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
-    //spawnEncounter(wolfpack.spawn, 0x12345678);
-    //spawnEncounter(goblingroup.spawn, 0x87654321);
+    for (battle_def.encounter_configs) |config| {
+        spawnEncounter(config.spawn, config.seed);
+    }
+
     loaded = true;
 }
 pub fn input_cursor(input_data: input.Layout) void {
