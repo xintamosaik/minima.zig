@@ -2,7 +2,7 @@ const weapons = @import("../weapons/weapons.zig");
 const pattern = @import("../patterns/patterns.zig");
 const pattern_enemies = @import("../patterns/enemy.zig");
 const colors = @import("../colors.zig");
-pub const Enemies = enum (u8) {
+pub const Enemies = enum(u8) {
     wolf,
     goblin,
 };
@@ -21,9 +21,4 @@ pub const wolf = Enemy{
     .pattern = pattern_enemies.WOLF,
 };
 
-pub const goblin = Enemy{
-    .color = colors.C64_GREEN,
-    .kind = .goblin,
-    .weapon = weapons.club,
-    .pattern = pattern_enemies.GOBLIN
-};
+pub const goblin = Enemy{ .color = colors.C64_GREEN, .kind = .goblin, .weapon = weapons.club, .pattern = pattern_enemies.GOBLIN };

@@ -18,7 +18,6 @@ pub const map = maps.PatternMap{
     .b = plain.B,
 };
 
-
 pub const encounter_config: [2]battle.EncounterConfig = .{
     .{ .spawn = wolfpack.spawn, .seed = 0x12345678 },
     .{ .spawn = goblingroup.spawn, .seed = 0x87654321 },

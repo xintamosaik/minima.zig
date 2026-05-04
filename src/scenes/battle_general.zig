@@ -105,7 +105,6 @@ pub fn input_cursor(input_data: input.Layout) void {
     }
 }
 pub fn tick(input_data: input.Layout) void {
-   
     input_cursor(input_data);
 }
 
