@@ -1,7 +1,8 @@
 const maps = @import("../maps/maps.zig");
 const plain = @import("../maps/battle/plain.zig");
 const encounters = @import("../encounters/encounter.zig");
-const wolfpack = @import("../encounters/pack_of_wolves.zig");
+ 
+const goblingroup = @import("../encounters/goblin_group.zig");
 
 const input = @import("../input.zig");
 const battle = @import("../scenes/battle.zig");
@@ -18,7 +19,7 @@ pub const map = maps.PatternMap{
 };
 
 pub const encounter_config: [1]battle.EncounterConfig = .{
-    .{ .spawn = wolfpack.spawn, .seed = 0x12345678 },
+    .{ .spawn = goblingroup.spawn, .seed = 0x87654321 },
 };
 
 const battle_def: battle.BattleDef = .{

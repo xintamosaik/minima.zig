@@ -12,7 +12,8 @@ const new = @import("scenes/new.zig");
 const load = @import("scenes/load.zig");
 const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
-const battle = @import("battles/plain_wolves.zig");
+const battle_plain_wolves = @import("battles/plain_wolves.zig");
+const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -89,28 +90,28 @@ export fn mouse_buttons() u32 {
 /// Advances simulation by one fixed step.
 export fn tick() void {
     switch (scene.scene) {
-        .last => battle.tick(input_data),
+        .last => battle_plain_wolves.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
         .options => options.tick(input_data),
         .new => new.tick(input_data), // or whatever "game" render is
         .load => load.tick(input_data), // placeholder
-        .exit => intro.tick(input_data), // placeholder
+        .exit => battle_plain_goblins.tick(input_data), // placeholder
     }
 }
 
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
-        .last => battle.render(),
+        .last => battle_plain_wolves.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
         .credits => credits.render(),
         .new => new.render(), // or whatever "game" render is
         .load => load.render(), // placeholder
-        .exit => intro.render(), // placeholder
+        .exit => battle_plain_goblins.render(), // placeholder
     }
 }
 
