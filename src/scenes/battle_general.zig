@@ -33,13 +33,13 @@ fn rand() u32 {
 const Actor = struct { x: u32, y: u32, color: u32, type: enemies.Enemies, active: bool = false };
 var actors: [16]Actor = undefined;
 pub const EncounterConfig = struct {
-    spawn: encounters.Group,
+    spawn: encounters.Encounter,
     seed: u32,
 };
 pub const BattleDef = struct {
     tile_mapping: maps.TileMapping,
     pattern_map: maps.PatternMap,
-    encounterConfig: []const EncounterConfig,
+    encounter_config: []const EncounterConfig,
 };
 
 var active: u32 = 0;
@@ -70,7 +70,7 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
-    for (battle_def.encounter_configs) |config| {
+    for (battle_def.encounter_config) |config| {
         spawnEncounter(config.spawn, config.seed);
     }
 
@@ -105,7 +105,7 @@ pub fn input_cursor(input_data: input.Layout) void {
     }
 }
 pub fn tick(input_data: input.Layout) void {
-    if (!loaded) init();
+   
     input_cursor(input_data);
 }
 

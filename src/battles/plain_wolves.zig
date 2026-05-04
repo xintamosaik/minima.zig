@@ -19,7 +19,7 @@ pub const map = maps.PatternMap{
 };
 
 
-pub const encounterConfig: [2]battle.EncounterConfig = .{
+pub const encounter_config: [2]battle.EncounterConfig = .{
     .{ .spawn = wolfpack.spawn, .seed = 0x12345678 },
     .{ .spawn = goblingroup.spawn, .seed = 0x87654321 },
 };
@@ -27,7 +27,7 @@ pub const encounterConfig: [2]battle.EncounterConfig = .{
 const battle_def: battle.BattleDef = .{
     .tile_mapping = tile_mapping,
     .pattern_map = map,
-    .encounterConfig = encounterConfig,
+    .encounter_config = &encounter_config,
 };
 var loaded = false;
 
