@@ -5,7 +5,7 @@ const wolfpack = @import("../encounters/pack_of_wolves.zig");
 const goblingroup = @import("../encounters/goblin_group.zig");
 
 const input = @import("../input.zig");
-const battle = @import("../scenes/battle_general.zig");
+const battle = @import("../scenes/battle.zig");
 
 pub const tile_mapping = maps.TileMapping{
     .base = .empty,
