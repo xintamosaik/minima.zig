@@ -26,14 +26,12 @@ const battle_def: battle.BattleDef = .{
     .pattern_map = map,
     .encounter_config = &encounter_config,
 };
-var loaded = false;
+
+pub fn enter() void {
+    battle.init(battle_def);
+}
 
 pub fn tick(input_data: input.Layout) void {
-    if (!loaded) {
-        battle.init(battle_def);
-        loaded = true;
-    }
-
     battle.tick(input_data);
 }
 
