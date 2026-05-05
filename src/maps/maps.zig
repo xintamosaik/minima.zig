@@ -2,6 +2,7 @@ const grid = @import("../grid.zig");
 
 pub const BATTLE_MAP_WIDTH: u32 = 32;
 pub const BATTLE_MAP_HEIGHT: u32 = 24;
+pub const BATTLE_MAP_LENGTH: u32 = BATTLE_MAP_WIDTH * BATTLE_MAP_HEIGHT;
 
 pub const PatternMap = struct {
     a: [24]u32,
