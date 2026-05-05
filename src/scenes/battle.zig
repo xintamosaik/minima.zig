@@ -69,10 +69,8 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
 }
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
-    while (actor_count > 0) {
-        actors[actor_count] = undefined;
-        actor_count = actor_count - 1; 
-    }
+    
+    actor_count = 0;
     for (battle_def.encounter_config) |config| {
         spawnEncounter(config.spawn, config.seed);
     }
