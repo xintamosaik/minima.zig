@@ -13,7 +13,7 @@ type WasmExports = {
     inputMouseXOffset: () => number;
     inputMouseYOffset: () => number;
     inputMouseButtonsOffset: () => number;
-    init: () => void;
+    init: (s: number) => void;
     tick: () => void;
     render: () => void;
 };
@@ -340,7 +340,7 @@ void (async function main(): Promise<void> {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    wasm.init(); // Right now triggers a console.log(0)
+    wasm.init(8); // Right now triggers a console.log(0)
 
     /**
      * Target simulation ticks per second.

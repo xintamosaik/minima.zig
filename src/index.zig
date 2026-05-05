@@ -12,6 +12,7 @@ const new = @import("scenes/new.zig");
 const load = @import("scenes/load.zig");
 const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
+const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
@@ -101,14 +102,14 @@ export fn tick() void {
     }
 
     switch (scene.scene) {
-        .last => battle_plain_wolves.tick(input_data),
+        .last => intro.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
         .options => options.tick(input_data),
         .new => new.tick(input_data), // or whatever "game" render is
         .load => load.tick(input_data), // placeholder
-        .exit => battle_plain_goblins.tick(input_data), // placeholder
+        .exit => exit.tick(input_data), // placeholder
         .battle_plain_goblins => battle_plain_goblins.tick(input_data),
         .battle_plain_wolves => battle_plain_wolves.tick(input_data),
     }
@@ -117,23 +118,35 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
-        .last => battle_plain_wolves.render(),
+        .last => intro.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
         .credits => credits.render(),
         .new => new.render(), // or whatever "game" render is
         .load => load.render(), // placeholder
-        .exit => battle_plain_goblins.render(), // placeholder
+        .exit => exit.render(), // placeholder
         .battle_plain_goblins => battle_plain_goblins.render(),
         .battle_plain_wolves => battle_plain_wolves.render(),
     }
 }
 
 /// Initializes world state.
-export fn init() void {
-    console_log(0);
-    scene.scene = .last;
+export fn init(s: scene.Scene) void {
+    const scene_number: u32 = switch(s) {
+        .last => 0,
+        .intro => 1,
+        .menu => 2,
+        .credits => 3,
+        .options => 4,
+        .new => 5,
+        .load => 6,
+        .exit => 7,
+        .battle_plain_wolves => 8,
+        .battle_plain_goblins => 9,
+    };
+    console_log(scene_number);
+    scene.scene = s;
     battle_plain_wolves.enter();
     last_scene = scene.scene;
 }
