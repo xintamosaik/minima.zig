@@ -4,22 +4,9 @@ pub const Weapons = enum(u8) {
     axe,
 };
 
-pub const Quality = enum(u8) {
-    poor,
-    fair,
-    ok,
-    good,
-    great,
-    exceptional
-};
+pub const Quality = enum(u8) { poor, fair, ok, good, great, exceptional };
 
-
-pub const Damage = enum(u8) {
-    blunt,
-    slashing,
-    piercing,
-    missile
-};
+pub const Damage = enum(u8) { blunt, slashing, piercing, missile };
 
 pub const Kind = enum(u8) {
     sword,

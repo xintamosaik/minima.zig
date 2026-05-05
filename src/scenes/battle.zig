@@ -108,8 +108,6 @@ pub fn tick(input_data: input.Layout) void {
     input_cursor(input_data);
 }
 
- 
-
 fn render_tiles() void {
     var ty: u32 = 0;
     while (ty < HEIGHT) : (ty += 1) {
@@ -137,7 +135,6 @@ fn render_tiles() void {
             };
 
             renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
- 
         }
     }
 }

@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "build:all": "pnpm run build:wasm && pnpm run build",
     "build:watch": "tsc -p tsconfig.json --watch",
+    "fmt": "zig fmt src && tsc -p tsconfig.json --noEmit",
     "clean": "rm -f dist/index.mjs dist/index.wasm",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
