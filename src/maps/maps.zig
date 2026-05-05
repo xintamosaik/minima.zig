@@ -1,5 +1,8 @@
 const grid = @import("../grid.zig");
 
+pub const BATTLE_MAP_WIDTH: u32 = 32;
+pub const BATTLE_MAP_HEIGHT: u32 = 24;
+
 pub const PatternMap = struct {
     a: [24]u32,
     b: [24]u32,
@@ -19,12 +22,11 @@ fn bitAt(rows: [24]u32, x: u32, y: u32) bool {
 
 pub fn loadMap(map: PatternMap, mapping: TileMapping) void {
     var y: u32 = 0;
-    while (y < 24) : (y += 1) {
+    while (y < BATTLE_MAP_HEIGHT) : (y += 1) {
         var x: u32 = 0;
-        while (x < 32) : (x += 1) {
+        while (x < BATTLE_MAP_WIDTH) : (x += 1) {
             const kind =
                 if (bitAt(map.b, x, y)) mapping.b else if (bitAt(map.a, x, y)) mapping.a else mapping.base;
-
             grid.setTile(x, y, kind);
         }
     }
