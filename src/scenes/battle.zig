@@ -25,7 +25,7 @@ const BATTLE_HEIGHT: u32 = 24;
 const BATTLE_LENGTH: u32 = BATTLE_WIDTH * BATTLE_HEIGHT;
 
 const BG = colors.C64_BLACK;
-const last_input: input.Layout = undefined; 
+var last_input: input.Layout = undefined; 
 const Cursor = struct { now: u32, last_move: u32 };
 
 const Actor = struct { x: u32, y: u32, kind: enemies.Enemies };
@@ -113,7 +113,7 @@ pub fn input_cursor(input_data: input.Layout) void {
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.scene = .menu;
     }
-    
+
     last_input = input_data;
 }
 pub fn tick(input_data: input.Layout) void {
