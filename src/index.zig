@@ -16,7 +16,7 @@ const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
-var last_scene: scene.Scene = .intro;
+var last_scene: scene.Scene = undefined;
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -94,8 +94,8 @@ export fn mouse_buttons() u32 {
 export fn tick() void {
     if (scene.scene != last_scene) {
         switch (scene.scene) {
-            .last => battle_plain_wolves.enter(),
-            .exit => battle_plain_goblins.enter(),
+            .battle_plain_wolves => battle_plain_wolves.enter(),
+            .battle_plain_goblins => battle_plain_goblins.enter(),
             else => {},
         }
         last_scene = scene.scene;
@@ -147,6 +147,6 @@ export fn init(s: scene.Scene) void {
     };
     console_log(scene_number);
     scene.scene = s;
-    battle_plain_wolves.enter();
-    last_scene = scene.scene;
+    
+ 
 }
