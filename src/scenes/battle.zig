@@ -24,7 +24,7 @@ const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
 
-const Actor = struct { x: u32, y: u32, color: u32, kind: enemies.Enemies, active: bool = false };
+const Actor = struct { x: u32, y: u32, kind: enemies.Enemies };
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .former = 0, .last_move = 0 },
@@ -57,7 +57,7 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 
-pub fn spawnEncounter(encounter: anytype, seed: u32) void {
+pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     state.rng = seed;
 
     for (encounter) |spawn| {
@@ -66,12 +66,7 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
             state.actors[state.actor_count] = .{
                 .x = 16 + rand() % 16,
                 .y = rand() % 16,
-                .color = switch (spawn.enemy.kind) {
-                    .wolf => enemies.wolf.color,
-                    .goblin => enemies.goblin.color,
-                },
                 .kind = spawn.enemy.kind,
-                .active = true,
             };
 
             state.actor_count += 1;
@@ -152,9 +147,6 @@ fn render_actors() void {
     var i: u32 = 0;
     while (i < state.actor_count) : (i += 1) {
         const actor = state.actors[i];
-
-        if (!actor.active) continue;
-
         renderer.drawBitmap8x8Mono(
             actor.x * TILE_SIZE,
             actor.y * TILE_SIZE,
@@ -162,7 +154,10 @@ fn render_actors() void {
                 .wolf => patterns_enemy.WOLF,
                 .goblin => patterns_enemy.GOBLIN,
             },
-            actor.color,
+            switch (actor.kind) {
+                .wolf => enemies.wolf.color,
+                .goblin => enemies.goblin.color,
+            },
         );
     }
 }

@@ -133,7 +133,7 @@ export fn render() void {
 
 /// Initializes world state.
 export fn init(s: scene.Scene) void {
-    const scene_number: u32 = switch(s) {
+    const scene_number: u32 = switch (s) {
         .last => 0,
         .intro => 1,
         .menu => 2,
