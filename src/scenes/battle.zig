@@ -15,11 +15,6 @@ const patterns_enemy = @import("../patterns/enemy.zig");
 
 const enemies = @import("../enemies/enemies.zig");
 
-const TILE_SIZE: u32 = 8;
-const WIDTH: u32 = 40;
-const HEIGHT: u32 = 25;
-const LENGTH: u32 = WIDTH * HEIGHT;
-
 const BG = colors.C64_BLACK;
 var last_input: input.Layout = .{
     .buttons_lo = 0,
@@ -125,11 +120,11 @@ pub fn tick(input_data: input.Layout) void {
 
 fn render_tiles() void {
     var ty: u32 = 0;
-    while (ty < HEIGHT) : (ty += 1) {
+    while (ty < grid.HEIGHT) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < WIDTH) : (tx += 1) {
-            const x = tx * TILE_SIZE;
-            const y = ty * TILE_SIZE;
+        while (tx < grid.WIDTH) : (tx += 1) {
+            const x = tx * grid.TILE_SIZE;
+            const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
             const color = switch (kind) {
                 .wall => colors.C64_DARK_GRAY,
@@ -158,8 +153,8 @@ fn render_actors() void {
     while (i < state.actor_count) : (i += 1) {
         const actor = state.actors[i];
         renderer.drawBitmap8x8Mono(
-            actor.tile_x * TILE_SIZE,
-            actor.tile_y * TILE_SIZE,
+            actor.tile_x * grid.TILE_SIZE,
+            actor.tile_y * grid.TILE_SIZE,
             switch (actor.kind) {
                 .wolf => patterns_enemy.WOLF,
                 .goblin => patterns_enemy.GOBLIN,
@@ -172,24 +167,24 @@ fn render_actors() void {
     }
 }
 fn cursorX() u32 {
-    return (state.cursor.now % maps.BATTLE_MAP_WIDTH) * TILE_SIZE;
+    return (state.cursor.now % maps.BATTLE_MAP_WIDTH) * grid.TILE_SIZE;
 }
 
 fn cursorY() u32 {
-    return (state.cursor.now / maps.BATTLE_MAP_WIDTH) * TILE_SIZE;
+    return (state.cursor.now / maps.BATTLE_MAP_WIDTH) * grid.TILE_SIZE;
 }
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
 
-    font.drawString(0 * TILE_SIZE, maps.BATTLE_MAP_HEIGHT * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * TILE_SIZE, maps.BATTLE_MAP_HEIGHT * TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(state.active_tile);
-    font.drawString(37 * TILE_SIZE, maps.BATTLE_MAP_HEIGHT * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+    font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
     render_actors();
-    renderer.drawRectOutline(0, 0, TILE_SIZE * maps.BATTLE_MAP_WIDTH, TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
+    renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
 
-    renderer.drawRectOutline(cursorX(), cursorY(), TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
+    renderer.drawRectOutline(cursorX(), cursorY(), grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
 }
