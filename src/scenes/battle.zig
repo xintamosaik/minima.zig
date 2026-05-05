@@ -23,15 +23,30 @@ const LENGTH = WIDTH * HEIGHT;
 const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
-var cursor = Cursor{ .now = 0, .former = 0, .last_move = 0 };
-var rng_state: u32 = 0x12345678;
+ 
+const Actor = struct { x: u32, y: u32, color: u32, kind: enemies.Enemies, active: bool = false };
+
+const BattleState = struct {
+    cursor: Cursor = .{ .now = 0, .former = 0, .last_move = 0 },
+    rng: u32 = 0,
+    actors: [16]Actor = undefined,
+    actor_count: u32 = 0,
+    active_tile: u32 = 0,
+
+    pub fn reset(self: *BattleState) void {
+        self.cursor = .{ .now = 0, .former = 0, .last_move = 0 };
+        self.rng = 0;
+        self.actor_count = 0;
+        self.active_tile = 0;
+    }
+};
+var state = BattleState{};
 
 fn rand() u32 {
-    rng_state = rng_state *% 1664525 +% 1013904223;
-    return rng_state;
+    state.rng = state.rng *% 1664525 +% 1013904223;
+    return state.rng;
 }
-const Actor = struct { x: u32, y: u32, color: u32, kind: enemies.Enemies, active: bool = false };
-var actors: [16]Actor = undefined;
+
 pub const EncounterConfig = struct {
     group: encounters.Encounter,
     seed: u32,
@@ -42,16 +57,16 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 
-var active: u32 = 0;
+
 var loaded = false;
-var actor_count: u32 = 0;
+
 pub fn spawnEncounter(encounter: anytype, seed: u32) void {
-    rng_state = seed;
+    state.rng = seed;
 
     for (encounter) |spawn| {
         var i: u8 = 0;
-        while (i < spawn.quantity and actor_count < actors.len) : (i += 1) {
-            actors[actor_count] = .{
+        while (i < spawn.quantity and state.actor_count < state.actors.len) : (i += 1) {
+            state.actors[state.actor_count] = .{
                 .x = 16 + rand() % 16,
                 .y = rand() % 16,
                 .color = switch (spawn.enemy.kind) {
@@ -62,14 +77,14 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
                 .active = true,
             };
 
-            actor_count += 1;
+            state.actor_count += 1;
         }
     }
 }
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
-    actor_count = 0;
+    state.reset();
     for (battle_def.encounter_config) |config| {
         spawnEncounter(config.group, config.seed);
     }
@@ -77,25 +92,25 @@ pub fn init(battle_def: BattleDef) void {
     loaded = true;
 }
 pub fn input_cursor(input_data: input.Layout) void {
-    cursor.last_move += 1;
-    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and cursor.now > 0 and cursor.last_move > 16) {
-        cursor.now -= 1;
-        cursor.last_move = 0;
+    state.cursor.last_move += 1;
+    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and state.cursor.now > 0 and state.cursor.last_move > 16) {
+        state.cursor.now -= 1;
+        state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and cursor.now < LENGTH - 1 and cursor.last_move > 16) {
-        cursor.now += 1;
-        cursor.last_move = 0;
+    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and state.cursor.now < LENGTH - 1 and state.cursor.last_move > 16) {
+        state.cursor.now += 1;
+        state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and cursor.now > WIDTH - 1 and cursor.last_move > 16) {
-        cursor.now -= WIDTH;
-        cursor.last_move = 0;
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > WIDTH - 1 and state.cursor.last_move > 16) {
+        state.cursor.now -= WIDTH;
+        state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and cursor.now < LENGTH - WIDTH and cursor.last_move > 16) {
-        cursor.now += WIDTH;
-        cursor.last_move = 0;
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < LENGTH - WIDTH and state.cursor.last_move > 16) {
+        state.cursor.now += WIDTH;
+        state.cursor.last_move = 0;
     }
     if ((input_data.buttons_lo & input.BTN_A) != 0) {
-        active = cursor.now;
+        state.active_tile = state.cursor.now;
     }
     // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
     // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
@@ -140,8 +155,8 @@ fn render_tiles() void {
 }
 fn render_actors() void {
     var i: u32 = 0;
-    while (i < actor_count) : (i += 1) {
-        const actor = actors[i];
+    while (i < state.actor_count) : (i += 1) {
+        const actor = state.actors[i];
 
         if (!actor.active) continue;
 
@@ -157,20 +172,20 @@ fn render_actors() void {
     }
 }
 fn cursorX() u32 {
-    return (cursor.now % WIDTH) * TILE_SIZE;
+    return (state.cursor.now % WIDTH) * TILE_SIZE;
 }
 
 fn cursorY() u32 {
-    return (cursor.now / WIDTH) * TILE_SIZE;
+    return (state.cursor.now / WIDTH) * TILE_SIZE;
 }
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
 
     font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(actor_count), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
 
-    const position = ui.u999ToChars(active);
+    const position = ui.u999ToChars(state.active_tile);
     font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
     render_actors();
