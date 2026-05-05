@@ -57,8 +57,6 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 
-var loaded = false;
-
 pub fn spawnEncounter(encounter: anytype, seed: u32) void {
     state.rng = seed;
 
@@ -87,8 +85,6 @@ pub fn init(battle_def: BattleDef) void {
     for (battle_def.encounter_config) |config| {
         spawnEncounter(config.group, config.seed);
     }
-
-    loaded = true;
 }
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move += 1;
