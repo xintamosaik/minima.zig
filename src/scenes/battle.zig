@@ -51,7 +51,8 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
 
     for (encounter) |spawn| {
         var i: u8 = 0;
-        while (i < spawn.quantity) : (i += 1) {
+        while (i < spawn.quantity and actor_count < actors.len) : (i += 1) {
+
             actors[actor_count] = .{
                 .x = 16 + rand() % 16,
                 .y = rand() % 16,
@@ -64,8 +65,6 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
             };
 
             actor_count += 1;
-            
-            if (actor_count >= actors.len) return;
         }
     }
 }
