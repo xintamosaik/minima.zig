@@ -25,7 +25,7 @@ const BATTLE_HEIGHT: u32 = 24;
 const BATTLE_LENGTH: u32 = BATTLE_WIDTH * BATTLE_HEIGHT;
 
 const BG = colors.C64_BLACK;
-
+const last_input: input.Layout = undefined; 
 const Cursor = struct { now: u32, last_move: u32 };
 
 const Actor = struct { x: u32, y: u32, kind: enemies.Enemies };
@@ -86,6 +86,7 @@ pub fn init(battle_def: BattleDef) void {
     }
 }
 pub fn input_cursor(input_data: input.Layout) void {
+    
     state.cursor.last_move += 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and state.cursor.now > 0 and state.cursor.last_move > 16) {
         state.cursor.now -= 1;
@@ -112,6 +113,8 @@ pub fn input_cursor(input_data: input.Layout) void {
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.scene = .menu;
     }
+    
+    last_input = input_data;
 }
 pub fn tick(input_data: input.Layout) void {
     input_cursor(input_data);
