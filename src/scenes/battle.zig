@@ -26,19 +26,19 @@ const BATTLE_LENGTH: u32 = BATTLE_WIDTH * BATTLE_HEIGHT;
 
 const BG = colors.C64_BLACK;
 
-const Cursor = struct { now: u32, former: u32, last_move: u32 };
+const Cursor = struct { now: u32, last_move: u32 };
 
 const Actor = struct { x: u32, y: u32, kind: enemies.Enemies };
 
 const BattleState = struct {
-    cursor: Cursor = .{ .now = 0, .former = 0, .last_move = 0 },
+    cursor: Cursor = .{ .now = 0, .last_move = 0 },
     rng: u32 = 0,
     actors: [16]Actor = undefined,
     actor_count: u32 = 0,
     active_tile: u32 = 0,
 
     pub fn reset(self: *BattleState) void {
-        self.cursor = .{ .now = 0, .former = 0, .last_move = 0 };
+        self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
         self.actor_count = 0;
         self.active_tile = 0;
