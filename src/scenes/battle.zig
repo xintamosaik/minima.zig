@@ -20,6 +20,10 @@ const WIDTH: u32 = 40;
 const HEIGHT: u32 = 25;
 const LENGTH = WIDTH * HEIGHT;
 
+const BATTLE_WIDTH: u32 = 32;
+const BATTLE_HEIGHT: u32 = 24;
+const BATTLE_LENGTH: u32 = BATTLE_WIDTH * BATTLE_HEIGHT;
+
 const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
@@ -87,16 +91,16 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.cursor.now -= 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and state.cursor.now < LENGTH - 1 and state.cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and state.cursor.now < BATTLE_LENGTH - 1 and state.cursor.last_move > 16) {
         state.cursor.now += 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > WIDTH - 1 and state.cursor.last_move > 16) {
-        state.cursor.now -= WIDTH;
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > BATTLE_WIDTH - 1 and state.cursor.last_move > 16) {
+        state.cursor.now -= BATTLE_WIDTH;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < LENGTH - WIDTH and state.cursor.last_move > 16) {
-        state.cursor.now += WIDTH;
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < BATTLE_LENGTH - BATTLE_WIDTH and state.cursor.last_move > 16) {
+        state.cursor.now += BATTLE_WIDTH;
         state.cursor.last_move = 0;
     }
     if ((input_data.buttons_lo & input.BTN_A) != 0) {
@@ -162,24 +166,24 @@ fn render_actors() void {
     }
 }
 fn cursorX() u32 {
-    return (state.cursor.now % WIDTH) * TILE_SIZE;
+    return (state.cursor.now % BATTLE_WIDTH) * TILE_SIZE;
 }
 
 fn cursorY() u32 {
-    return (state.cursor.now / WIDTH) * TILE_SIZE;
+    return (state.cursor.now / BATTLE_WIDTH) * TILE_SIZE;
 }
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
 
-    font.drawString(0 * TILE_SIZE, 24 * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * TILE_SIZE, 24 * TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(0 * TILE_SIZE, BATTLE_HEIGHT * TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * TILE_SIZE, BATTLE_HEIGHT * TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(state.active_tile);
-    font.drawString(37 * TILE_SIZE, 24 * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+    font.drawString(37 * TILE_SIZE, BATTLE_HEIGHT * TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
     render_actors();
-    renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
+    renderer.drawRectOutline(0, 0, TILE_SIZE * BATTLE_WIDTH, TILE_SIZE * BATTLE_HEIGHT, colors.C64_DARK_GRAY);
 
     renderer.drawRectOutline(cursorX(), cursorY(), TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
 }
