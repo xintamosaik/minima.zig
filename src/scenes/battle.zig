@@ -108,8 +108,7 @@ pub fn tick(input_data: input.Layout) void {
     input_cursor(input_data);
 }
 
-var cur_x: u32 = 0;
-var cur_y: u32 = 0;
+ 
 
 fn render_tiles() void {
     var ty: u32 = 0;
@@ -138,11 +137,7 @@ fn render_tiles() void {
             };
 
             renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
-            const gridPosition = grid.tileIndex(tx, ty);
-            if (gridPosition == cursor.now) {
-                cur_x = x;
-                cur_y = y;
-            }
+ 
         }
     }
 }
@@ -164,6 +159,13 @@ fn render_actors() void {
         );
     }
 }
+fn cursorX() u32 {
+    return (cursor.now % WIDTH) * TILE_SIZE;
+}
+
+fn cursorY() u32 {
+    return (cursor.now / WIDTH) * TILE_SIZE;
+}
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
@@ -177,5 +179,5 @@ pub fn render() void {
     render_actors();
     renderer.drawRectOutline(0, 0, TILE_SIZE * 32, TILE_SIZE * 24, colors.C64_DARK_GRAY);
 
-    renderer.drawRectOutline(cur_x, cur_y, TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
+    renderer.drawRectOutline(cursorX(), cursorY(), TILE_SIZE, TILE_SIZE, colors.C64_YELLOW);
 }
