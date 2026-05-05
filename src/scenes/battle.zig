@@ -30,7 +30,7 @@ fn rand() u32 {
     rng_state = rng_state *% 1664525 +% 1013904223;
     return rng_state;
 }
-const Actor = struct { x: u32, y: u32, color: u32, type: enemies.Enemies, active: bool = false };
+const Actor = struct { x: u32, y: u32, color: u32, kind: enemies.Enemies, active: bool = false };
 var actors: [16]Actor = undefined;
 pub const EncounterConfig = struct {
     spawn: encounters.Encounter,
@@ -60,7 +60,7 @@ pub fn spawnEncounter(encounter: anytype, seed: u32) void {
                     .wolf => enemies.wolf.color,
                     .goblin => enemies.goblin.color,
                 },
-                .type = spawn.enemy.kind,
+                .kind = spawn.enemy.kind,
                 .active = true,
             };
 
@@ -158,7 +158,7 @@ fn render_actors() void {
         renderer.drawBitmap8x8Mono(
             actor.x * TILE_SIZE,
             actor.y * TILE_SIZE,
-            switch (actor.type) {
+            switch (actor.kind) {
                 .wolf => patterns_enemy.WOLF,
                 .goblin => patterns_enemy.GOBLIN,
             },
