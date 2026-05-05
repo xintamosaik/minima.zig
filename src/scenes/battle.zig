@@ -23,7 +23,7 @@ const LENGTH = WIDTH * HEIGHT;
 const BG = colors.C64_BLACK;
 
 const Cursor = struct { now: u32, former: u32, last_move: u32 };
- 
+
 const Actor = struct { x: u32, y: u32, color: u32, kind: enemies.Enemies, active: bool = false };
 
 const BattleState = struct {
@@ -56,7 +56,6 @@ pub const BattleDef = struct {
     pattern_map: maps.PatternMap,
     encounter_config: []const EncounterConfig,
 };
-
 
 var loaded = false;
 

@@ -109,6 +109,8 @@ export fn tick() void {
         .new => new.tick(input_data), // or whatever "game" render is
         .load => load.tick(input_data), // placeholder
         .exit => battle_plain_goblins.tick(input_data), // placeholder
+        .battle_plain_goblins => battle_plain_goblins.tick(input_data),
+        .battle_plain_wolves => battle_plain_wolves.tick(input_data),
     }
 }
 
@@ -123,6 +125,8 @@ export fn render() void {
         .new => new.render(), // or whatever "game" render is
         .load => load.render(), // placeholder
         .exit => battle_plain_goblins.render(), // placeholder
+        .battle_plain_goblins => battle_plain_goblins.render(),
+        .battle_plain_wolves => battle_plain_wolves.render(),
     }
 }
 
