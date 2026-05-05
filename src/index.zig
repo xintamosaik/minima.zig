@@ -16,7 +16,7 @@ const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
-var last_scene: scene.Scene = undefined;
+var last_scene: scene.Scene = .battle_plain_goblins;
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
@@ -102,7 +102,7 @@ export fn tick() void {
     }
 
     switch (scene.scene) {
-        .last => intro.tick(input_data),
+        .last => battle_plain_goblins.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
@@ -118,7 +118,7 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     switch (scene.scene) {
-        .last => intro.render(),
+        .last => battle_plain_goblins.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),

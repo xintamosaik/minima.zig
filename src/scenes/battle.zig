@@ -25,7 +25,14 @@ const BATTLE_HEIGHT: u32 = 24;
 const BATTLE_LENGTH: u32 = BATTLE_WIDTH * BATTLE_HEIGHT;
 
 const BG = colors.C64_BLACK;
-var last_input: input.Layout = undefined; 
+var last_input: input.Layout = .{
+    .buttons_lo = 0,
+    .buttons_hi = 0,
+    ._reserved = 0,
+    .mouse_x = 0,
+    .mouse_y = 0,
+    .mouse_buttons = 0,
+};
 const Cursor = struct { now: u32, last_move: u32 };
 
 const Actor = struct { x: u32, y: u32, kind: enemies.Enemies };
