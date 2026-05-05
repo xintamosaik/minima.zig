@@ -18,7 +18,7 @@ pub const map = maps.PatternMap{
 };
 
 pub const encounter_config: [1]battle.EncounterConfig = .{
-    .{ .spawn = wolfpack.spawn, .seed = 0x12345678 },
+    .{ .spawn = wolfpack.encounter, .seed = 0x12345678 },
 };
 
 const battle_def: battle.BattleDef = .{
