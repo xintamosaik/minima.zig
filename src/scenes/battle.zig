@@ -48,7 +48,7 @@ fn rand() u32 {
 }
 
 pub const EncounterConfig = struct {
-    group: encounters.Encounter,
+    groups: encounters.Encounter,
     seed: u32,
 };
 pub const BattleDef = struct {
@@ -83,7 +83,7 @@ pub fn init(battle_def: BattleDef) void {
 
     state.reset();
     for (battle_def.encounter_config) |config| {
-        spawnEncounter(config.group, config.seed);
+        spawnEncounter(config.groups, config.seed);
     }
 }
 pub fn input_cursor(input_data: input.Layout) void {

@@ -19,7 +19,7 @@ pub const map = maps.PatternMap{
 };
 
 pub const encounter_config: [1]battle.EncounterConfig = .{
-    .{ .group = goblingroup.encounter, .seed = 0x87654321 },
+    .{ .groups = goblingroup.encounter, .seed = 0x87654321 },
 };
 
 const battle_def: battle.BattleDef = .{
