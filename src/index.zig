@@ -89,15 +89,18 @@ export fn mouse_y() u32 {
 export fn mouse_buttons() u32 {
     return input_data.mouse_buttons;
 }
-
+fn enterScene(s: scene.Scene) void {
+    switch (s) {
+        .battle_plain_wolves => battle_plain_wolves.enter(),
+        .battle_plain_goblins => battle_plain_goblins.enter(),
+        .last => battle_plain_goblins.enter(), // if intentionally debug
+        else => {},
+    }
+}
 /// Advances simulation by one fixed step.
 export fn tick() void {
     if (scene.scene != last_scene) {
-        switch (scene.scene) {
-            .battle_plain_wolves => battle_plain_wolves.enter(),
-            .battle_plain_goblins => battle_plain_goblins.enter(),
-            else => {},
-        }
+        enterScene(scene.scene);
         last_scene = scene.scene;
     }
 
@@ -146,7 +149,6 @@ export fn init(s: scene.Scene) void {
         .battle_plain_goblins => 9,
     };
     console_log(scene_number);
+    enterScene(scene.scene);
     scene.scene = s;
-    
- 
 }

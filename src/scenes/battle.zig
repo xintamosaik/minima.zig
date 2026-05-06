@@ -1,5 +1,5 @@
 extern "env" fn console_log(value: u32) void;
- 
+
 const input = @import("../input.zig");
 const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
@@ -84,7 +84,6 @@ pub fn init(battle_def: BattleDef) void {
     }
 }
 pub fn input_cursor(input_data: input.Layout) void {
-    
     state.cursor.last_move += 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and state.cursor.now > 0 and state.cursor.last_move > 16) {
         state.cursor.now -= 1;
