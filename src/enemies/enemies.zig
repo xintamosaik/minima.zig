@@ -22,3 +22,9 @@ pub const wolf = Enemy{
 };
 
 pub const goblin = Enemy{ .color = colors.C64_GREEN, .kind = .goblin, .weapon = weapons.club, .pattern = pattern_enemies.GOBLIN };
+pub fn get(kind: Enemies) Enemy {
+    return switch (kind) {
+        .wolf => wolf,
+        .goblin => goblin,
+    };
+}

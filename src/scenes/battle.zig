@@ -139,6 +139,7 @@ fn render_tiles() void {
             const x = tx * grid.TILE_SIZE;
             const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
+
             const color = switch (kind) {
                 .wall => colors.C64_DARK_GRAY,
                 .dirt => colors.C64_BROWN,
@@ -165,17 +166,12 @@ fn render_actors() void {
     var i: u32 = 0;
     while (i < state.actor_count) : (i += 1) {
         const actor = state.actors[i];
+        const enemy = enemies.get(actor.kind);
         renderer.drawBitmap8x8Mono(
             actor.tile_x * grid.TILE_SIZE,
             actor.tile_y * grid.TILE_SIZE,
-            switch (actor.kind) {
-                .wolf => patterns_enemy.WOLF,
-                .goblin => patterns_enemy.GOBLIN,
-            },
-            switch (actor.kind) {
-                .wolf => enemies.wolf.color,
-                .goblin => enemies.goblin.color,
-            },
+            enemy.pattern,
+            enemy.color,
         );
     }
 }
