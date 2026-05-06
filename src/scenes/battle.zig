@@ -83,13 +83,27 @@ pub fn init(battle_def: BattleDef) void {
         spawnEncounter(config.groups, config.seed);
     }
 }
+fn cursorTileX() u32 {
+    return state.cursor.now % maps.BATTLE_MAP_WIDTH;
+}
+
+fn cursorTileY() u32 {
+    return state.cursor.now / maps.BATTLE_MAP_WIDTH;
+}
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move += 1;
-    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and state.cursor.now > 0 and state.cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
+        cursorTileX() > 0 and
+        state.cursor.last_move > 16)
+    {
         state.cursor.now -= 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - 1 and state.cursor.last_move > 16) {
+
+    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
+        cursorTileX() < maps.BATTLE_MAP_WIDTH - 1 and
+        state.cursor.last_move > 16)
+    {
         state.cursor.now += 1;
         state.cursor.last_move = 0;
     }
