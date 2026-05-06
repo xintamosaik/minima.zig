@@ -133,9 +133,9 @@ pub fn tick(input_data: input.Layout) void {
 
 fn render_tiles() void {
     var ty: u32 = 0;
-    while (ty < grid.HEIGHT) : (ty += 1) {
+    while (ty < maps.BATTLE_MAP_HEIGHT) : (ty += 1) {
         var tx: u32 = 0;
-        while (tx < grid.WIDTH) : (tx += 1) {
+        while (tx < maps.BATTLE_MAP_WIDTH) : (tx += 1) {
             const x = tx * grid.TILE_SIZE;
             const y = ty * grid.TILE_SIZE;
             const kind = grid.getTile(tx, ty);
