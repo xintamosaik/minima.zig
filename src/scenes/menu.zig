@@ -37,17 +37,17 @@ pub fn tick(input_data: input.Layout) void {
 
     if ((buttons_hi & input.BTN_START) != 0) {
         if (menuCursor.y == 8 + (JUMP * 0)) {
-            scene.scene = .last;
+            scene.request(.last);
         } else if (menuCursor.y == 8 + (JUMP * 1)) {
-            scene.scene = .load;
+            scene.request(.load);
         } else if (menuCursor.y == 8 + (JUMP * 2)) {
-            scene.scene = .new;
+            scene.request(.new);
         } else if (menuCursor.y == 8 + (JUMP * 3)) {
-            scene.scene = .credits;
+            scene.request(.credits);
         } else if (menuCursor.y == 8 + (JUMP * 4)) {
-            scene.scene = .options;
+            scene.request(.options);
         } else if (menuCursor.y == 8 + (JUMP * 5)) {
-            scene.scene = .exit;
+            scene.request(.exit);
         }
     }
 }

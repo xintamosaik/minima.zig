@@ -16,8 +16,13 @@ const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
-var last_scene: scene.Scene = .intro;
-
+fn applySceneTransition() void {
+    if (scene.requested) |next| {
+        scene.requested = null;
+        scene.current = next;
+        enterScene(next);
+    }
+}
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
     return renderer.WIDTH;
@@ -99,12 +104,8 @@ fn enterScene(s: scene.Scene) void {
 }
 /// Advances simulation by one fixed step.
 export fn tick() void {
-    if (scene.scene != last_scene) {
-        enterScene(scene.scene);
-        last_scene = scene.scene;
-    }
-
-    switch (scene.scene) {
+    applySceneTransition();
+    switch (scene.current) {
         .last => battle_plain_goblins.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
@@ -120,7 +121,7 @@ export fn tick() void {
 
 /// Renders the current frame
 export fn render() void {
-    switch (scene.scene) {
+    switch (scene.current) {
         .last => battle_plain_goblins.render(),
         .options => options.render(),
         .intro => intro.render(),
@@ -136,7 +137,7 @@ export fn render() void {
 
 /// Initializes world state.
 export fn init(s: scene.Scene) void {
-    scene.scene = s;
+    scene.request(s);
     const scene_number: u32 = switch (s) {
         .last => 0,
         .intro => 1,
@@ -151,6 +152,4 @@ export fn init(s: scene.Scene) void {
     };
 
     console_log(scene_number);
-
-    enterScene(scene.scene);
 }

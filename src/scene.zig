@@ -11,4 +11,9 @@ pub const Scene = enum(u8) {
     battle_plain_goblins,
 };
 
-pub var scene: Scene = .intro;
+pub var current: Scene = .intro;
+pub var requested: ?Scene = null;
+
+pub fn request(next: Scene) void {
+    requested = next;
+}

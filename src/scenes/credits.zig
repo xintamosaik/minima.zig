@@ -12,7 +12,7 @@ const BTN_ANY_CONFIRM =
 
 pub fn tick(input_data: input.Layout) void {
     if ((input_data.buttons_lo & BTN_ANY_CONFIRM) != 0 or (input_data.mouse_buttons & input.MOUSE_BUTTON_LEFT) != 0) {
-        scene.scene = .menu;
+        scene.request(.menu);
     }
 }
 

@@ -122,7 +122,7 @@ pub fn input_cursor(input_data: input.Layout) void {
     // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
-        scene.scene = .menu;
+        scene.request(.menu);
     }
 
     last_input = input_data;
