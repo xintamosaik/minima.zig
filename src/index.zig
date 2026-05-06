@@ -16,7 +16,7 @@ const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
-var last_scene: scene.Scene = .battle_plain_goblins;
+var last_scene: scene.Scene = .intro;
 
 /// Exported for calculations in JS (Width);
 export fn width() i32 {
