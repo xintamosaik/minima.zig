@@ -136,6 +136,7 @@ export fn render() void {
 
 /// Initializes world state.
 export fn init(s: scene.Scene) void {
+    scene.scene = s;
     const scene_number: u32 = switch (s) {
         .last => 0,
         .intro => 1,
@@ -148,7 +149,8 @@ export fn init(s: scene.Scene) void {
         .battle_plain_wolves => 8,
         .battle_plain_goblins => 9,
     };
+
     console_log(scene_number);
+
     enterScene(scene.scene);
-    scene.scene = s;
 }
