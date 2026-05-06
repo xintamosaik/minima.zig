@@ -138,6 +138,7 @@ export fn render() void {
 /// Initializes world state.
 export fn init(s: scene.Scene) void {
     scene.request(s);
+    applySceneTransition();
     const scene_number: u32 = switch (s) {
         .last => 0,
         .intro => 1,
