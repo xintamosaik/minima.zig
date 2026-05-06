@@ -5,50 +5,37 @@ const colors = @import("../colors.zig");
 const ui = @import("../ui.zig");
 
 const WAIT = 16;
-const JUMP = 32;
-const MENU_MIN = 8 + JUMP;
-const MENU_MAX = 8 * 20;
 
-const Cursor2DRaw = struct {
-    movedLast: u32,
-    x: u32,
-    y: u32,
-    color: u32,
-    h: u32 = 24,
-    w: u32 = 24,
+const items = [_]ui.MenuItem{
+    .{ .label = "continue", .target = .battle_plain_goblins, .y = 8 * 1, .color = colors.C64_YELLOW },
+    .{ .label = "load", .target = .load, .y = 8 * 5, .color = colors.C64_BLUE },
+    .{ .label = "new", .target = .new, .y = 8 * 9, .color = colors.C64_GREEN },
+    .{ .label = "credits", .target = .credits, .y = 8 * 13, .color = colors.C64_ORANGE },
+    .{ .label = "options", .target = .options, .y = 8 * 17, .color = colors.C64_PURPLE },
+    .{ .label = "exit", .target = .exit, .y = 8 * 21, .color = colors.C64_RED },
 };
 
-var menuCursor = Cursor2DRaw{ .movedLast = 0, .x = 24, .y = 8, .color = colors.C64_BLUE, .w = 8 * 35, .h = 24 };
+var selected: u32 = 0;
+var movedLast: u32 = 0;
 
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
 
-    menuCursor.movedLast += 1;
+    movedLast += 1;
 
-    if ((buttons_lo & input.BTN_UP) != 0 and menuCursor.y >= MENU_MIN and menuCursor.movedLast > WAIT) {
-        menuCursor.movedLast = 0;
-        menuCursor.y -= JUMP;
+    if ((buttons_lo & input.BTN_UP) != 0 and selected > 0 and movedLast > WAIT) {
+        selected -= 1;
+        movedLast = 0;
     }
-    if ((buttons_lo & input.BTN_DOWN) != 0 and menuCursor.y <= MENU_MAX and menuCursor.movedLast > WAIT) {
-        menuCursor.movedLast = 0;
-        menuCursor.y += JUMP;
+
+    if ((buttons_lo & input.BTN_DOWN) != 0 and selected < items.len - 1 and movedLast > WAIT) {
+        selected += 1;
+        movedLast = 0;
     }
 
     if ((buttons_hi & input.BTN_START) != 0) {
-        if (menuCursor.y == 8 + (JUMP * 0)) {
-            scene.request(.last);
-        } else if (menuCursor.y == 8 + (JUMP * 1)) {
-            scene.request(.load);
-        } else if (menuCursor.y == 8 + (JUMP * 2)) {
-            scene.request(.new);
-        } else if (menuCursor.y == 8 + (JUMP * 3)) {
-            scene.request(.credits);
-        } else if (menuCursor.y == 8 + (JUMP * 4)) {
-            scene.request(.options);
-        } else if (menuCursor.y == 8 + (JUMP * 5)) {
-            scene.request(.exit);
-        }
+        scene.request(items[selected].target);
     }
 }
 
@@ -57,12 +44,17 @@ pub fn render() void {
 
     ui.clearScreen(BG);
 
-    ui.drawMenuItem(8 * 1, "continue", BG, colors.C64_YELLOW);
-    ui.drawMenuItem(8 * 5, "load", BG, colors.C64_BLUE);
-    ui.drawMenuItem(8 * 9, "new", BG, colors.C64_GREEN);
-    ui.drawMenuItem(8 * 13, "credits", BG, colors.C64_ORANGE);
-    ui.drawMenuItem(8 * 17, "options", BG, colors.C64_PURPLE);
-    ui.drawMenuItem(8 * 21, "exit", BG, colors.C64_RED);
+    for (items) |item| {
+        ui.drawMenuItem(item.y, item.label, BG, item.color);
+    }
 
-    renderer.drawRectOutline(menuCursor.x, menuCursor.y, menuCursor.w, menuCursor.h, colors.C64_WHITE);
+    const item = items[selected];
+
+    renderer.drawRectOutline(
+        item.x,
+        item.y,
+        item.w,
+        item.h,
+        colors.C64_WHITE,
+    );
 }
