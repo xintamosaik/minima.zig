@@ -24,6 +24,8 @@ var last_input: input.Layout = .{
     .mouse_buttons = 0,
 };
 const Cursor = struct { now: u32, last_move: u32 };
+
+const Actor = struct { tile: u16, kind: enemies.Kind };
 fn actorTileX(actor: Actor) u32 {
     return @as(u32, actor.tile) % maps.BATTLE_MAP_WIDTH;
 }
@@ -31,13 +33,11 @@ fn actorTileX(actor: Actor) u32 {
 fn actorTileY(actor: Actor) u32 {
     return @as(u32, actor.tile) / maps.BATTLE_MAP_WIDTH;
 }
-const Actor = struct { tile: u16, kind: enemies.Kind };
-
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
     rng: u32 = 0,
     actors: [16]Actor = undefined,
-    actor_count: u32 = 0,
+    actor_count: usize = 0,
     active_tile: u32 = 0,
 
     pub fn reset(self: *BattleState) void {
@@ -68,7 +68,7 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     state.rng = seed;
 
     for (encounter) |spawn| {
-        var i: u8 = 0;
+        var i: usize = 0;
         while (i < spawn.quantity and state.actor_count < state.actors.len) : (i += 1) {
             const tx = 16 + rand() % 16;
             const ty = rand() % 16;
@@ -170,7 +170,7 @@ fn render_tiles() void {
     }
 }
 fn render_actors() void {
-    var i: u32 = 0;
+    var i: usize = 0;
     while (i < state.actor_count) : (i += 1) {
         const actor = state.actors[i];
         const enemy = enemies.get(actor.kind);
@@ -194,7 +194,7 @@ pub fn render() void {
     render_tiles();
 
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(state.actor_count), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.actor_count)), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(state.active_tile);
     font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
