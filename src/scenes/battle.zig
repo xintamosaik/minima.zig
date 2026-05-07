@@ -25,7 +25,7 @@ var last_input: input.Layout = .{
 };
 const Cursor = struct { now: u32, last_move: u32 };
 
-const Actor = struct { tile_x: u32, tile_y: u32, kind: enemies.Enemies };
+const Actor = struct { tile_x: u32, tile_y: u32, kind: enemies.Kind };
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },

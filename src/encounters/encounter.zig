@@ -1,7 +1,7 @@
 const enemies = @import("../enemies/enemies.zig");
 
 pub const Group = struct {
-    kind: enemies.Enemies,
+    kind: enemies.Kind,
     quantity: u8,
 };
 
