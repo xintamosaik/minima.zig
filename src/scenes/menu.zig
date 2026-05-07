@@ -5,31 +5,24 @@ const colors = @import("../colors.zig");
 const ui = @import("../ui.zig");
 
 const WAIT = 16;
+const MenuItem = struct {
+    label: []const u8,
+    y: u32,
+    color: u32,
+    action: scene.Scene,
+};
+const items = [_]MenuItem{
+    .{ .label = "continue", .y = 8 * 1, .color = colors.C64_YELLOW, .action = .battle_plain_goblins },
+    .{ .label = "load", .y = 8 * 5, .color = colors.C64_BLUE, .action = .load },
+    .{ .label = "new", .y = 8 * 9, .color = colors.C64_GREEN, .action = .new },
+    .{ .label = "credits", .y = 8 * 13, .color = colors.C64_ORANGE, .action = .credits },
+    .{ .label = "options", .y = 8 * 17, .color = colors.C64_PURPLE, .action = .options },
+    .{ .label = "exit", .y = 8 * 21, .color = colors.C64_RED, .action = .exit },
+};
 
-const items = [_]ui.MenuItem{
-    .{ .label = "continue", .y = 8 * 1, .color = colors.C64_YELLOW },
-    .{ .label = "load", .y = 8 * 5, .color = colors.C64_BLUE },
-    .{ .label = "new", .y = 8 * 9, .color = colors.C64_GREEN },
-    .{ .label = "credits", .y = 8 * 13, .color = colors.C64_ORANGE },
-    .{ .label = "options", .y = 8 * 17, .color = colors.C64_PURPLE },
-    .{ .label = "exit", .y = 8 * 21, .color = colors.C64_RED },
-};
-const actions = [_]scene.Scene{
-    .battle_plain_goblins,
-    .load,
-    .new,
-    .credits,
-    .options,
-    .exit,
-};
-comptime {
-    if (items.len != actions.len) {
-        @compileError("menu items and menu actions must have the same length");
-    }
-}
 var selected: usize = 0;
 var movedLast: u32 = 0;
-const LAST_ITEM: u32 = @intCast(items.len - 1);
+const LAST_ITEM: usize = items.len - 1;
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
@@ -47,7 +40,7 @@ pub fn tick(input_data: input.Layout) void {
     }
 
     if ((buttons_hi & input.BTN_START) != 0) {
-        scene.request(actions[selected]);
+        scene.request(items[selected].action);
     }
 }
 
