@@ -87,8 +87,8 @@ fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
 
     return true;
 }
-fn rand16() u32 {
-    return rand() >> 28;
+fn randBelow(max: u32) u32 {
+    return ((rand() >> 16) * max) >> 16;
 }
 pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     state.rng = seed;
@@ -103,13 +103,9 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             attempts < max_attempts and
             state.actor_count < state.actors.len) : (attempts += 1)
         {
-            console_log(@intCast(spawn.quantity));
-            console_log(@intCast(spawned));
-            console_log(@intCast(state.actor_count));
-            console_log(@intCast(state.actors.len));
-            console_log(@intCast(attempts));
-            const tx = 16 + rand16() % 16;
-            const ty = rand16() % 16;
+  
+            const tx = 16 + randBelow(16) % 16;
+            const ty = randBelow(16) % 16;
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
 
             if (trySpawnActor(spawn.kind, @intCast(tile))) {
