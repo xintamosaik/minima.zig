@@ -15,5 +15,7 @@ pub var current: Scene = .intro;
 pub var requested: ?Scene = null;
 
 pub fn request(next: Scene) void {
+    if (next == current) return;
+    if (requested == next) return;
     requested = next;
 }

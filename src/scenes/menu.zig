@@ -15,9 +15,9 @@ const items = [_]ui.MenuItem{
     .{ .label = "exit", .target = .exit, .y = 8 * 21, .color = colors.C64_RED },
 };
 
-var selected: u32 = 0;
+var selected: usize = 0;
 var movedLast: u32 = 0;
-
+const LAST_ITEM: u32 = @intCast(items.len - 1);
 pub fn tick(input_data: input.Layout) void {
     const buttons_lo = input_data.buttons_lo;
     const buttons_hi = input_data.buttons_hi;
@@ -29,7 +29,7 @@ pub fn tick(input_data: input.Layout) void {
         movedLast = 0;
     }
 
-    if ((buttons_lo & input.BTN_DOWN) != 0 and selected < items.len - 1 and movedLast > WAIT) {
+    if ((buttons_lo & input.BTN_DOWN) != 0 and selected < LAST_ITEM and movedLast > WAIT) {
         selected += 1;
         movedLast = 0;
     }
