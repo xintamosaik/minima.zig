@@ -1,8 +1,8 @@
 const grid = @import("grid.zig");
 
-/// This is somewhat close to retro resolutions
+/// Framebuffer width. This is somewhat close to retro resolutions (320px at the time of writing)
 pub const WIDTH: u32 = grid.WIDTH * grid.TILE_SIZE;
-/// This is somewhat close to retro resolutions
+/// Framebuffer height. This is somewhat close to retro resolutions (220px at the time of writing)
 pub const HEIGHT: u32 = grid.HEIGHT * grid.TILE_SIZE;
 
 /// Raw pixel count of the frame buffer.
