@@ -3,19 +3,99 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Zig/WASM Test</title>
+    <title>MINIMA</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="An experiment with Zig and WebAssembly" />
+    <meta name="description" content="A tiny retro game experiment written in Zig and WebAssembly." />
     <meta name="author" content="Ulf Dellbrügge" />
-    <meta name="keywords" content="zig, webassembly, wasm, game, experiment" />
+    <meta name="keywords" content="zig, webassembly, wasm, game, retro, experiment" />
     <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
-  
-    <canvas id="game"></canvas>
-    <script type="module" src="./index.mjs"></script>
+    <main>
+        <section class="game-shell">
+            <canvas id="game"></canvas>
+            <script type="module" src="./index.mjs"></script>
+        </section>
+
+        <section class="intro">
+            <h1>MINIMA</h1>
+
+            <p>
+                A tiny retro game experiment written in Zig and WebAssembly.
+            </p>
+
+            <p>
+                The current version is mostly a low-level runtime playground:
+                fixed-size pixels, shared memory, keyboard input, tile maps,
+                simple scenes, and tiny battle prototypes.
+            </p>
+        </section>
+
+        <section class="how-to-play">
+            <h2>How to play</h2>
+
+            <p>
+                For now, the controls use a small virtual button layout.
+            </p>
+
+            <dl>
+                <dt>Arrow keys</dt>
+                <dd>Move the menu cursor or battle cursor.</dd>
+
+                <dt>Space</dt>
+                <dd>Start / confirm in menus.</dd>
+
+                <dt>Y</dt>
+                <dd>A button.</dd>
+
+                <dt>X</dt>
+                <dd>B button.</dd>
+
+                <dt>A</dt>
+                <dd>X button.</dd>
+
+                <dt>S</dt>
+                <dd>Y button.</dd>
+
+                <dt>Q / W</dt>
+                <dd>L / R buttons.</dd>
+
+                <dt>Enter</dt>
+                <dd>Select button. In battle, this currently returns to the menu.</dd>
+            </dl>
+        </section>
+
+        <section class="philosophy">
+            <h2>Project philosophy</h2>
+
+            <p>
+                MINIMA is a small attempt to understand games closer to the metal,
+                without immediately hiding everything behind engines, frameworks,
+                assets, tooling, or modern convenience.
+            </p>
+
+            <p>
+                The visual and technical direction is deliberately constrained:
+                low resolution, 8×8 tiles, tiny sprites, simple colour choices,
+                and a runtime that exposes its own memory layout to the browser.
+            </p>
+
+            <p>
+                The game direction is loosely inspired by old computer RPGs,
+                tactical games, and board-like combat systems: Ultima,
+                Might and Magic, chess, and Into the Breach are all somewhere
+                in the background.
+            </p>
+
+            <p>
+                The C64-ish constraints are not pure nostalgia. They are a way
+                to make resource use visible again: memory, pixels, state,
+                input, timing, and representation all become things to think about.
+            </p>
+        </section>
+    </main>
 </body>
 
 </html>
