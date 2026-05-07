@@ -69,7 +69,7 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
 
     for (encounter) |spawn| {
         var i: usize = 0;
-        while (i < spawn.quantity and state.actor_count < state.actors.len) : (i += 1) {
+        while (i < @as(usize, spawn.quantity) and state.actor_count < state.actors.len) : (i += 1) {
             const tx = 16 + rand() % 16;
             const ty = rand() % 16;
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
