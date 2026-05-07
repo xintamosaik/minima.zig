@@ -103,7 +103,6 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             attempts < max_attempts and
             state.actor_count < state.actors.len) : (attempts += 1)
         {
-  
             const tx = 16 + randBelow(16) % 16;
             const ty = randBelow(16) % 16;
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
