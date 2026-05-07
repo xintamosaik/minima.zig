@@ -7,6 +7,7 @@ pub const Scene = enum(u8) {
     load,
     exit,
     battle_plain_wolves,
+    battle_river_wolves,
     battle_plain_goblins,
 };
 

@@ -63,22 +63,58 @@ pub const BattleDef = struct {
     pattern_map: maps.PatternMap,
     encounter_config: []const EncounterConfig,
 };
+fn actorAt(tile: u16) bool {
+    var i: usize = 0;
+    while (i < state.actor_count) : (i += 1) {
+        if (state.actors[i].tile == tile) return true;
+    }
+    return false;
+}
+fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
+    if (state.actor_count >= state.actors.len) return false;
+    if (actorAt(tile)) return false;
 
+    const tx = @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
+    const ty = @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
+
+    if (!grid.isPassable(grid.getTile(tx, ty))) return false;
+
+    state.actors[state.actor_count] = .{
+        .tile = tile,
+        .kind = kind,
+    };
+    state.actor_count += 1;
+
+    return true;
+}
+fn rand16() u32 {
+    return rand() >> 28;
+}
 pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     state.rng = seed;
 
     for (encounter) |spawn| {
-        var i: usize = 0;
-        while (i < @as(usize, spawn.quantity) and state.actor_count < state.actors.len) : (i += 1) {
-            const tx = 16 + rand() % 16;
-            const ty = rand() % 16;
-            const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
-            state.actors[state.actor_count] = .{
-                .tile = @intCast(tile),
-                .kind = spawn.kind,
-            };
+        var spawned: usize = 0;
+        var attempts: usize = 0;
 
-            state.actor_count += 1;
+        const max_attempts = @as(usize, spawn.quantity) * 16;
+
+        while (spawned < @as(usize, spawn.quantity) and
+            attempts < max_attempts and
+            state.actor_count < state.actors.len) : (attempts += 1)
+        {
+            console_log(@intCast(spawn.quantity));
+            console_log(@intCast(spawned));
+            console_log(@intCast(state.actor_count));
+            console_log(@intCast(state.actors.len));
+            console_log(@intCast(attempts));
+            const tx = 16 + rand16() % 16;
+            const ty = rand16() % 16;
+            const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
+
+            if (trySpawnActor(spawn.kind, @intCast(tile))) {
+                spawned += 1;
+            }
         }
     }
 }

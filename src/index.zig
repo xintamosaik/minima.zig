@@ -14,6 +14,7 @@ const credits = @import("scenes/credits.zig");
 const options = @import("scenes/options.zig");
 const exit = @import("scenes/exit.zig");
 const battle_plain_wolves = @import("battles/plain_wolves.zig");
+const battle_river_wolves = @import("battles/river_wolves.zig");
 const battle_plain_goblins = @import("battles/plain_goblins.zig");
 
 fn applySceneTransition() void {
@@ -97,6 +98,7 @@ export fn mouse_buttons() u32 {
 fn enterScene(s: scene.Scene) void {
     switch (s) {
         .battle_plain_wolves => battle_plain_wolves.enter(),
+        .battle_river_wolves => battle_river_wolves.enter(),
         .battle_plain_goblins => battle_plain_goblins.enter(),
         else => {},
     }
@@ -114,6 +116,7 @@ export fn tick() void {
         .exit => exit.tick(input_data), // placeholder
         .battle_plain_goblins => battle_plain_goblins.tick(input_data),
         .battle_plain_wolves => battle_plain_wolves.tick(input_data),
+        .battle_river_wolves => battle_river_wolves.tick(input_data),
     }
     applySceneTransition(); // this prevents a lag in rendering. We have to keep it until we improve the design to make it obsolete.
 }
@@ -130,6 +133,7 @@ export fn render() void {
         .exit => exit.render(), // placeholder
         .battle_plain_goblins => battle_plain_goblins.render(),
         .battle_plain_wolves => battle_plain_wolves.render(),
+        .battle_river_wolves => battle_river_wolves.render(),
     }
 }
 
