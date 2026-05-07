@@ -1,6 +1,5 @@
 const maps = @import("../maps/maps.zig");
 const map_patterns = @import("../maps/patterns.zig");
-const encounters = @import("../encounters/encounter.zig");
 
 const goblingroup = @import("../encounters/goblin_group.zig");
 
