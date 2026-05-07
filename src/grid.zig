@@ -39,3 +39,10 @@ pub fn getTileRaw(index: u32) TileKind {
     }
     return world_tiles[index];
 }
+
+pub fn isPassable(kind: TileKind) bool {
+    return switch (kind) {
+        .wall, .water, .stone => false,
+        .grass, .dirt, .empty => true,
+    };
+}
