@@ -135,7 +135,8 @@ export fn render() void {
 
 /// Initializes world state.
 export fn init(s: scene.Scene) void {
-    scene.request(s);
-    applySceneTransition();
+    scene.current = s;
+    scene.requested = null;
+    enterScene(s);
     console_log(@intFromEnum(s));
 }
