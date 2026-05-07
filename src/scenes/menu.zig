@@ -63,10 +63,10 @@ pub fn render() void {
     const item = items[selected];
 
     renderer.drawRectOutline(
-        item.x,
+        ui.MENU_MARGIN_LEFT,
         item.y,
-        item.w,
-        item.h,
+        ui.MENU_WIDTH,
+        ui.MENU_HEIGHT,
         colors.C64_WHITE,
     );
 }
