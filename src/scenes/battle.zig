@@ -11,7 +11,6 @@ const grid = @import("../grid.zig");
 const encounters = @import("../encounters/encounter.zig");
 const patterns_outside = @import("../patterns/outside.zig");
 const patterns_general = @import("../patterns/general.zig");
-const patterns_enemy = @import("../patterns/enemy.zig");
 
 const enemies = @import("../enemies/enemies.zig");
 
