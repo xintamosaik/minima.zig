@@ -24,8 +24,14 @@ var last_input: input.Layout = .{
     .mouse_buttons = 0,
 };
 const Cursor = struct { now: u32, last_move: u32 };
+fn actorTileX(actor: Actor) u32 {
+    return @as(u32, actor.tile) % maps.BATTLE_MAP_WIDTH;
+}
 
-const Actor = struct { tile_x: u32, tile_y: u32, kind: enemies.Kind };
+fn actorTileY(actor: Actor) u32 {
+    return @as(u32, actor.tile) / maps.BATTLE_MAP_WIDTH;
+}
+const Actor = struct { tile: u16, kind: enemies.Kind };
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
@@ -64,9 +70,11 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     for (encounter) |spawn| {
         var i: u8 = 0;
         while (i < spawn.quantity and state.actor_count < state.actors.len) : (i += 1) {
+            const tx = 16 + rand() % 16;
+            const ty = rand() % 16;
+            const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
             state.actors[state.actor_count] = .{
-                .tile_x = 16 + rand() % 16,
-                .tile_y = rand() % 16,
+                .tile = @intCast(tile),
                 .kind = spawn.kind,
             };
 
@@ -167,8 +175,8 @@ fn render_actors() void {
         const actor = state.actors[i];
         const enemy = enemies.get(actor.kind);
         renderer.drawBitmap8x8Mono(
-            actor.tile_x * grid.TILE_SIZE,
-            actor.tile_y * grid.TILE_SIZE,
+            actorTileX(actor) * grid.TILE_SIZE,
+            actorTileY(actor) * grid.TILE_SIZE,
             enemy.pattern,
             enemy.color,
         );
