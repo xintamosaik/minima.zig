@@ -1,5 +1,5 @@
 const maps = @import("../maps/maps.zig");
-const plain = @import("../maps/battle/plain.zig");
+const plain = @import("../maps/patterns.zig");
 const encounters = @import("../encounters/encounter.zig");
 
 const goblingroup = @import("../encounters/goblin_group.zig");
@@ -14,8 +14,8 @@ pub const tile_mapping = maps.TileMapping{
 };
 
 pub const map = maps.PatternMap{
-    .a = plain.A,
-    .b = plain.B,
+    .a = plain.VEGETATION,
+    .b = plain.LAKE,
 };
 
 pub const encounter_config: [1]battle.EncounterConfig = .{
