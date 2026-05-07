@@ -3,7 +3,7 @@ const enemies = @import("../enemies/enemies.zig");
 
 pub const encounter: encounters.Encounter = &.{
     .{
-        .enemy = enemies.goblin,
+        .kind = .goblin,
         .quantity = 5,
     },
 };

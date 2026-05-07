@@ -67,7 +67,7 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             state.actors[state.actor_count] = .{
                 .tile_x = 16 + rand() % 16,
                 .tile_y = rand() % 16,
-                .kind = spawn.enemy.kind,
+                .kind = spawn.kind,
             };
 
             state.actor_count += 1;
