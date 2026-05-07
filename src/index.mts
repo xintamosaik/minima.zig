@@ -340,7 +340,8 @@ void (async function main(): Promise<void> {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    wasm.init(8); // Right now triggers a console.log(0)
+    const SCENE_BATTLE_PLAIN_WOLVES = 8;
+    wasm.init(SCENE_BATTLE_PLAIN_WOLVES);
 
     /**
      * Target simulation ticks per second.

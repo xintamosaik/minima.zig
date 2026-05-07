@@ -1,5 +1,5 @@
 pub const Scene = enum(u8) {
-    last,
+    debug_battle,
     intro,
     menu,
     credits,
