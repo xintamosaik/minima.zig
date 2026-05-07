@@ -98,7 +98,6 @@ fn enterScene(s: scene.Scene) void {
     switch (s) {
         .battle_plain_wolves => battle_plain_wolves.enter(),
         .battle_plain_goblins => battle_plain_goblins.enter(),
-        .debug_battle => battle_plain_goblins.enter(), // if intentionally debug
         else => {},
     }
 }
@@ -106,7 +105,6 @@ fn enterScene(s: scene.Scene) void {
 export fn tick() void {
     applySceneTransition();
     switch (scene.current) {
-        .debug_battle => battle_plain_goblins.tick(input_data),
         .intro => intro.tick(input_data),
         .menu => menu.tick(input_data),
         .credits => credits.tick(input_data),
@@ -122,7 +120,6 @@ export fn tick() void {
 /// Renders the current frame
 export fn render() void {
     switch (scene.current) {
-        .debug_battle => battle_plain_goblins.render(),
         .options => options.render(),
         .intro => intro.render(),
         .menu => menu.render(),
@@ -140,7 +137,6 @@ export fn init(s: scene.Scene) void {
     scene.request(s);
     applySceneTransition();
     const scene_number: u32 = switch (s) {
-        .debug_battle => 0,
         .intro => 1,
         .menu => 2,
         .credits => 3,

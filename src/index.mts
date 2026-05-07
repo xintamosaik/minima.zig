@@ -340,7 +340,7 @@ void (async function main(): Promise<void> {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    const SCENE_BATTLE_PLAIN_WOLVES = 8;
+    const SCENE_BATTLE_PLAIN_WOLVES = 7;
     wasm.init(SCENE_BATTLE_PLAIN_WOLVES);
 
     /**
