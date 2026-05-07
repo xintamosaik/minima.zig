@@ -1,5 +1,5 @@
 const maps = @import("../maps/maps.zig");
-const plain = @import("../maps/patterns.zig");
+const map_patterns = @import("../maps/patterns.zig");
 const encounters = @import("../encounters/encounter.zig");
 const wolfpack = @import("../encounters/pack_of_wolves.zig");
 
@@ -13,8 +13,8 @@ pub const tile_mapping = maps.TileMapping{
 };
 
 pub const map = maps.PatternMap{
-    .a = plain.VEGETATION,
-    .b = plain.LAKE,
+    .a = map_patterns.GROUND_NOISE,
+    .b = map_patterns.LAKE,
 };
 
 pub const encounter_config: [1]battle.EncounterConfig = .{
