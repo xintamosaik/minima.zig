@@ -115,6 +115,7 @@ export fn tick() void {
         .battle_plain_goblins => battle_plain_goblins.tick(input_data),
         .battle_plain_wolves => battle_plain_wolves.tick(input_data),
     }
+    applySceneTransition(); // this prevents a lag in rendering. We have to keep it until we improve the design to make it obsolete.
 }
 
 /// Renders the current frame
