@@ -26,13 +26,32 @@ var last_input: input.Layout = .{
 const Cursor = struct { now: u32, last_move: u32 };
 
 const Actor = struct { tile: u16, kind: enemies.Kind };
-fn actorTileX(actor: Actor) u32 {
-    return @as(u32, actor.tile) % maps.BATTLE_MAP_WIDTH;
+
+fn tile2X(tile: u16) u32 {
+    return @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
+}
+fn tile2Y(tile: u16) u32 {
+    return @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
 }
 
-fn actorTileY(actor: Actor) u32 {
-    return @as(u32, actor.tile) / maps.BATTLE_MAP_WIDTH;
-}
+const Hero = struct {
+    tile: u16,
+};
+
+const hero_one: Hero = .{
+    .tile = 0,
+};
+
+const hero_two: Hero = .{
+    .tile = 2,
+};
+const hero_three: Hero = .{
+    .tile = maps.BATTLE_MAP_WIDTH + 2,
+};
+const hero_four: Hero = .{
+    .tile = maps.BATTLE_MAP_WIDTH + 4,
+};
+
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
     rng: u32 = 0,
@@ -206,12 +225,17 @@ fn render_actors() void {
         const actor = state.actors[i];
         const enemy = enemies.get(actor.kind);
         renderer.drawBitmap8x8Mono(
-            actorTileX(actor) * grid.TILE_SIZE,
-            actorTileY(actor) * grid.TILE_SIZE,
+            tile2X(actor.tile) * grid.TILE_SIZE,
+            tile2Y(actor.tile) * grid.TILE_SIZE,
             enemy.pattern,
             enemy.color,
         );
     }
+
+    font.drawMono(tile2X(hero_one.tile) * grid.TILE_SIZE, tile2Y(hero_one.tile) * grid.TILE_SIZE, '1', colors.C64_ORANGE);
+    font.drawMono(tile2X(hero_two.tile) * grid.TILE_SIZE, tile2Y(hero_two.tile) * grid.TILE_SIZE, '2', colors.C64_CYAN);
+    font.drawMono(tile2X(hero_three.tile) * grid.TILE_SIZE, tile2Y(hero_three.tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
+    font.drawMono(tile2X(hero_four.tile) * grid.TILE_SIZE, tile2Y(hero_four.tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
 }
 fn cursorX() u32 {
     return (state.cursor.now % maps.BATTLE_MAP_WIDTH) * grid.TILE_SIZE;

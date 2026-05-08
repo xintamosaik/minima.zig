@@ -600,6 +600,16 @@ pub fn drawChar(
     renderer.drawBitmap8x8(x, y, glyph, fg, bg);
 }
 
+pub fn drawMono(
+    x: u32,
+    y: u32,
+    c: u8,
+    fg: u32,
+) void {
+    const glyph = getGlyph(c);
+    renderer.drawBitmap8x8Mono(x, y, glyph, fg);
+}
+
 pub fn drawString(
     x: u32,
     y: u32,
