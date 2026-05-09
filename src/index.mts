@@ -47,6 +47,7 @@ export async function createApp() {
         restart: runner.restart,
 
         keyboard: {
+            vButtons: VBTN,
             setKey: keyboard.setKey,
             clearKey: keyboard.clearKey,
             getBindings: keyboard.getBindings,
@@ -58,8 +59,7 @@ async function main(): Promise<void> {
     try {
         const app = await createApp();
         app.start();
-        app.keyboard.clearKey("KeyZ");
-        app.keyboard.setKey("KeyZ", VBTN.A);
+ 
         // Optional dev/debug escape hatch.
         Object.assign(window, { minima: app });
     } catch (error) {

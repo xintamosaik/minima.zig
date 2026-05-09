@@ -67,6 +67,24 @@
             </dl>
         </section>
 
+        <section id="controls">
+            <script>
+                function useZ() {
+                    minima.keyboard.clearKey("KeyY");
+                    minima.keyboard.clearKey("KeyZ");
+                    minima.keyboard.setKey("KeyZ", minima.keyboard.vButtons.A);
+                }
+
+                function useY() {
+                    minima.keyboard.clearKey("KeyZ");
+                    minima.keyboard.clearKey("KeyY");
+                    minima.keyboard.setKey("KeyY", minima.keyboard.vButtons.A);
+                }
+            </script>
+            <button id="use-y" type="button" onClick="useY()">Use Y for A</button>
+            <button id="use-z" type="button" onClick="useZ()">Use Z for A</button>
+
+        </section>
         <section class="philosophy">
             <h2>Project philosophy</h2>
 
