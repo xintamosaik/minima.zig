@@ -116,6 +116,12 @@ function createInputWriter(
 
     return { write };
 }
+
+type GameLoop = {
+    start: () => void;
+    stop: () => void;
+    restart: () => void;
+};
 function createGameLoop(config: {
     tickRate: number;
     maxCatchUpSteps: number;
@@ -123,46 +129,60 @@ function createGameLoop(config: {
     tick: () => void;
     render: () => void;
     present: () => void;
-}) {
-   const fixedStepMs = 1000 / config.tickRate;
+}): GameLoop {
+    const fixedStepMs = 1000 / config.tickRate;
 
     let accumulatorMs = 0;
     let lastFrameTimeMs = 0;
     let animationFrameId: number | null = null;
     let running = false;
     function loop(nowMs: number): void {
+        if (!running) {
+            return;
+        }
+
         if (lastFrameTimeMs === 0) {
             lastFrameTimeMs = nowMs;
         }
 
-        let frameDeltaMs: number = nowMs - lastFrameTimeMs;
+        let frameDeltaMs = nowMs - lastFrameTimeMs;
         lastFrameTimeMs = nowMs;
+
         if (frameDeltaMs > 250) {
             frameDeltaMs = 250;
         }
 
         accumulatorMs += frameDeltaMs;
 
-        // Input is sampled once per rendered frame, then reused by all fixed ticks in this frame.
         config.writeInput();
 
-        let steps: number = 0;
+        let steps = 0;
+
         while (accumulatorMs >= fixedStepMs && steps < config.maxCatchUpSteps) {
             config.tick();
             accumulatorMs -= fixedStepMs;
             steps += 1;
         }
+
         if (steps === config.maxCatchUpSteps && accumulatorMs > fixedStepMs) {
             accumulatorMs = fixedStepMs;
         }
 
         config.render();
-
         config.present();
-        requestAnimationFrame(loop);
+
+        animationFrameId = requestAnimationFrame(loop);
     }
 
-     function start(): void {
+    function restart(): void {
+        stop();
+
+        accumulatorMs = 0;
+        lastFrameTimeMs = 0;
+
+        start();
+    }
+    function start(): void {
         if (running) {
             return;
         }
@@ -181,9 +201,9 @@ function createGameLoop(config: {
         }
     }
 
-     return { start, stop };
+    return { start, stop, restart };
 }
-/** Main frame loop: write input, tick game, and present frame. */
+
 
 /**
  * Fetch compiled WASM module.
@@ -229,6 +249,7 @@ async function main(): Promise<void> {
     const DEBUG_SCENE = 8;
     wasm.init(DEBUG_SCENE);
 
+    /** Main frame loop: write input, tick game, and present frame. */
     const runner = createGameLoop({
         tickRate: 60,
         maxCatchUpSteps: 5,
