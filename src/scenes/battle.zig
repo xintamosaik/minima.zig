@@ -95,15 +95,16 @@ fn actorAt(tile: u16) bool {
     }
     return false;
 }
+
 fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
     if (state.actor_count >= state.actors.len) return false;
+    if (@as(u32, tile) >= maps.BATTLE_MAP_LENGTH) return false;
 
     if (actorAt(tile)) return false;
-
     if (heroAt(tile)) return false;
 
-    const tx = @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
-    const ty = @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
+    const tx = tile2X(tile);
+    const ty = tile2Y(tile);
 
     if (!grid.isPassable(grid.getTile(tx, ty))) return false;
 
@@ -115,9 +116,11 @@ fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
 
     return true;
 }
+
 fn randBelow(max: u32) u32 {
     return ((rand() >> 16) * max) >> 16;
 }
+const HALF_WIDTH = maps.BATTLE_MAP_WIDTH / 2;
 pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
     state.rng = seed;
 
@@ -131,8 +134,7 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             attempts < max_attempts and
             state.actor_count < state.actors.len) : (attempts += 1)
         {
-            const half_width = maps.BATTLE_MAP_WIDTH / 2;
-            const tx = half_width + randBelow(half_width);
+            const tx = HALF_WIDTH + randBelow(HALF_WIDTH);
             const ty = randBelow(maps.BATTLE_MAP_HEIGHT);
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
 
