@@ -132,8 +132,8 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             state.actor_count < state.actors.len) : (attempts += 1)
         {
             const half_width = maps.BATTLE_MAP_WIDTH / 2;
-            const tx = half_width + randBelow(16);
-            const ty = randBelow(16);
+            const tx = half_width + randBelow(half_width);
+            const ty = randBelow(maps.BATTLE_MAP_HEIGHT);
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
 
             if (trySpawnActor(spawn.kind, @intCast(tile))) {
