@@ -245,6 +245,25 @@ fn render_actors() void {
         );
     }
 }
+fn activeTileKind() grid.TileKind {
+    return grid.getTile(tile2X(state.active_tile), tile2Y(state.active_tile));
+}
+fn render_tile_info() void {
+    // TILE
+    const currentTile = activeTileKind();
+    const tileLabel = switch (currentTile) {
+        .dirt => "dirt",
+        .empty => "none",
+        .grass => "grass",
+        .stone => "stone",
+        .wall => "wall",
+        .water => "water",
+    };
+    font.drawString(32 * grid.TILE_SIZE, 0 * grid.TILE_SIZE, tileLabel, colors.C64_CYAN, colors.C64_BLACK);
+
+    // ENEMY OR HERO
+    font.drawString(32 * grid.TILE_SIZE, 2 * grid.TILE_SIZE, "AVATAR", colors.C64_YELLOW, colors.C64_BLACK);
+}
 
 pub fn render() void {
     ui.clearScreen(BG);
@@ -257,7 +276,7 @@ pub fn render() void {
     font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
     render_actors();
-    
+
     render_hero(0, '1');
     render_hero(1, '2');
     render_hero(2, '3');
@@ -266,4 +285,6 @@ pub fn render() void {
     renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
     renderer.drawRectOutline(tile2X(state.cursor.now) * grid.TILE_SIZE, tile2Y(state.cursor.now) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
     renderer.drawRectOutline(tile2X(state.active_tile) * grid.TILE_SIZE, tile2Y(state.active_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
+
+    render_tile_info();
 }
