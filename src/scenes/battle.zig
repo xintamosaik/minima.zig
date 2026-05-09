@@ -243,6 +243,21 @@ fn render_hero(index: usize, label: u8) void {
         color,
     );
 }
+fn enemyNameAt(tile: u16) []const u8 {
+    var i: usize = 0;
+    while (i < state.actor_count) : (i += 1) {
+        const actor = state.actors[i];
+
+        if (actor.tile != tile) continue;
+
+        return switch (actor.kind) {
+            .wolf => "WOLF",
+            .goblin => "GOBLIN",
+        };
+    }
+
+    return "";
+}
 fn render_actors() void {
     var i: usize = 0;
     while (i < state.actor_count) : (i += 1) {
@@ -269,7 +284,6 @@ fn heroNameAt(tile: u16) []const u8 {
 }
 
 fn render_tile_info() void {
-    // TILE
     const currentTile = activeTileKind();
     const tileLabel = switch (currentTile) {
         .dirt => "dirt",
@@ -279,14 +293,47 @@ fn render_tile_info() void {
         .wall => "wall",
         .water => "water",
     };
-    font.drawString(32 * grid.TILE_SIZE, 0 * grid.TILE_SIZE, tileLabel, colors.C64_CYAN, colors.C64_BLACK);
 
-    // ENEMY OR HERO
-    const actor_name: []const u8 = heroNameAt(state.active_tile);
-    font.drawString(32 * grid.TILE_SIZE, 3 * grid.TILE_SIZE, actor_name, colors.C64_YELLOW, colors.C64_BLACK);
+    font.drawString(
+        32 * grid.TILE_SIZE,
+        0 * grid.TILE_SIZE,
+        tileLabel,
+        colors.C64_CYAN,
+        colors.C64_BLACK,
+    );
 
-    const actor_type: []const u8 = if (actor_name.len > 0) "hero" else "";
-    font.drawString(32 * grid.TILE_SIZE, 2 * grid.TILE_SIZE, actor_type, colors.C64_LIGHT_GRAY, colors.C64_BLACK);
+    const hero_name = heroNameAt(state.active_tile);
+    const enemy_name = enemyNameAt(state.active_tile);
+
+    const actor_type: []const u8 =
+        if (hero_name.len > 0)
+            "hero"
+        else if (enemy_name.len > 0)
+            "enemy"
+        else
+            "";
+
+    const actor_name: []const u8 =
+        if (hero_name.len > 0)
+            hero_name
+        else
+            enemy_name;
+
+    font.drawString(
+        32 * grid.TILE_SIZE,
+        2 * grid.TILE_SIZE,
+        actor_type,
+        colors.C64_LIGHT_GRAY,
+        colors.C64_BLACK,
+    );
+
+    font.drawString(
+        32 * grid.TILE_SIZE,
+        3 * grid.TILE_SIZE,
+        actor_name,
+        colors.C64_YELLOW,
+        colors.C64_BLACK,
+    );
 }
 
 pub fn render() void {
