@@ -82,6 +82,12 @@ pub const BattleDef = struct {
     pattern_map: maps.PatternMap,
     encounter_config: []const EncounterConfig,
 };
+fn heroAt(tile: u16) bool {
+    return hero_one.tile == tile or
+        hero_two.tile == tile or
+        hero_three.tile == tile or
+        hero_four.tile == tile;
+}
 fn actorAt(tile: u16) bool {
     var i: usize = 0;
     while (i < state.actor_count) : (i += 1) {
@@ -91,7 +97,10 @@ fn actorAt(tile: u16) bool {
 }
 fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
     if (state.actor_count >= state.actors.len) return false;
+
     if (actorAt(tile)) return false;
+
+    if (heroAt(tile)) return false;
 
     const tx = @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
     const ty = @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
@@ -122,8 +131,9 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
             attempts < max_attempts and
             state.actor_count < state.actors.len) : (attempts += 1)
         {
-            const tx = 16 + randBelow(16) % 16;
-            const ty = randBelow(16) % 16;
+            const half_width = maps.BATTLE_MAP_WIDTH / 2;
+            const tx = half_width + randBelow(16);
+            const ty = randBelow(16);
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
 
             if (trySpawnActor(spawn.kind, @intCast(tile))) {
@@ -231,7 +241,7 @@ fn render_actors() void {
     font.drawMono(tile2X(hero_three.tile) * grid.TILE_SIZE, tile2Y(hero_three.tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
     font.drawMono(tile2X(hero_four.tile) * grid.TILE_SIZE, tile2Y(hero_four.tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
 }
- 
+
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
