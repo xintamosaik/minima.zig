@@ -23,7 +23,7 @@ var last_input: input.Layout = .{
     .mouse_y = 0,
     .mouse_buttons = 0,
 };
-const Cursor = struct { now: u32, last_move: u32 };
+const Cursor = struct { now: u16, last_move: u16 };
 
 const Actor = struct { tile: u16, kind: enemies.Kind };
 
@@ -57,7 +57,7 @@ const BattleState = struct {
     rng: u32 = 0,
     actors: [16]Actor = undefined,
     actor_count: usize = 0,
-    active_tile: u32 = 0,
+    active_tile: u16 = 0,
 
     pub fn reset(self: *BattleState) void {
         self.cursor = .{ .now = 0, .last_move = 0 };
@@ -140,35 +140,29 @@ pub fn init(battle_def: BattleDef) void {
         spawnEncounter(config.groups, config.seed);
     }
 }
-fn cursorTileX() u32 {
-    return state.cursor.now % maps.BATTLE_MAP_WIDTH;
-}
-
-fn cursorTileY() u32 {
-    return state.cursor.now / maps.BATTLE_MAP_WIDTH;
-}
+const CURSOR_SLOW_DOWN = 8;
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move += 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
-        cursorTileX() > 0 and
-        state.cursor.last_move > 16)
+        tile2X(state.cursor.now) > 0 and
+        state.cursor.last_move > CURSOR_SLOW_DOWN)
     {
         state.cursor.now -= 1;
         state.cursor.last_move = 0;
     }
 
     if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
-        cursorTileX() < maps.BATTLE_MAP_WIDTH - 1 and
-        state.cursor.last_move > 16)
+        tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
+        state.cursor.last_move > CURSOR_SLOW_DOWN)
     {
         state.cursor.now += 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and state.cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and state.cursor.last_move > CURSOR_SLOW_DOWN) {
         state.cursor.now -= maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and state.cursor.last_move > 16) {
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and state.cursor.last_move > CURSOR_SLOW_DOWN) {
         state.cursor.now += maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
@@ -256,6 +250,6 @@ pub fn render() void {
 
     render_actors();
     renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
-
-    renderer.drawRectOutline(cursorX(), cursorY(), grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
+    renderer.drawRectOutline(tile2X(state.cursor.now) * grid.TILE_SIZE, tile2Y(state.cursor.now) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
+    renderer.drawRectOutline(tile2X(state.active_tile) * grid.TILE_SIZE, tile2Y(state.active_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
 }
