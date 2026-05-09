@@ -1,107 +1,120 @@
-/**
-  * Canvas that displays the WASM frame buffer.
-  */
-const canvasEl = document.getElementById("game");
-if (!(canvasEl instanceof HTMLCanvasElement)) {
-        console.error("Expected a <canvas id=\"game\"> element in the DOM.");
-  
-}
-const canvas = canvasEl;
-/** Offsets for u32 mouse fields inside shared input memory. */
-const MOUSE_X_OFFSET = wasm.inputMouseXOffset();
-
-/** 
- * Mouse Y offset within the input memory region, as provided by the WASM module.
- */
-const MOUSE_Y_OFFSET: number = wasm.inputMouseYOffset();
-
-/** 
- * Mouse buttons offset within the input memory region, as provided by the WASM module.
-
- */
-const MOUSE_BUTTONS_OFFSET: number = wasm.inputMouseButtonsOffset();
-const BUTTON_LEFT = 0;
-const BUTTON_MIDDLE = 1;
-const BUTTON_RIGHT = 2;
-
-const MOUSE_BUTTON_LEFT = 1;
-const MOUSE_BUTTON_MIDDLE = 2;
-const MOUSE_BUTTON_RIGHT = 4;
-
-/** 
- * Converts DOM mouse button index to WASM bitmask.
- * @param {number} button - The DOM mouse button index.
- */
-function mouseButtonBit(button: number): number {
-        switch (button) {
-                case BUTTON_LEFT:
-                        return MOUSE_BUTTON_LEFT;
-                case BUTTON_MIDDLE:
-                        return MOUSE_BUTTON_MIDDLE;
-                case BUTTON_RIGHT:
-                        return MOUSE_BUTTON_RIGHT;
-                default:
-                        return 0;
-        }
-}
-/**
- * DataView for writing u32 mouse fields in shared input memory.
- */
-const inputView = new DataView(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
-
-const pointerState: { x: number; y: number; buttons: number } = {
-        x: 0,
-        y: 0,
-        buttons: 0
+export type MouseInput = {
+    writeTo: (
+        view: DataView,
+        mouseXOffset: number,
+        mouseYOffset: number,
+        mouseButtonsOffset: number,
+    ) => void;
+    clear: () => void;
+    dispose: () => void;
 };
 
-/**
-     * Updates mouse position in game-space coordinates.
-     * @param {MouseEvent} e 
-     */
-function registerMouseMovement(e: MouseEvent): void {
-        pointerState.x = Math.floor(e.offsetX / scale);
-        pointerState.y = Math.floor(e.offsetY / scale);
-}
-canvas.addEventListener("mousemove", registerMouseMovement);
+type MouseState = {
+    x: number;
+    y: number;
+    buttons: number;
+};
 
-/**
- * Updates position and sets the pressed mouse button bit.
- * @param {MouseEvent} e 
- */
-function registerMouseDown(e: MouseEvent): void {
-        registerMouseMovement(e);
+const DOM_BUTTON_LEFT = 0;
+const DOM_BUTTON_MIDDLE = 1;
+const DOM_BUTTON_RIGHT = 2;
+
+const WASM_MOUSE_LEFT = 1;
+const WASM_MOUSE_MIDDLE = 2;
+const WASM_MOUSE_RIGHT = 4;
+
+function mouseButtonBit(button: number): number {
+    switch (button) {
+        case DOM_BUTTON_LEFT:
+            return WASM_MOUSE_LEFT;
+        case DOM_BUTTON_MIDDLE:
+            return WASM_MOUSE_MIDDLE;
+        case DOM_BUTTON_RIGHT:
+            return WASM_MOUSE_RIGHT;
+        default:
+            return 0;
+    }
+}
+
+export function createMouseInput(
+    canvas: HTMLCanvasElement,
+    getScale: () => number,
+): MouseInput {
+    const state: MouseState = {
+        x: 0,
+        y: 0,
+        buttons: 0,
+    };
+
+    function updatePosition(e: MouseEvent): void {
+        const scale = getScale();
+
+        state.x = Math.floor(e.offsetX / scale);
+        state.y = Math.floor(e.offsetY / scale);
+    }
+
+    function onMouseMove(e: MouseEvent): void {
+        updatePosition(e);
+    }
+
+    function onMouseDown(e: MouseEvent): void {
+        updatePosition(e);
+
         const bit = mouseButtonBit(e.button);
         if (bit !== 0) {
-                pointerState.buttons |= bit;
+            state.buttons |= bit;
         }
-}
-canvas.addEventListener("mousedown", registerMouseDown);
+    }
 
-/**
- * Updates position and clears the released mouse button bit.
- * @param {MouseEvent} e 
- */
-function registerMouseUp(e: MouseEvent): void {
-        registerMouseMovement(e);
+    function onMouseUp(e: MouseEvent): void {
+        updatePosition(e);
+
         const bit = mouseButtonBit(e.button);
         if (bit !== 0) {
-                pointerState.buttons &= ~bit;
+            state.buttons &= ~bit;
         }
-}
-canvas.addEventListener("mouseup", registerMouseUp);
+    }
 
-// Clear button state when release happens outside the canvas.
-canvas.addEventListener("mouseleave", () => { pointerState.buttons = 0; });
+    function onMouseLeave(): void {
+        state.buttons = 0;
+    }
 
-// Use right-click for gameplay instead of opening the browser menu.
-canvas.addEventListener("contextmenu", (e: MouseEvent) => { e.preventDefault(); });
+    function onContextMenu(e: MouseEvent): void {
+        e.preventDefault();
+    }
 
-/** 
- * Writes current input state into shared WASM memory.
- */
-function writeInput() {
-        inputView.setUint32(MOUSE_X_OFFSET, pointerState.x >>> 0, true);
-        inputView.setUint32(MOUSE_Y_OFFSET, pointerState.y >>> 0, true);
-        inputView.setUint32(MOUSE_BUTTONS_OFFSET, pointerState.buttons >>> 0, true);
+    function clear(): void {
+        state.buttons = 0;
+    }
+
+    function writeTo(
+        view: DataView,
+        mouseXOffset: number,
+        mouseYOffset: number,
+        mouseButtonsOffset: number,
+    ): void {
+        view.setUint32(mouseXOffset, state.x >>> 0, true);
+        view.setUint32(mouseYOffset, state.y >>> 0, true);
+        view.setUint32(mouseButtonsOffset, state.buttons >>> 0, true);
+    }
+
+    function dispose(): void {
+        canvas.removeEventListener("mousemove", onMouseMove);
+        canvas.removeEventListener("mousedown", onMouseDown);
+        canvas.removeEventListener("mouseup", onMouseUp);
+        canvas.removeEventListener("mouseleave", onMouseLeave);
+        canvas.removeEventListener("contextmenu", onContextMenu);
+    }
+
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("mouseleave", onMouseLeave);
+    canvas.addEventListener("contextmenu", onContextMenu);
+
+    return {
+        writeTo,
+        clear,
+        dispose,
+    };
 }
