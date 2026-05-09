@@ -21,8 +21,8 @@ export type KeyboardInput = {
                 buttonsLoOffset: number,
                 buttonsHiOffset: number,
         ) => void;
-        setBinding: (code: string, button: VirtualButton) => void;
-        clearBinding: (code: string) => void;
+        setKey: (code: string, button: VirtualButton) => void;
+        clearKey: (code: string) => void;
         getBindings: () => Record<string, VirtualButton>;
         clear: () => void;
         dispose: () => void;
@@ -146,8 +146,8 @@ export function createKeyboardInput(
 
         return {
                 writeTo,
-                setBinding,
-                clearBinding,
+                setKey: setBinding,
+                clearKey: clearBinding,
                 getBindings,
                 clear,
                 dispose,

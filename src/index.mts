@@ -32,7 +32,8 @@ async function main(): Promise<void> {
     const presenter = createFramePresenter(wasm, width, height, renderCtx);
 
     const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
-    keyboard.setBinding("KeyZ", VBTN.Y);
+    keyboard.clearKey("KeyZ");
+    keyboard.setKey("KeyZ", VBTN.A);
 
     const mouse = createMouseInput(canvas, resizer.getScale);
 
