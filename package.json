@@ -5,13 +5,12 @@
   "type": "module",
   "main": "dist/index.mjs",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "build:ts": "esbuild src/index.mts --bundle --format=esm --target=es2022 --outfile=dist/index.mjs",
     "build:wasm": "./build.sh",
+    "build:ts": "esbuild src/index.mts --bundle --format=esm --target=es2022 --outfile=dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:all": "pnpm run build:wasm && pnpm run typecheck && pnpm run build:ts",
-    "fmt": "zig fmt src && tsc -p tsconfig.json --noEmit",
-    "dev:ts": "tsc -p tsconfig.json --watch",
+    "fmt": "zig fmt src && pnpm run typecheck",
+    "dev:ts": "tsc -p tsconfig.json --watch --noEmit",
     "dev:server": "go run main.go",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
