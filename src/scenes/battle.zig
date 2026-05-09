@@ -23,7 +23,7 @@ var last_input: input.Layout = .{
     .mouse_y = 0,
     .mouse_buttons = 0,
 };
-const Cursor = struct { now: u16, last_move: u16 };
+const Cursor = struct { now: u16, last_move: u4 };
 
 const Actor = struct { tile: u16, kind: enemies.Kind };
 
@@ -142,7 +142,7 @@ pub fn init(battle_def: BattleDef) void {
 }
 const CURSOR_SLOW_DOWN = 8;
 pub fn input_cursor(input_data: input.Layout) void {
-    state.cursor.last_move += 1;
+    state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
         tile2X(state.cursor.now) > 0 and
         state.cursor.last_move > CURSOR_SLOW_DOWN)
@@ -231,13 +231,7 @@ fn render_actors() void {
     font.drawMono(tile2X(hero_three.tile) * grid.TILE_SIZE, tile2Y(hero_three.tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
     font.drawMono(tile2X(hero_four.tile) * grid.TILE_SIZE, tile2Y(hero_four.tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
 }
-fn cursorX() u32 {
-    return (state.cursor.now % maps.BATTLE_MAP_WIDTH) * grid.TILE_SIZE;
-}
-
-fn cursorY() u32 {
-    return (state.cursor.now / maps.BATTLE_MAP_WIDTH) * grid.TILE_SIZE;
-}
+ 
 pub fn render() void {
     ui.clearScreen(BG);
     render_tiles();
