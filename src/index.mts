@@ -9,15 +9,8 @@ import { createInputWriter } from "./input-writer.mts";
 import { createGameLoop } from "./game-loop.mts";
 import { SCENE } from "./scenes.mts";
 
-async function main(): Promise<void> {
-    let wasm;
-
-    try {
-        wasm = await init("index.wasm");
-    } catch (error) {
-        console.error(error);
-        return;
-    }
+export async function createApp() {
+    const wasm = await init("index.wasm");
 
     const width = wasm.width();
     const height = wasm.height();
@@ -32,8 +25,6 @@ async function main(): Promise<void> {
     const presenter = createFramePresenter(wasm, width, height, renderCtx);
 
     const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
-    keyboard.clearKey("KeyZ");
-    keyboard.setKey("KeyZ", VBTN.A);
 
     const mouse = createMouseInput(canvas, resizer.getScale);
 
@@ -50,7 +41,30 @@ async function main(): Promise<void> {
         present: presenter.present,
     });
 
-    runner.start();
+    return {
+        start: runner.start,
+        stop: runner.stop,
+        restart: runner.restart,
+
+        keyboard: {
+            setKey: keyboard.setKey,
+            clearKey: keyboard.clearKey,
+            getBindings: keyboard.getBindings,
+        },
+    };
+}
+
+async function main(): Promise<void> {
+    try {
+        const app = await createApp();
+        app.start();
+        app.keyboard.clearKey("KeyZ");
+        app.keyboard.setKey("KeyZ", VBTN.A);
+        // Optional dev/debug escape hatch.
+        Object.assign(window, { minima: app });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 main();
