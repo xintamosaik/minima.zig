@@ -1,6 +1,61 @@
 "use strict";
- 
-import {init} from "./wasm.mts" 
+
+import { init } from "./wasm.mts"
+import { createKeyboardInput, DEFAULT_KEY_BINDINGS } from "./keyboard.mts"
+
+function initCanvas(width: number, height: number) {
+    const canvas = document.getElementById("game");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+        throw new Error("Expected a <canvas id=\"game\"> element in the DOM.");
+    }
+
+    canvas.width = width; // Sync width
+    canvas.height = height; // Sync height
+    return canvas;
+}
+
+function initContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx || ctx instanceof CanvasRenderingContext2D === false) {
+        throw new Error("Failed to get 2D canvas context from #game.");
+    }
+
+    return ctx;
+}
+
+
+type CanvasResizer = {
+    resize: () => void;
+    getScale: () => number;
+};
+
+function createCanvasResizer(
+    canvas: HTMLCanvasElement,
+    width: number,
+    height: number,
+): CanvasResizer {
+    let scale = 1;
+
+    function resize(): void {
+        const scaleX = Math.floor((window.innerWidth - 16) / width);
+        const scaleY = Math.floor((window.innerHeight - 16) / height);
+
+        scale = Math.max(1, Math.min(scaleX, scaleY));
+
+        canvas.style.width = `${width * scale}px`;
+        canvas.style.height = `${height * scale}px`;
+    }
+
+    function getScale(): number {
+        return scale;
+    }
+
+    return {
+        resize,
+        getScale,
+    };
+}
 /**
  * Fetch compiled WASM module.
  */
@@ -10,10 +65,9 @@ async function main(): Promise<void> {
         console.log(wasm.message)
         return;
     }
-
     /**
-     * Game width used to size the canvas.
-     */
+       * Game width used to size the canvas.
+       */
     const width: number = wasm.width();
 
     /**
@@ -21,43 +75,22 @@ async function main(): Promise<void> {
 
      */
     const height: number = wasm.height();
-
     /**
      * Canvas that displays the WASM frame buffer.
      */
-    const canvasEl = document.getElementById("game");
-    if (!(canvasEl instanceof HTMLCanvasElement)) {
-        console.error("Expected a <canvas id=\"game\"> element in the DOM.");
-        return;
-    }
-    const canvas = canvasEl;
-    canvas.width = width; // Sync width
-    canvas.height = height; // Sync height
-    /**
- * Integer scale used for crisp pixel rendering.
- */
-    let scale = 1;
-    /** 
-     * Resizes the canvas using integer scaling.
-     */
-    function resizeCanvas() {
-        const scaleX = Math.floor((window.innerWidth - 16) / width);
-        const scaleY = Math.floor((window.innerHeight - 16) / height);
-        scale = Math.max(1, Math.min(scaleX, scaleY));
-        canvas.style.width = `${width * scale}px`;
-        canvas.style.height = `${height * scale}px`;
-    }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+
+    const canvas = initCanvas(width, height);
+
+
+    const resizer = createCanvasResizer(canvas, width, height)
+
+    resizer.resize();
+    window.addEventListener("resize", resizer.resize);
+
     /**
      * 2D context used to draw ImageData.
      */
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-        console.error("Failed to get 2D canvas context from #game.");
-        return;
-    }
-    const renderCtx: CanvasRenderingContext2D = ctx;
+    const renderCtx = initContext(canvas);
 
     /**
      * Direct byte view of the WASM frame buffer.
@@ -70,140 +103,24 @@ async function main(): Promise<void> {
      */
     const image = new ImageData(frame, width, height);
 
-
-    const VBTN = {
-        UP: "UP",
-        DOWN: "DOWN",
-        LEFT: "LEFT",
-        RIGHT: "RIGHT",
-        A: "A",
-        B: "B",
-        X: "X",
-        Y: "Y",
-        L: "L",
-        R: "R",
-        START: "START",
-        SELECT: "SELECT",
-    } as const;
-
-    type VirtualButton = typeof VBTN[keyof typeof VBTN];
-
-    /**
-     * Physical key -> named virtual button binding map.
-     */
-    const KEY_BINDINGS: Record<string, VirtualButton> = {
-        ArrowUp: VBTN.UP,
-        ArrowDown: VBTN.DOWN,
-        ArrowLeft: VBTN.LEFT,
-        ArrowRight: VBTN.RIGHT,
-        KeyY: VBTN.A,
-        KeyX: VBTN.B,
-        KeyA: VBTN.X,
-        KeyS: VBTN.Y,
-        KeyQ: VBTN.L,
-        KeyW: VBTN.R,
-        Space: VBTN.START,
-        Enter: VBTN.SELECT
-    };
-
-    const VBTN_TO_MASK: Record<VirtualButton, { hi: boolean; mask: number }> = {
-        [VBTN.UP]: { hi: false, mask: 1 << 0 },
-        [VBTN.DOWN]: { hi: false, mask: 1 << 1 },
-        [VBTN.LEFT]: { hi: false, mask: 1 << 2 },
-        [VBTN.RIGHT]: { hi: false, mask: 1 << 3 },
-        [VBTN.A]: { hi: false, mask: 1 << 4 },
-        [VBTN.B]: { hi: false, mask: 1 << 5 },
-        [VBTN.X]: { hi: false, mask: 1 << 6 },
-        [VBTN.Y]: { hi: false, mask: 1 << 7 },
-        [VBTN.L]: { hi: true, mask: 1 << 0 },
-        [VBTN.R]: { hi: true, mask: 1 << 1 },
-        [VBTN.START]: { hi: true, mask: 1 << 2 },
-        [VBTN.SELECT]: { hi: true, mask: 1 << 3 }
-    };
-
+  
     /**
      * Shared input byte buffer in WASM memory.
      */
     const input = new Uint8Array(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
-
-
-    /**
-     * Physical keyboard state keyed by KeyboardEvent.code.
-     */
-    const physicalKeys: Record<string, boolean> = {};
-    for (const code of Object.keys(KEY_BINDINGS)) {
-        physicalKeys[code] = false;
-    }
-
-    /** 
-     * Captures key presses 
-     */
-    function registerKeyDown(e: KeyboardEvent): void {
-        if (e.code in physicalKeys) {
-            physicalKeys[e.code] = true;
-            e.preventDefault();
-        }
-    }
-    window.addEventListener("keydown", registerKeyDown);
-
-    /**
-     * Captures key releases.
-     */
-    function registerKeyUp(e: KeyboardEvent): void {
-        if (e.code in physicalKeys) {
-            physicalKeys[e.code] = false;
-            e.preventDefault();
-        }
-    }
-    window.addEventListener("keyup", registerKeyUp);
-
-    /** 
-     * Clears key state on focus loss to avoid sticky input.
-     */
-    function registerBlur(): void {
-        for (const code in physicalKeys) {
-            physicalKeys[code] = false;
-        }
-    }
-    window.addEventListener("blur", registerBlur);
-
-    /**
-     * Packs active key bindings directly into low/high controller register bytes.
-     */
-    function packControllerStateFromBindings(): { buttonsLo: number; buttonsHi: number } {
-        let buttonsLo = 0;
-        let buttonsHi = 0;
-
-        for (const code in KEY_BINDINGS) {
-            if (!physicalKeys[code]) {
-                continue;
-            }
-
-            const button = KEY_BINDINGS[code];
-            const mapping = VBTN_TO_MASK[button];
-            if (mapping.hi) {
-                buttonsHi |= mapping.mask;
-            } else {
-                buttonsLo |= mapping.mask;
-            }
-        }
-
-        return { buttonsLo, buttonsHi };
-    }
 
     /** Offsets for packed controller bytes in shared input memory. */
     const BUTTONS_LO_OFFSET = wasm.inputButtonsLoOffset();
     const BUTTONS_HI_OFFSET = wasm.inputButtonsHiOffset();
 
 
-
+    const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
     /** 
      * Writes current input state into shared WASM memory.
      */
     function writeInput() {
-        const packedController = packControllerStateFromBindings();
-        input[BUTTONS_LO_OFFSET] = packedController.buttonsLo;
-        input[BUTTONS_HI_OFFSET] = packedController.buttonsHi;
+        keyboard.writeTo(input, BUTTONS_LO_OFFSET, BUTTONS_HI_OFFSET);
+
     }
 
 
