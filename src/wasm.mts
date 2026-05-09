@@ -76,12 +76,14 @@ export async function init(wasmUrl: string): Promise<WasmExports> {
     const { instance } = await WebAssembly.instantiateStreaming(response, importObject);
     const exports = instance.exports as unknown as WasmExports;
 
-
     try {
         assertWasmExports(exports);
         return exports;
-    } catch (e) {
-        throw new Error('invalid wasm exports found');
+    } catch (error) {
+        throw new Error(
+            error instanceof Error
+                ? `Invalid WASM exports: ${error.message}`
+                : "Invalid WASM exports."
+        );
     }
-
 }

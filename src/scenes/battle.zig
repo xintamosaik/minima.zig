@@ -23,7 +23,7 @@ var last_input: input.Layout = .{
     .mouse_y = 0,
     .mouse_buttons = 0,
 };
-const Cursor = struct { now: u16, last_move: u4 };
+const Cursor = struct { now: u16, last_move: u8 };
 
 const Actor = struct { tile: u16, kind: enemies.Kind };
 

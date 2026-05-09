@@ -11,11 +11,11 @@ function initCanvas(width: number, height: number) {
 
     canvas.width = width; // Sync width
     canvas.height = height; // Sync height
+
     return canvas;
 }
 
 function initContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-
     const ctx = canvas.getContext("2d");
     if (!ctx) {
         throw new Error("Failed to get 2D canvas context from #game.");
@@ -189,6 +189,7 @@ function createGameLoop(config: {
 
         running = true;
         lastFrameTimeMs = 0;
+
         animationFrameId = requestAnimationFrame(loop);
     }
 
@@ -209,11 +210,15 @@ function createGameLoop(config: {
  * Fetch compiled WASM module.
  */
 async function main(): Promise<void> {
-    const wasm = await init("index.wasm");
-    if (wasm instanceof Error) {
-        console.log(wasm.message)
+    let wasm;
+
+    try {
+        wasm = await init("index.wasm");
+    } catch (error) {
+        console.error(error);
         return;
     }
+    
     /**
        * Game width used to size the canvas.
        */
@@ -230,7 +235,6 @@ async function main(): Promise<void> {
      */
     const canvas = initCanvas(width, height);
 
-
     const resizer = createCanvasResizer(canvas, width, height)
 
     resizer.resize();
@@ -240,7 +244,6 @@ async function main(): Promise<void> {
      * 2D context used to draw ImageData.
      */
     const renderCtx = initContext(canvas);
-
 
     const presenter = createFramePresenter(wasm, width, height, renderCtx);
 
