@@ -77,10 +77,10 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 fn heroAt(tile: u16) bool {
-    return heroes[0].tile == tile or
-        heroes[1].tile == tile or
-        heroes[2].tile == tile or
-        heroes[3].tile == tile;
+    for (heroes) |hero| {
+        if (hero.tile == tile) return true;
+    }
+    return false;
 }
 fn actorAt(tile: u16) bool {
     var i: usize = 0;
@@ -219,6 +219,19 @@ fn render_tiles() void {
         }
     }
 }
+const HERO_COLOR = colors.C64_LIGHT_GRAY;
+const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
+fn render_hero(index: usize, label: u8) void {
+    const hero = heroes[index];
+    const color = if (index == selected_hero) HERO_ACTIVE_COLOR else HERO_COLOR;
+
+    font.drawMono(
+        tile2X(hero.tile) * grid.TILE_SIZE,
+        tile2Y(hero.tile) * grid.TILE_SIZE,
+        label,
+        color,
+    );
+}
 fn render_actors() void {
     var i: usize = 0;
     while (i < state.actor_count) : (i += 1) {
@@ -231,11 +244,6 @@ fn render_actors() void {
             enemy.color,
         );
     }
-
-    font.drawMono(tile2X(heroes[0].tile) * grid.TILE_SIZE, tile2Y(heroes[0].tile) * grid.TILE_SIZE, '1', colors.C64_ORANGE);
-    font.drawMono(tile2X(heroes[1].tile) * grid.TILE_SIZE, tile2Y(heroes[1].tile) * grid.TILE_SIZE, '2', colors.C64_CYAN);
-    font.drawMono(tile2X(heroes[2].tile) * grid.TILE_SIZE, tile2Y(heroes[2].tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
-    font.drawMono(tile2X(heroes[3].tile) * grid.TILE_SIZE, tile2Y(heroes[3].tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
 }
 
 pub fn render() void {
@@ -249,6 +257,10 @@ pub fn render() void {
     font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
     render_actors();
+    render_hero(0, '1');
+    render_hero(1, '2');
+    render_hero(2, '3');
+    render_hero(3, '4');
     renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
     renderer.drawRectOutline(tile2X(state.cursor.now) * grid.TILE_SIZE, tile2Y(state.cursor.now) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
     renderer.drawRectOutline(tile2X(state.active_tile) * grid.TILE_SIZE, tile2Y(state.active_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
