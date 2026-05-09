@@ -147,6 +147,13 @@ pub fn init(battle_def: BattleDef) void {
         spawnEncounter(config.groups, config.seed);
     }
 }
+fn heroIndexAt(tile: u16) ?usize {
+    for (heroes, 0..) |hero, index| {
+        if (hero.tile == tile) return index;
+    }
+
+    return null;
+}
 const CURSOR_SLOW_DOWN = 8;
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
@@ -175,6 +182,9 @@ pub fn input_cursor(input_data: input.Layout) void {
     }
     if ((input_data.buttons_lo & input.BTN_A) != 0) {
         state.active_tile = state.cursor.now;
+        if (heroIndexAt(state.active_tile)) |index| {
+            selected_hero = index;
+        }
     }
     // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
     // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
