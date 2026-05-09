@@ -56,6 +56,135 @@ function createCanvasResizer(
         getScale,
     };
 }
+
+type FramePresenter = {
+    present: () => void;
+};
+
+function createFramePresenter(
+    wasm: {
+        memory: WebAssembly.Memory;
+        framePtr: () => number;
+        frameLen: () => number;
+    },
+    width: number,
+    height: number,
+    renderCtx: CanvasRenderingContext2D,
+): FramePresenter {
+    const frame = new Uint8ClampedArray(
+        wasm.memory.buffer,
+        wasm.framePtr(),
+        wasm.frameLen(),
+    );
+
+    const image = new ImageData(frame, width, height);
+
+    function present(): void {
+        renderCtx.putImageData(image, 0, 0);
+    }
+
+    return { present };
+}
+
+type InputWriter = {
+    write: () => void;
+};
+
+function createInputWriter(
+    wasm: {
+        memory: WebAssembly.Memory;
+        inputPtr: () => number;
+        inputLen: () => number;
+        inputButtonsLoOffset: () => number;
+        inputButtonsHiOffset: () => number;
+    },
+): InputWriter {
+    const input = new Uint8Array(
+        wasm.memory.buffer,
+        wasm.inputPtr(),
+        wasm.inputLen(),
+    );
+
+    const buttonsLoOffset = wasm.inputButtonsLoOffset();
+    const buttonsHiOffset = wasm.inputButtonsHiOffset();
+
+    const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
+
+    function write(): void {
+        keyboard.writeTo(input, buttonsLoOffset, buttonsHiOffset);
+    }
+
+    return { write };
+}
+function createGameLoop(config: {
+    tickRate: number;
+    maxCatchUpSteps: number;
+    writeInput: () => void;
+    tick: () => void;
+    render: () => void;
+    present: () => void;
+}) {
+   const fixedStepMs = 1000 / config.tickRate;
+
+    let accumulatorMs = 0;
+    let lastFrameTimeMs = 0;
+    let animationFrameId: number | null = null;
+    let running = false;
+    function loop(nowMs: number): void {
+        if (lastFrameTimeMs === 0) {
+            lastFrameTimeMs = nowMs;
+        }
+
+        let frameDeltaMs: number = nowMs - lastFrameTimeMs;
+        lastFrameTimeMs = nowMs;
+        if (frameDeltaMs > 250) {
+            frameDeltaMs = 250;
+        }
+
+        accumulatorMs += frameDeltaMs;
+
+        // Input is sampled once per rendered frame, then reused by all fixed ticks in this frame.
+        config.writeInput();
+
+        let steps: number = 0;
+        while (accumulatorMs >= fixedStepMs && steps < config.maxCatchUpSteps) {
+            config.tick();
+            accumulatorMs -= fixedStepMs;
+            steps += 1;
+        }
+        if (steps === config.maxCatchUpSteps && accumulatorMs > fixedStepMs) {
+            accumulatorMs = fixedStepMs;
+        }
+
+        config.render();
+
+        config.present();
+        requestAnimationFrame(loop);
+    }
+
+     function start(): void {
+        if (running) {
+            return;
+        }
+
+        running = true;
+        lastFrameTimeMs = 0;
+        animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function stop(): void {
+        running = false;
+
+        if (animationFrameId !== null) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    }
+
+     return { start, stop };
+}
+/** Main frame loop: write input, tick game, and present frame. */
+
 /**
  * Fetch compiled WASM module.
  */
@@ -75,10 +204,10 @@ async function main(): Promise<void> {
 
      */
     const height: number = wasm.height();
+
     /**
      * Canvas that displays the WASM frame buffer.
      */
-
     const canvas = initCanvas(width, height);
 
 
@@ -92,101 +221,24 @@ async function main(): Promise<void> {
      */
     const renderCtx = initContext(canvas);
 
-    /**
-     * Direct byte view of the WASM frame buffer.
-     * Zig writes u32 RGBA pixels in little-endian order, matching ImageData layout.
-     */
-    const frame = new Uint8ClampedArray(wasm.memory.buffer, wasm.framePtr(), wasm.frameLen());
 
-    /**
-     * ImageData wrapper for the shared frame buffer.
-     */
-    const image = new ImageData(frame, width, height);
+    const presenter = createFramePresenter(wasm, width, height, renderCtx);
 
-  
-    /**
-     * Shared input byte buffer in WASM memory.
-     */
-    const input = new Uint8Array(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
-
-    /** Offsets for packed controller bytes in shared input memory. */
-    const BUTTONS_LO_OFFSET = wasm.inputButtonsLoOffset();
-    const BUTTONS_HI_OFFSET = wasm.inputButtonsHiOffset();
-
-
-    const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
-    /** 
-     * Writes current input state into shared WASM memory.
-     */
-    function writeInput() {
-        keyboard.writeTo(input, BUTTONS_LO_OFFSET, BUTTONS_HI_OFFSET);
-
-    }
-
-
+    const inputWriter = createInputWriter(wasm);
 
     const DEBUG_SCENE = 8;
     wasm.init(DEBUG_SCENE);
 
-    /**
-     * Target simulation ticks per second.
-     */
-    const TICK_RATE: number = 60;
+    const runner = createGameLoop({
+        tickRate: 60,
+        maxCatchUpSteps: 5,
+        writeInput: inputWriter.write,
+        tick: wasm.tick,
+        render: wasm.render,
+        present: presenter.present,
+    });
 
-    /**
-     * Fixed timestep duration in milliseconds.
-     */
-    const FIXED_STEP_MS: number = 1000 / TICK_RATE;
-
-    /**
-     * Max fixed steps processed in one frame.
-     */
-    const MAX_CATCH_UP_STEPS: number = 5;
-
-    /**
-     * Accumulated unprocessed frame time for fixed-step updates.
-     */
-    let accumulatorMs: number = 0;
-
-    /**
-     * Timestamp of the previous frame.
-     */
-    let lastFrameTimeMs: number = 0;
-
-    /** Main frame loop: write input, tick game, and present frame. */
-    function loop(nowMs: number): void {
-        if (lastFrameTimeMs === 0) {
-            lastFrameTimeMs = nowMs;
-        }
-
-        let frameDeltaMs: number = nowMs - lastFrameTimeMs;
-        lastFrameTimeMs = nowMs;
-        if (frameDeltaMs > 250) {
-            frameDeltaMs = 250;
-        }
-
-        accumulatorMs += frameDeltaMs;
-
-        // Input is sampled once per rendered frame, then reused by all fixed ticks in this frame.
-        writeInput();
-
-        let steps: number = 0;
-        while (accumulatorMs >= FIXED_STEP_MS && steps < MAX_CATCH_UP_STEPS) {
-            wasm.tick();
-            accumulatorMs -= FIXED_STEP_MS;
-            steps += 1;
-        }
-        if (steps === MAX_CATCH_UP_STEPS && accumulatorMs > FIXED_STEP_MS) {
-            accumulatorMs = FIXED_STEP_MS;
-        }
-
-        wasm.render();
-
-        renderCtx.putImageData(image, 0, 0);
-        requestAnimationFrame(loop);
-    }
-
-    requestAnimationFrame(loop);
+    runner.start();
 }
 
 main()

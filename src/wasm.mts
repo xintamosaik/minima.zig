@@ -80,9 +80,8 @@ export async function init(wasmUrl: string): Promise<WasmExports> {
     try {
         assertWasmExports(exports);
         return exports;
-    } catch(e) {
+    } catch (e) {
         throw new Error('invalid wasm exports found');
     }
 
 }
- 
