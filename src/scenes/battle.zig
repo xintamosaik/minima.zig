@@ -36,13 +36,14 @@ fn tile2Y(tile: u16) u32 {
 
 const Hero = struct {
     tile: u16,
+    name: []const u8,
 };
 
 var heroes: [4]Hero = .{
-    .{ .tile = 0 },
-    .{ .tile = 2 },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 2 },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 4 },
+    .{ .tile = 0, .name = "AVATAR" },
+    .{ .tile = 2, .name = "DUPRE" },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "SHAMINO" },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "IOLO" },
 };
 var selected_hero: usize = 0;
 
@@ -248,6 +249,15 @@ fn render_actors() void {
 fn activeTileKind() grid.TileKind {
     return grid.getTile(tile2X(state.active_tile), tile2Y(state.active_tile));
 }
+
+fn heroNameAt(tile: u16) []const u8 {
+    for (heroes) |hero| {
+        if (hero.tile == tile) return hero.name;
+    }
+
+    return "";
+}
+
 fn render_tile_info() void {
     // TILE
     const currentTile = activeTileKind();
@@ -262,7 +272,11 @@ fn render_tile_info() void {
     font.drawString(32 * grid.TILE_SIZE, 0 * grid.TILE_SIZE, tileLabel, colors.C64_CYAN, colors.C64_BLACK);
 
     // ENEMY OR HERO
-    font.drawString(32 * grid.TILE_SIZE, 2 * grid.TILE_SIZE, "AVATAR", colors.C64_YELLOW, colors.C64_BLACK);
+    const actor_name: []const u8 = heroNameAt(state.active_tile);
+    font.drawString(32 * grid.TILE_SIZE, 3 * grid.TILE_SIZE, actor_name, colors.C64_YELLOW, colors.C64_BLACK);
+
+    const actor_type: []const u8 = if (actor_name.len > 0) "hero" else "";
+    font.drawString(32 * grid.TILE_SIZE, 2 * grid.TILE_SIZE, actor_type, colors.C64_LIGHT_GRAY, colors.C64_BLACK);
 }
 
 pub fn render() void {
