@@ -38,19 +38,13 @@ const Hero = struct {
     tile: u16,
 };
 
-const hero_one: Hero = .{
-    .tile = 0,
+var heroes: [4]Hero = .{
+    .{ .tile = 0 },
+    .{ .tile = 2 },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 2 },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 4 },
 };
-
-const hero_two: Hero = .{
-    .tile = 2,
-};
-const hero_three: Hero = .{
-    .tile = maps.BATTLE_MAP_WIDTH + 2,
-};
-const hero_four: Hero = .{
-    .tile = maps.BATTLE_MAP_WIDTH + 4,
-};
+var selected_hero: usize = 0;
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
@@ -83,10 +77,10 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 fn heroAt(tile: u16) bool {
-    return hero_one.tile == tile or
-        hero_two.tile == tile or
-        hero_three.tile == tile or
-        hero_four.tile == tile;
+    return heroes[0].tile == tile or
+        heroes[1].tile == tile or
+        heroes[2].tile == tile or
+        heroes[3].tile == tile;
 }
 fn actorAt(tile: u16) bool {
     var i: usize = 0;
@@ -238,10 +232,10 @@ fn render_actors() void {
         );
     }
 
-    font.drawMono(tile2X(hero_one.tile) * grid.TILE_SIZE, tile2Y(hero_one.tile) * grid.TILE_SIZE, '1', colors.C64_ORANGE);
-    font.drawMono(tile2X(hero_two.tile) * grid.TILE_SIZE, tile2Y(hero_two.tile) * grid.TILE_SIZE, '2', colors.C64_CYAN);
-    font.drawMono(tile2X(hero_three.tile) * grid.TILE_SIZE, tile2Y(hero_three.tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
-    font.drawMono(tile2X(hero_four.tile) * grid.TILE_SIZE, tile2Y(hero_four.tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
+    font.drawMono(tile2X(heroes[0].tile) * grid.TILE_SIZE, tile2Y(heroes[0].tile) * grid.TILE_SIZE, '1', colors.C64_ORANGE);
+    font.drawMono(tile2X(heroes[1].tile) * grid.TILE_SIZE, tile2Y(heroes[1].tile) * grid.TILE_SIZE, '2', colors.C64_CYAN);
+    font.drawMono(tile2X(heroes[2].tile) * grid.TILE_SIZE, tile2Y(heroes[2].tile) * grid.TILE_SIZE, '3', colors.C64_PURPLE);
+    font.drawMono(tile2X(heroes[3].tile) * grid.TILE_SIZE, tile2Y(heroes[3].tile) * grid.TILE_SIZE, '4', colors.C64_BROWN);
 }
 
 pub fn render() void {
