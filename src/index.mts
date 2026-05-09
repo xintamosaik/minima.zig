@@ -1,54 +1,15 @@
 "use strict";
-
-type WasmExports = {
-    width: () => number;
-    height: () => number;
-    memory: WebAssembly.Memory;
-    framePtr: () => number;
-    frameLen: () => number;
-    inputPtr: () => number;
-    inputLen: () => number;
-    inputButtonsLoOffset: () => number;
-    inputButtonsHiOffset: () => number;
-    inputMouseXOffset: () => number;
-    inputMouseYOffset: () => number;
-    inputMouseButtonsOffset: () => number;
-    init: (s: number) => void;
-    tick: () => void;
-    render: () => void;
-};
-
-/**
- * Exposed to WASM for debug logging.
- * 
- * @param {number} num - The number to log, typically an error code or status value from WASM.
- */
-function console_log(num: number) {
-    console.log(num);
-}
-
-/**
- * JS functions imported by WASM.
- */
-const importObject = {
-    env: { console_log }
-};
-
+ 
+import {init} from "./wasm.mts" 
 /**
  * Fetch compiled WASM module.
  */
-void (async function main(): Promise<void> {
-    const response = await fetch("./index.wasm");
-    if (!response.ok) {
-        console.error(`Failed to fetch wasm: ${response.status} ${response.statusText}`);
+async function main(): Promise<void> {
+    const wasm = await init("index.wasm");
+    if (wasm instanceof Error) {
+        console.log(wasm.message)
         return;
     }
-
-    /**
-     * Instance exposes WASM exports and memory.
-     */
-    const { instance } = await WebAssembly.instantiateStreaming(response, importObject);
-    const wasm = instance.exports as unknown as WasmExports;
 
     /**
      * Game width used to size the canvas.
@@ -72,7 +33,22 @@ void (async function main(): Promise<void> {
     const canvas = canvasEl;
     canvas.width = width; // Sync width
     canvas.height = height; // Sync height
-
+    /**
+ * Integer scale used for crisp pixel rendering.
+ */
+    let scale = 1;
+    /** 
+     * Resizes the canvas using integer scaling.
+     */
+    function resizeCanvas() {
+        const scaleX = Math.floor((window.innerWidth - 16) / width);
+        const scaleY = Math.floor((window.innerHeight - 16) / height);
+        scale = Math.max(1, Math.min(scaleX, scaleY));
+        canvas.style.width = `${width * scale}px`;
+        canvas.style.height = `${height * scale}px`;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
     /**
      * 2D context used to draw ImageData.
      */
@@ -94,83 +70,6 @@ void (async function main(): Promise<void> {
      */
     const image = new ImageData(frame, width, height);
 
-    const BUTTON_LEFT = 0;
-    const BUTTON_MIDDLE = 1;
-    const BUTTON_RIGHT = 2;
-
-    const MOUSE_BUTTON_LEFT = 1;
-    const MOUSE_BUTTON_MIDDLE = 2;
-    const MOUSE_BUTTON_RIGHT = 4;
-
-    /** 
-     * Converts DOM mouse button index to WASM bitmask.
-     * @param {number} button - The DOM mouse button index.
-     */
-    function mouseButtonBit(button: number): number {
-        switch (button) {
-            case BUTTON_LEFT:
-                return MOUSE_BUTTON_LEFT;
-            case BUTTON_MIDDLE:
-                return MOUSE_BUTTON_MIDDLE;
-            case BUTTON_RIGHT:
-                return MOUSE_BUTTON_RIGHT;
-            default:
-                return 0;
-        }
-    }
-
-    const pointerState: { x: number; y: number; buttons: number } = {
-        x: 0,
-        y: 0,
-        buttons: 0
-    };
-
-    /**
-     * Integer scale used for crisp pixel rendering.
-     */
-    let scale = 1;
-
-    /**
-     * Updates mouse position in game-space coordinates.
-     * @param {MouseEvent} e 
-     */
-    function registerMouseMovement(e: MouseEvent): void {
-        pointerState.x = Math.floor(e.offsetX / scale);
-        pointerState.y = Math.floor(e.offsetY / scale);
-    }
-    canvas.addEventListener("mousemove", registerMouseMovement);
-
-    /**
-     * Updates position and sets the pressed mouse button bit.
-     * @param {MouseEvent} e 
-     */
-    function registerMouseDown(e: MouseEvent): void {
-        registerMouseMovement(e);
-        const bit = mouseButtonBit(e.button);
-        if (bit !== 0) {
-            pointerState.buttons |= bit;
-        }
-    }
-    canvas.addEventListener("mousedown", registerMouseDown);
-
-    /**
-     * Updates position and clears the released mouse button bit.
-     * @param {MouseEvent} e 
-     */
-    function registerMouseUp(e: MouseEvent): void {
-        registerMouseMovement(e);
-        const bit = mouseButtonBit(e.button);
-        if (bit !== 0) {
-            pointerState.buttons &= ~bit;
-        }
-    }
-    canvas.addEventListener("mouseup", registerMouseUp);
-
-    // Clear button state when release happens outside the canvas.
-    canvas.addEventListener("mouseleave", () => { pointerState.buttons = 0; });
-
-    // Use right-click for gameplay instead of opening the browser menu.
-    canvas.addEventListener("contextmenu", (e: MouseEvent) => { e.preventDefault(); });
 
     const VBTN = {
         UP: "UP",
@@ -227,10 +126,6 @@ void (async function main(): Promise<void> {
      */
     const input = new Uint8Array(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
 
-    /**
-     * DataView for writing u32 mouse fields in shared input memory.
-     */
-    const inputView = new DataView(wasm.memory.buffer, wasm.inputPtr(), wasm.inputLen());
 
     /**
      * Physical keyboard state keyed by KeyboardEvent.code.
@@ -300,19 +195,7 @@ void (async function main(): Promise<void> {
     const BUTTONS_LO_OFFSET = wasm.inputButtonsLoOffset();
     const BUTTONS_HI_OFFSET = wasm.inputButtonsHiOffset();
 
-    /** Offsets for u32 mouse fields inside shared input memory. */
-    const MOUSE_X_OFFSET = wasm.inputMouseXOffset();
 
-    /** 
-     * Mouse Y offset within the input memory region, as provided by the WASM module.
-     */
-    const MOUSE_Y_OFFSET: number = wasm.inputMouseYOffset();
-
-    /** 
-     * Mouse buttons offset within the input memory region, as provided by the WASM module.
-
-     */
-    const MOUSE_BUTTONS_OFFSET: number = wasm.inputMouseButtonsOffset();
 
     /** 
      * Writes current input state into shared WASM memory.
@@ -321,24 +204,9 @@ void (async function main(): Promise<void> {
         const packedController = packControllerStateFromBindings();
         input[BUTTONS_LO_OFFSET] = packedController.buttonsLo;
         input[BUTTONS_HI_OFFSET] = packedController.buttonsHi;
-
-        inputView.setUint32(MOUSE_X_OFFSET, pointerState.x >>> 0, true);
-        inputView.setUint32(MOUSE_Y_OFFSET, pointerState.y >>> 0, true);
-        inputView.setUint32(MOUSE_BUTTONS_OFFSET, pointerState.buttons >>> 0, true);
     }
 
-    /** 
-     * Resizes the canvas using integer scaling.
-     */
-    function resizeCanvas() {
-        const scaleX = Math.floor((window.innerWidth - 16) / width);
-        const scaleY = Math.floor((window.innerHeight - 16) / height);
-        scale = Math.max(1, Math.min(scaleX, scaleY));
-        canvas.style.width = `${width * scale}px`;
-        canvas.style.height = `${height * scale}px`;
-    }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+
 
     const DEBUG_SCENE = 8;
     wasm.init(DEBUG_SCENE);
@@ -402,6 +270,6 @@ void (async function main(): Promise<void> {
     }
 
     requestAnimationFrame(loop);
-})().catch((error: unknown) => {
-    console.error("Failed to start game runtime.", error);
-});
+}
+
+main()
