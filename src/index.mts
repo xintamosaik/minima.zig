@@ -97,7 +97,9 @@ function createInputWriter(
         inputLen: () => number;
         inputButtonsLoOffset: () => number;
         inputButtonsHiOffset: () => number;
+
     },
+    writeTo: (input: Uint8Array<ArrayBuffer>, lo: number, hi: number) => void
 ): InputWriter {
     const input = new Uint8Array(
         wasm.memory.buffer,
@@ -108,10 +110,10 @@ function createInputWriter(
     const buttonsLoOffset = wasm.inputButtonsLoOffset();
     const buttonsHiOffset = wasm.inputButtonsHiOffset();
 
-    const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
+
 
     function write(): void {
-        keyboard.writeTo(input, buttonsLoOffset, buttonsHiOffset);
+        writeTo(input, buttonsLoOffset, buttonsHiOffset);
     }
 
     return { write };
@@ -218,7 +220,7 @@ async function main(): Promise<void> {
         console.error(error);
         return;
     }
-    
+
     /**
        * Game width used to size the canvas.
        */
@@ -246,8 +248,9 @@ async function main(): Promise<void> {
     const renderCtx = initContext(canvas);
 
     const presenter = createFramePresenter(wasm, width, height, renderCtx);
-
-    const inputWriter = createInputWriter(wasm);
+    const keyboard = createKeyboardInput(DEFAULT_KEY_BINDINGS);
+    keyboard.setBinding("KeyZ", "Y");
+    const inputWriter = createInputWriter(wasm, keyboard.writeTo);
 
     const DEBUG_SCENE = 8;
     wasm.init(DEBUG_SCENE);
