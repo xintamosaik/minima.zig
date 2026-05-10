@@ -40,10 +40,10 @@ const Hero = struct {
 };
 
 var heroes: [4]Hero = .{
-    .{ .tile = 0, .name = "AVATAR" },
-    .{ .tile = 2, .name = "DUPRE" },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "SHAMINO" },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "IOLO" },
+    .{ .tile = 0, .name = "tank" },
+    .{ .tile = 2, .name = "healer" },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "dd" },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "buff" },
 };
 var selected_hero: usize = 0;
 
