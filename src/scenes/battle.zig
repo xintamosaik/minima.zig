@@ -14,6 +14,12 @@ const patterns_general = @import("../patterns/general.zig");
 
 const enemies = @import("../enemies/enemies.zig");
 
+const Rect = struct {
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+};
 const BG = colors.C64_BLACK;
 var last_input: input.Layout = .{
     .buttons_lo = 0,
@@ -37,13 +43,14 @@ fn tile2Y(tile: u16) u32 {
 const Hero = struct {
     tile: u16,
     name: []const u8,
+    moveRadius: u4 = 1,
 };
 
 var heroes: [4]Hero = .{
     .{ .tile = 0, .name = "tank" },
-    .{ .tile = 2, .name = "healer" },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "dd" },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "buff" },
+    .{ .tile = 2, .name = "healer", .moveRadius = 2 },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "dd", .moveRadius = 3 },
+    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "control", .moveRadius = 2 },
 };
 var selected_hero: usize = 0;
 
@@ -54,6 +61,12 @@ const BattleState = struct {
     actor_count: usize = 0,
     active_tile: u16 = 0,
 
+    currentMoveRadius: Rect = .{
+        .x = 0,
+        .y = 0,
+        .w = grid.TILE_SIZE,
+        .h = grid.TILE_SIZE,
+    },
     pub fn reset(self: *BattleState) void {
         self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
@@ -184,6 +197,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.active_tile = state.cursor.now;
         if (heroIndexAt(state.active_tile)) |index| {
             selected_hero = index;
+            state.currentMoveRadius = movementRectForHero(heroes[selected_hero]);
         }
     }
     // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
@@ -226,7 +240,7 @@ fn render_tiles() void {
                 .empty => patterns_general.EMPTY,
             };
 
-            renderer.drawBitmap8x8(x, y, pattern, color, colors.C64_BLACK);
+            renderer.drawBitmap8x8Mono(x, y, pattern, color);
         }
     }
 }
@@ -336,8 +350,34 @@ fn render_tile_info() void {
     );
 }
 
+fn movementRectForHero(hero: Hero) Rect {
+    const radius: u32 = hero.moveRadius;
+
+    const heroTileX = tile2X(hero.tile);
+    const heroTileY = tile2Y(hero.tile);
+
+    const minTileX = heroTileX -| radius;
+    const minTileY = heroTileY -| radius;
+
+    const maxTileX = @min(heroTileX + radius, maps.BATTLE_MAP_WIDTH - 1);
+    const maxTileY = @min(heroTileY + radius, maps.BATTLE_MAP_HEIGHT - 1);
+
+    return .{
+        .x = minTileX * grid.TILE_SIZE,
+        .y = minTileY * grid.TILE_SIZE,
+        .w = (maxTileX - minTileX + 1) * grid.TILE_SIZE,
+        .h = (maxTileY - minTileY + 1) * grid.TILE_SIZE,
+    };
+}
 pub fn render() void {
     ui.clearScreen(BG);
+    renderer.drawRectOutline(
+        state.currentMoveRadius.x,
+        state.currentMoveRadius.y,
+        state.currentMoveRadius.w,
+        state.currentMoveRadius.h,
+        colors.C64_CYAN,
+    );
     render_tiles();
 
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
