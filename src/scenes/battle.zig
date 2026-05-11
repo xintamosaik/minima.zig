@@ -354,6 +354,21 @@ fn render_tile_info() void {
         colors.C64_YELLOW,
         colors.C64_BLACK,
     );
+
+    font.drawString(
+        32 * grid.TILE_SIZE,
+        5 * grid.TILE_SIZE,
+        "MOVES",
+        colors.C64_LIGHT_GRAY,
+        colors.C64_BLACK,
+    );
+
+    font.drawMono(
+        38 * grid.TILE_SIZE,
+        5 * grid.TILE_SIZE,
+        '0' + @as(u8, heroes[selected_hero].moveRadius),
+        colors.C64_YELLOW,
+    );
 }
 
 fn movementRectForHero(hero: Hero) Rect {
