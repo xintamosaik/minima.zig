@@ -72,6 +72,12 @@ const BattleState = struct {
         self.rng = 0;
         self.actor_count = 0;
         self.active_tile = 0;
+        self.currentMoveRadius = .{
+            .x = 0,
+            .y = 0,
+            .w = 0,
+            .h = 0,
+        };
     }
 };
 var state = BattleState{};
