@@ -61,18 +61,18 @@ const BattleState = struct {
     actor_count: usize = 0,
     active_tile: u16 = 0,
 
-    currentMoveRadius: Rect = .{
+    currentMoveRect: Rect = .{
         .x = 0,
         .y = 0,
-        .w = grid.TILE_SIZE,
-        .h = grid.TILE_SIZE,
+        .w = 0,
+        .h = 0,
     },
     pub fn reset(self: *BattleState) void {
         self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
         self.actor_count = 0;
         self.active_tile = 0;
-        self.currentMoveRadius = .{
+        self.currentMoveRect = .{
             .x = 0,
             .y = 0,
             .w = 0,
@@ -203,7 +203,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.active_tile = state.cursor.now;
         if (heroIndexAt(state.active_tile)) |index| {
             selected_hero = index;
-            state.currentMoveRadius = movementRectForHero(heroes[selected_hero]);
+            state.currentMoveRect = movementRectForHero(heroes[selected_hero]);
         }
     }
     // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
@@ -378,10 +378,10 @@ fn movementRectForHero(hero: Hero) Rect {
 pub fn render() void {
     ui.clearScreen(BG);
     renderer.drawRectOutline(
-        state.currentMoveRadius.x,
-        state.currentMoveRadius.y,
-        state.currentMoveRadius.w,
-        state.currentMoveRadius.h,
+        state.currentMoveRect.x,
+        state.currentMoveRect.y,
+        state.currentMoveRect.w,
+        state.currentMoveRect.h,
         colors.C64_CYAN,
     );
     render_tiles();
