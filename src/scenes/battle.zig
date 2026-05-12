@@ -11,8 +11,10 @@ const grid = @import("../grid.zig");
 const encounters = @import("../encounters/encounter.zig");
 const patterns_outside = @import("../patterns/outside.zig");
 const patterns_general = @import("../patterns/general.zig");
-
+const heroes = @import("../heroes.zig");
 const enemies = @import("../enemies/enemies.zig");
+
+const BG = colors.C64_BLACK;
 
 const Rect = struct {
     x: u32,
@@ -20,7 +22,7 @@ const Rect = struct {
     w: u32,
     h: u32,
 };
-const BG = colors.C64_BLACK;
+
 var last_input: input.Layout = .{
     .buttons_lo = 0,
     .buttons_hi = 0,
@@ -29,6 +31,7 @@ var last_input: input.Layout = .{
     .mouse_y = 0,
     .mouse_buttons = 0,
 };
+
 const Cursor = struct { now: u16, last_move: u8 };
 
 const Actor = struct { tile: u16, kind: enemies.Kind };
@@ -40,18 +43,6 @@ fn tile2Y(tile: u16) u32 {
     return @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
 }
 
-const Hero = struct {
-    tile: u16,
-    name: []const u8,
-    moveRadius: u4 = 1,
-};
-
-var heroes: [4]Hero = .{
-    .{ .tile = 0, .name = "tank" },
-    .{ .tile = 2, .name = "healer", .moveRadius = 2 },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 2, .name = "dd", .moveRadius = 3 },
-    .{ .tile = maps.BATTLE_MAP_WIDTH + 4, .name = "control", .moveRadius = 2 },
-};
 var selected_hero: usize = 0;
 
 const BattleState = struct {
@@ -60,6 +51,7 @@ const BattleState = struct {
     actors: [16]Actor = undefined,
     actor_count: usize = 0,
     active_tile: u16 = 0,
+    hero_positions: [4]u16 = undefined,
 
     currentMoveRect: Rect = .{
         .x = 0,
@@ -78,6 +70,7 @@ const BattleState = struct {
             .w = 0,
             .h = 0,
         };
+        self.hero_positions = undefined;
     }
 };
 var state = BattleState{};
@@ -97,8 +90,8 @@ pub const BattleDef = struct {
     encounter_config: []const EncounterConfig,
 };
 fn heroAt(tile: u16) bool {
-    for (heroes) |hero| {
-        if (hero.tile == tile) return true;
+    for (state.hero_positions) |pos| {
+        if (pos == tile) return true;
     }
     return false;
 }
@@ -165,10 +158,20 @@ pub fn init(battle_def: BattleDef) void {
     for (battle_def.encounter_config) |config| {
         spawnEncounter(config.groups, config.seed);
     }
+
+    var i: u8 = 0;
+    while (i < heroes.party.len) {
+        state.hero_positions[i] = i;
+        i = i + 1;
+    }
 }
-fn heroIndexAt(tile: u16) ?usize {
-    for (heroes, 0..) |hero, index| {
-        if (hero.tile == tile) return index;
+fn heroIndexAt(tile: u16) ?u16 {
+    var i: u8 = 0;
+    while (i < heroes.party.len) {
+        if (state.hero_positions[i] == tile) {
+            return tile;
+        }
+        i = i + 1;
     }
 
     return null;
@@ -203,7 +206,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.active_tile = state.cursor.now;
         if (heroIndexAt(state.active_tile)) |index| {
             selected_hero = index;
-            state.currentMoveRect = movementRectForHero(heroes[selected_hero]);
+            state.currentMoveRect = movementRectForHero(index, heroes.party[selected_hero].moveRadius);
         }
     }
     // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
@@ -253,12 +256,11 @@ fn render_tiles() void {
 const HERO_COLOR = colors.C64_LIGHT_GRAY;
 const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
 fn render_hero(index: usize, label: u8) void {
-    const hero = heroes[index];
     const color = if (index == selected_hero) HERO_ACTIVE_COLOR else HERO_COLOR;
 
     font.drawMono(
-        tile2X(hero.tile) * grid.TILE_SIZE,
-        tile2Y(hero.tile) * grid.TILE_SIZE,
+        tile2X(state.hero_positions[index]) * grid.TILE_SIZE,
+        tile2Y(state.hero_positions[index]) * grid.TILE_SIZE,
         label,
         color,
     );
@@ -296,8 +298,12 @@ fn activeTileKind() grid.TileKind {
 }
 
 fn heroNameAt(tile: u16) []const u8 {
-    for (heroes) |hero| {
-        if (hero.tile == tile) return hero.name;
+    var i: u8 = 0;
+    while (i < heroes.party.len) {
+        if (state.hero_positions[i] == tile) {
+            return heroes.party[i].name;
+        }
+        i = i + 1;
     }
 
     return "";
@@ -366,16 +372,14 @@ fn render_tile_info() void {
     font.drawMono(
         38 * grid.TILE_SIZE,
         5 * grid.TILE_SIZE,
-        '0' + @as(u8, heroes[selected_hero].moveRadius),
+        '0' + @as(u8, heroes.party[selected_hero].moveRadius),
         colors.C64_YELLOW,
     );
 }
 
-fn movementRectForHero(hero: Hero) Rect {
-    const radius: u32 = hero.moveRadius;
-
-    const heroTileX = tile2X(hero.tile);
-    const heroTileY = tile2Y(hero.tile);
+fn movementRectForHero(hero: u16, radius: u4) Rect {
+    const heroTileX = tile2X(state.hero_positions[hero]);
+    const heroTileY = tile2Y(state.hero_positions[hero]);
 
     const minTileX = heroTileX -| radius;
     const minTileY = heroTileY -| radius;
