@@ -15,6 +15,8 @@ const heroes = @import("../heroes.zig");
 const enemies = @import("../enemies/enemies.zig");
 
 const BG = colors.C64_BLACK;
+const HERO_COLOR = colors.C64_LIGHT_GRAY;
+const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
 
 const Rect = struct {
     x: u32,
@@ -253,8 +255,7 @@ fn render_tiles() void {
         }
     }
 }
-const HERO_COLOR = colors.C64_LIGHT_GRAY;
-const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
+
 fn render_hero(index: usize, label: u8) void {
     const color = if (index == selected_hero) HERO_ACTIVE_COLOR else HERO_COLOR;
 
@@ -409,7 +410,16 @@ pub fn render() void {
     font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.actor_count)), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(state.active_tile);
-    font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+    font.drawString(32 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 2) * grid.TILE_SIZE, "POS", colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+    font.drawString(37 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 2) * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
+
+    const activeX = ui.u999ToChars(tile2X(state.active_tile));
+    font.drawString(32 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 1) * grid.TILE_SIZE, "X", colors.C64_LIGHT_RED, colors.C64_BLACK);
+    font.drawString(37 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 1) * grid.TILE_SIZE, &activeX, colors.C64_LIGHT_RED, colors.C64_BLACK);
+
+    const activeY = ui.u999ToChars(tile2Y(state.active_tile));
+    font.drawString(32 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "Y", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
+    font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &activeY, colors.C64_LIGHT_GREEN, colors.C64_BLACK);
 
     render_actors();
 
