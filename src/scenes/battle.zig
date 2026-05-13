@@ -183,7 +183,8 @@ pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
         tile2X(state.cursor.now) > 0 and
-        state.cursor.last_move > CURSOR_SLOW_DOWN)
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_LEFT) == 0))
     {
         state.cursor.now -= 1;
         state.cursor.last_move = 0;
@@ -191,16 +192,17 @@ pub fn input_cursor(input_data: input.Layout) void {
 
     if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
         tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
-        state.cursor.last_move > CURSOR_SLOW_DOWN)
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_RIGHT) == 0))
     {
         state.cursor.now += 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and state.cursor.last_move > CURSOR_SLOW_DOWN) {
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and (state.cursor.last_move > CURSOR_SLOW_DOWN or (last_input.buttons_lo & input.BTN_UP) == 0)) {
         state.cursor.now -= maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and state.cursor.last_move > CURSOR_SLOW_DOWN) {
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and (state.cursor.last_move > CURSOR_SLOW_DOWN or (last_input.buttons_lo & input.BTN_DOWN) == 0)) {
         state.cursor.now += maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
