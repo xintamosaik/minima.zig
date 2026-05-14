@@ -252,6 +252,10 @@ pub fn input_cursor(input_data: input.Layout) void {
         }
         state.active_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
+        state.currentMoveRect = movementRectForHero(
+            state.selected_hero,
+            heroes.party[state.selected_hero].moveRadius,
+        );
     }
     if ((input_data.buttons_hi & input.BTN_R) != 0 and (last_input.buttons_hi & input.BTN_R) == 0) {
         if (state.selected_hero < last_hero) {
@@ -261,6 +265,10 @@ pub fn input_cursor(input_data: input.Layout) void {
         }
         state.active_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
+        state.currentMoveRect = movementRectForHero(
+            state.selected_hero,
+            heroes.party[state.selected_hero].moveRadius,
+        );
     }
     if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0) {
         state.action_menu_open = true;
