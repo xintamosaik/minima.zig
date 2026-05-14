@@ -243,20 +243,19 @@ pub fn input_cursor(input_data: input.Layout) void {
             state.hero_active = false;
         }
     }
+    const last_hero = heroes.party.len - 1;
     if ((input_data.buttons_hi & input.BTN_L) != 0 and (last_input.buttons_hi & input.BTN_L) == 0) {
-        console_log(0);
         if (state.selected_hero > 0) {
-            state.selected_hero = state.selected_hero - 1;
+            state.selected_hero -= 1;
         } else {
-            state.selected_hero = 3;
+            state.selected_hero = last_hero;
         }
         state.active_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
     }
     if ((input_data.buttons_hi & input.BTN_R) != 0 and (last_input.buttons_hi & input.BTN_R) == 0) {
-        console_log(1);
-        if (state.selected_hero < 3) {
-            state.selected_hero = state.selected_hero + 1;
+        if (state.selected_hero < last_hero) {
+            state.selected_hero += 1;
         } else {
             state.selected_hero = 0;
         }
