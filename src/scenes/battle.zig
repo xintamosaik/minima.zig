@@ -223,7 +223,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.cursor.now += maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_A) != 0) {
+    if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
         state.active_tile = state.cursor.now;
         if (heroIndexAt(state.active_tile)) |index| {
             state.selected_hero = index;
@@ -263,7 +263,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.active_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
     }
-    if ((input_data.buttons_lo & input.BTN_X) != 0) {
+    if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0) {
         state.action_menu_open = true;
     }
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
