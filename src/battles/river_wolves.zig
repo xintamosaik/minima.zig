@@ -21,11 +21,7 @@ pub const encounter_config: [1]battle.EncounterConfig = .{
     .{ .groups = wolfpack.encounter, .seed = 0x12345678 },
 };
 
-const battle_def: battle.BattleDef = .{
-    .tile_mapping = tile_mapping,
-    .pattern_map = map,
-    .encounter_config = &encounter_config,
-};
+const battle_def: battle.BattleDef = .{ .tile_mapping = tile_mapping, .pattern_map = map, .encounter_config = &encounter_config, .hero_seed = 2233 };
 
 pub fn enter() void {
     battle.init(battle_def);

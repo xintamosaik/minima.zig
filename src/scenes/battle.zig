@@ -20,6 +20,8 @@ const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
 
 const CURSOR_SLOW_DOWN = 8;
 
+const NO_TILE: u16 = 0xffff;
+
 const Rect = struct {
     x: u32,
     y: u32,
@@ -70,7 +72,10 @@ const BattleState = struct {
         self.enemy_instance_count = 0;
         self.selected_tile = 0;
 
-        self.hero_positions = undefined;
+        for (&self.hero_positions) |*pos| {
+            pos.* = NO_TILE;
+        }
+
         self.selected_hero = 0;
         self.hero_active = false;
         self.action_menu_open = false;
@@ -98,7 +103,9 @@ pub const BattleDef = struct {
     tile_mapping: maps.TileMapping,
     pattern_map: maps.PatternMap,
     encounter_config: []const EncounterConfig,
+    hero_seed: u32,
 };
+
 fn heroAt(tile: u16) bool {
     for (state.hero_positions) |pos| {
         if (pos == tile) return true;
@@ -198,15 +205,17 @@ fn spawnHeroes(seed: u32) void {
         }
     }
 }
+
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
     state.reset();
+
+    spawnHeroes(battle_def.hero_seed);
+
     for (battle_def.encounter_config) |config| {
         spawnEncounter(config.groups, config.seed);
     }
-
-    spawnHeroes(1234);
 }
 fn heroIndexAt(tile: u16) ?usize {
     var i: usize = 0;
