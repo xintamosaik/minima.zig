@@ -177,7 +177,7 @@ pub fn init(battle_def: BattleDef) void {
     }
 }
 fn heroIndexAt(tile: u16) ?usize {
-    var i: u8 = 0;
+    var i: usize = 0;
     while (i < heroes.party.len) {
         if (state.hero_positions[i] == tile) {
             return i;
@@ -271,7 +271,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         }
         selectHero(state.selected_hero);
     }
-    if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0) {
+    if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
         state.action_menu_open = true;
     }
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
