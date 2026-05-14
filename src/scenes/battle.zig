@@ -180,7 +180,7 @@ fn heroIndexAt(tile: u16) ?u16 {
     var i: u8 = 0;
     while (i < heroes.party.len) {
         if (state.hero_positions[i] == tile) {
-            return tile;
+            return i;
         }
         i = i + 1;
     }
