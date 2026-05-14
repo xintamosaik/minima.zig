@@ -38,7 +38,7 @@ var last_input: input.Layout = .{
 
 const Cursor = struct { now: u16, last_move: u8 };
 
-const Actor = struct { tile: u16, kind: enemies.Kind };
+const EnemyInstance = struct { tile: u16, kind: enemies.Kind };
 
 fn tile2X(tile: u16) u32 {
     return @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
@@ -50,8 +50,8 @@ fn tile2Y(tile: u16) u32 {
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
     rng: u32 = 0,
-    actors: [16]Actor = undefined,
-    actor_count: usize = 0,
+    enemy_instances: [16]EnemyInstance = undefined,
+    enemy_instance_count: usize = 0,
     active_tile: u16 = 0,
     hero_positions: [4]u16 = undefined,
     selected_hero: usize = 0,
@@ -67,7 +67,7 @@ const BattleState = struct {
     pub fn reset(self: *BattleState) void {
         self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
-        self.actor_count = 0;
+        self.enemy_instance_count = 0;
         self.active_tile = 0;
 
         self.hero_positions = undefined;
@@ -105,19 +105,19 @@ fn heroAt(tile: u16) bool {
     }
     return false;
 }
-fn actorAt(tile: u16) bool {
+fn enemy_instanceAt(tile: u16) bool {
     var i: usize = 0;
-    while (i < state.actor_count) : (i += 1) {
-        if (state.actors[i].tile == tile) return true;
+    while (i < state.enemy_instance_count) : (i += 1) {
+        if (state.enemy_instances[i].tile == tile) return true;
     }
     return false;
 }
 
-fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
-    if (state.actor_count >= state.actors.len) return false;
+fn trySpawnEnemyInstance(kind: enemies.Kind, tile: u16) bool {
+    if (state.enemy_instance_count >= state.enemy_instances.len) return false;
     if (@as(u32, tile) >= maps.BATTLE_MAP_LENGTH) return false;
 
-    if (actorAt(tile)) return false;
+    if (enemy_instanceAt(tile)) return false;
     if (heroAt(tile)) return false;
 
     const tx = tile2X(tile);
@@ -125,11 +125,11 @@ fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
 
     if (!grid.isPassable(grid.getTile(tx, ty))) return false;
 
-    state.actors[state.actor_count] = .{
+    state.enemy_instances[state.enemy_instance_count] = .{
         .tile = tile,
         .kind = kind,
     };
-    state.actor_count += 1;
+    state.enemy_instance_count += 1;
 
     return true;
 }
@@ -150,13 +150,13 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
 
         while (spawned < @as(usize, spawn.quantity) and
             attempts < max_attempts and
-            state.actor_count < state.actors.len) : (attempts += 1)
+            state.enemy_instance_count < state.enemy_instances.len) : (attempts += 1)
         {
             const tx = HALF_WIDTH + randBelow(HALF_WIDTH);
             const ty = randBelow(maps.BATTLE_MAP_HEIGHT);
             const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
 
-            if (trySpawnActor(spawn.kind, @intCast(tile))) {
+            if (trySpawnEnemyInstance(spawn.kind, @intCast(tile))) {
                 spawned += 1;
             }
         }
@@ -321,12 +321,12 @@ fn render_hero(index: usize, label: u8) void {
 }
 fn enemyNameAt(tile: u16) []const u8 {
     var i: usize = 0;
-    while (i < state.actor_count) : (i += 1) {
-        const actor = state.actors[i];
+    while (i < state.enemy_instance_count) : (i += 1) {
+        const enemy_instance = state.enemy_instances[i];
 
-        if (actor.tile != tile) continue;
+        if (enemy_instance.tile != tile) continue;
 
-        return switch (actor.kind) {
+        return switch (enemy_instance.kind) {
             .wolf => "WOLF",
             .goblin => "GOBLIN",
         };
@@ -334,14 +334,14 @@ fn enemyNameAt(tile: u16) []const u8 {
 
     return "";
 }
-fn render_actors() void {
+fn render_enemy_instances() void {
     var i: usize = 0;
-    while (i < state.actor_count) : (i += 1) {
-        const actor = state.actors[i];
-        const enemy = enemies.get(actor.kind);
+    while (i < state.enemy_instance_count) : (i += 1) {
+        const enemy_instance = state.enemy_instances[i];
+        const enemy = enemies.get(enemy_instance.kind);
         renderer.drawBitmap8x8Mono(
-            tile2X(actor.tile) * grid.TILE_SIZE,
-            tile2Y(actor.tile) * grid.TILE_SIZE,
+            tile2X(enemy_instance.tile) * grid.TILE_SIZE,
+            tile2Y(enemy_instance.tile) * grid.TILE_SIZE,
             enemy.pattern,
             enemy.color,
         );
@@ -385,7 +385,7 @@ fn render_tile_info() void {
     const hero_name = heroNameAt(state.active_tile);
     const enemy_name = enemyNameAt(state.active_tile);
 
-    const actor_type: []const u8 =
+    const enemy_instance_type: []const u8 =
         if (hero_name.len > 0)
             "hero"
         else if (enemy_name.len > 0)
@@ -393,7 +393,7 @@ fn render_tile_info() void {
         else
             "";
 
-    const actor_name: []const u8 =
+    const enemy_instance_name: []const u8 =
         if (hero_name.len > 0)
             hero_name
         else
@@ -402,7 +402,7 @@ fn render_tile_info() void {
     font.drawString(
         32 * grid.TILE_SIZE,
         2 * grid.TILE_SIZE,
-        actor_type,
+        enemy_instance_type,
         colors.C64_LIGHT_GRAY,
         colors.C64_BLACK,
     );
@@ -410,7 +410,7 @@ fn render_tile_info() void {
     font.drawString(
         32 * grid.TILE_SIZE,
         3 * grid.TILE_SIZE,
-        actor_name,
+        enemy_instance_name,
         colors.C64_YELLOW,
         colors.C64_BLACK,
     );
@@ -465,7 +465,7 @@ pub fn render() void {
     render_tiles();
 
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
-    font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.actor_count)), colors.C64_CYAN, colors.C64_BLACK);
+    font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.enemy_instance_count)), colors.C64_CYAN, colors.C64_BLACK);
 
     const position = ui.u999ToChars(state.active_tile);
     font.drawString(32 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 2) * grid.TILE_SIZE, "POS", colors.C64_LIGHT_BLUE, colors.C64_BLACK);
@@ -479,7 +479,7 @@ pub fn render() void {
     font.drawString(32 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "Y", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
     font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &activeY, colors.C64_LIGHT_GREEN, colors.C64_BLACK);
 
-    render_actors();
+    render_enemy_instances();
 
     render_hero(0, '1');
     render_hero(1, '2');
