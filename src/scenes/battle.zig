@@ -354,7 +354,7 @@ fn render_enemy_instances() void {
         );
     }
 }
-fn activeTileKind() grid.TileKind {
+fn selectedTileKind() grid.TileKind {
     return grid.getTile(tile2X(state.selected_tile), tile2Y(state.selected_tile));
 }
 
@@ -371,7 +371,7 @@ fn heroNameAt(tile: u16) []const u8 {
 }
 
 fn render_tile_info() void {
-    const currentTile = activeTileKind();
+    const currentTile = selectedTileKind();
     const tileLabel = switch (currentTile) {
         .dirt => "dirt",
         .empty => "none",
