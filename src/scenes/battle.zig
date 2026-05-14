@@ -45,8 +45,6 @@ fn tile2Y(tile: u16) u32 {
     return @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
 }
 
-var selected_hero: usize = 0;
-
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
     rng: u32 = 0,
@@ -54,6 +52,8 @@ const BattleState = struct {
     actor_count: usize = 0,
     active_tile: u16 = 0,
     hero_positions: [4]u16 = undefined,
+    selected_hero: usize = 0,
+    hero_active: bool = false,
 
     currentMoveRect: Rect = .{
         .x = 0,
@@ -72,6 +72,8 @@ const BattleState = struct {
             .w = 0,
             .h = 0,
         };
+        self.selected_hero = 0;
+        self.hero_active = false;
         self.hero_positions = undefined;
     }
 };
@@ -198,22 +200,38 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.cursor.now += 1;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and (state.cursor.last_move > CURSOR_SLOW_DOWN or (last_input.buttons_lo & input.BTN_UP) == 0)) {
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and
+        state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_UP) == 0))
+    {
         state.cursor.now -= maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and (state.cursor.last_move > CURSOR_SLOW_DOWN or (last_input.buttons_lo & input.BTN_DOWN) == 0)) {
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and
+        state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_DOWN) == 0))
+    {
         state.cursor.now += maps.BATTLE_MAP_WIDTH;
         state.cursor.last_move = 0;
     }
     if ((input_data.buttons_lo & input.BTN_A) != 0) {
         state.active_tile = state.cursor.now;
         if (heroIndexAt(state.active_tile)) |index| {
-            selected_hero = index;
-            state.currentMoveRect = movementRectForHero(index, heroes.party[selected_hero].moveRadius);
+            state.selected_hero = index;
+            state.hero_active = true;
+            state.currentMoveRect = movementRectForHero(index, heroes.party[state.selected_hero].moveRadius);
         }
     }
-    // if ((input_data.buttons_lo & input.BTN_B) != 0) {}
+    if ((input_data.buttons_lo & input.BTN_B) != 0) {
+        state.currentMoveRect.x = 0;
+        state.currentMoveRect.y = 0;
+        state.currentMoveRect.w = 0;
+        state.currentMoveRect.h = 0;
+        state.selected_hero = 0;
+        state.hero_active = false;
+    }
     // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
@@ -259,7 +277,7 @@ fn render_tiles() void {
 }
 
 fn render_hero(index: usize, label: u8) void {
-    const color = if (index == selected_hero) HERO_ACTIVE_COLOR else HERO_COLOR;
+    const color = if (index == state.selected_hero and state.hero_active == true) HERO_ACTIVE_COLOR else HERO_COLOR;
 
     font.drawMono(
         tile2X(state.hero_positions[index]) * grid.TILE_SIZE,
@@ -375,7 +393,7 @@ fn render_tile_info() void {
     font.drawMono(
         38 * grid.TILE_SIZE,
         5 * grid.TILE_SIZE,
-        '0' + @as(u8, heroes.party[selected_hero].moveRadius),
+        '0' + @as(u8, heroes.party[state.selected_hero].moveRadius),
         colors.C64_YELLOW,
     );
 }
