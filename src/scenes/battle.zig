@@ -162,6 +162,42 @@ pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
         }
     }
 }
+fn trySpawnHero(hero_index: usize, tile: u16) bool {
+    if (hero_index >= heroes.party.len) return false;
+    if (@as(u32, tile) >= maps.BATTLE_MAP_LENGTH) return false;
+
+    if (heroAt(tile)) return false;
+    if (enemyInstanceAt(tile)) return false;
+
+    const tx = tile2X(tile);
+    const ty = tile2Y(tile);
+
+    if (!grid.isPassable(grid.getTile(tx, ty))) return false;
+
+    state.hero_positions[hero_index] = tile;
+
+    return true;
+}
+fn spawnHeroes(seed: u32) void {
+    const HALF_WIDTH = maps.BATTLE_MAP_WIDTH / 2;
+    state.rng = seed;
+
+    var hero_index: usize = 0;
+    while (hero_index < heroes.party.len) : (hero_index += 1) {
+        var attempts: usize = 0;
+        const max_attempts: usize = 64;
+
+        while (attempts < max_attempts) : (attempts += 1) {
+            const tx = randBelow(HALF_WIDTH);
+            const ty = randBelow(maps.BATTLE_MAP_HEIGHT);
+            const tile = ty * maps.BATTLE_MAP_WIDTH + tx;
+
+            if (trySpawnHero(hero_index, @intCast(tile))) {
+                break;
+            }
+        }
+    }
+}
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
@@ -170,11 +206,7 @@ pub fn init(battle_def: BattleDef) void {
         spawnEncounter(config.groups, config.seed);
     }
 
-    var i: u8 = 0;
-    while (i < heroes.party.len) {
-        state.hero_positions[i] = i;
-        i = i + 1;
-    }
+    spawnHeroes(1234);
 }
 fn heroIndexAt(tile: u16) ?usize {
     var i: usize = 0;
