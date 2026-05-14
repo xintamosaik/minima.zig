@@ -105,7 +105,7 @@ fn heroAt(tile: u16) bool {
     }
     return false;
 }
-fn enemy_instanceAt(tile: u16) bool {
+fn enemyInstanceAt(tile: u16) bool {
     var i: usize = 0;
     while (i < state.enemy_instance_count) : (i += 1) {
         if (state.enemy_instances[i].tile == tile) return true;
@@ -117,7 +117,7 @@ fn trySpawnEnemyInstance(kind: enemies.Kind, tile: u16) bool {
     if (state.enemy_instance_count >= state.enemy_instances.len) return false;
     if (@as(u32, tile) >= maps.BATTLE_MAP_LENGTH) return false;
 
-    if (enemy_instanceAt(tile)) return false;
+    if (enemyInstanceAt(tile)) return false;
     if (heroAt(tile)) return false;
 
     const tx = tile2X(tile);
@@ -392,7 +392,7 @@ fn render_tile_info() void {
     const hero_name = heroNameAt(state.selected_tile);
     const enemy_name = enemyNameAt(state.selected_tile);
 
-    const enemy_instance_type: []const u8 =
+    const occupant_type: []const u8 =
         if (hero_name.len > 0)
             "hero"
         else if (enemy_name.len > 0)
@@ -400,7 +400,7 @@ fn render_tile_info() void {
         else
             "";
 
-    const enemy_instance_name: []const u8 =
+    const occupant_name: []const u8 =
         if (hero_name.len > 0)
             hero_name
         else
@@ -409,7 +409,7 @@ fn render_tile_info() void {
     font.drawString(
         32 * grid.TILE_SIZE,
         2 * grid.TILE_SIZE,
-        enemy_instance_type,
+        occupant_type,
         colors.C64_LIGHT_GRAY,
         colors.C64_BLACK,
     );
@@ -417,7 +417,7 @@ fn render_tile_info() void {
     font.drawString(
         32 * grid.TILE_SIZE,
         3 * grid.TILE_SIZE,
-        enemy_instance_name,
+        occupant_name,
         colors.C64_YELLOW,
         colors.C64_BLACK,
     );
