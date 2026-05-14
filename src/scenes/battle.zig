@@ -431,7 +431,7 @@ fn render_tile_info() void {
     );
 }
 
-fn movementRectForHero(hero: u16, radius: u4) Rect {
+fn movementRectForHero(hero: usize, radius: u4) Rect {
     const heroTileX = tile2X(state.hero_positions[hero]);
     const heroTileY = tile2Y(state.hero_positions[hero]);
 
