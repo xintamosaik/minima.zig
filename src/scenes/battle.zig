@@ -56,6 +56,7 @@ const BattleState = struct {
     hero_positions: [4]u16 = undefined,
     selected_hero: usize = 0,
     hero_active: bool = false,
+    action_menu_open: bool = false,
 
     currentMoveRect: Rect = .{
         .x = 0,
@@ -68,15 +69,18 @@ const BattleState = struct {
         self.rng = 0;
         self.actor_count = 0;
         self.active_tile = 0;
+
+        self.hero_positions = undefined;
+        self.selected_hero = 0;
+        self.hero_active = false;
+        self.action_menu_open = false;
+
         self.currentMoveRect = .{
             .x = 0,
             .y = 0,
             .w = 0,
             .h = 0,
         };
-        self.selected_hero = 0;
-        self.hero_active = false;
-        self.hero_positions = undefined;
     }
 };
 var state = BattleState{};
@@ -227,13 +231,17 @@ pub fn input_cursor(input_data: input.Layout) void {
             state.currentMoveRect = movementRectForHero(index, heroes.party[state.selected_hero].moveRadius);
         }
     }
-    if ((input_data.buttons_lo & input.BTN_B) != 0) {
-        state.currentMoveRect.x = 0;
-        state.currentMoveRect.y = 0;
-        state.currentMoveRect.w = 0;
-        state.currentMoveRect.h = 0;
-        state.selected_hero = 0;
-        state.hero_active = false;
+    if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
+        if (state.action_menu_open == true) {
+            state.action_menu_open = false;
+        } else {
+            state.currentMoveRect.x = 0;
+            state.currentMoveRect.y = 0;
+            state.currentMoveRect.w = 0;
+            state.currentMoveRect.h = 0;
+            state.selected_hero = 0;
+            state.hero_active = false;
+        }
     }
     if ((input_data.buttons_hi & input.BTN_L) != 0 and (last_input.buttons_hi & input.BTN_L) == 0) {
         console_log(0);
@@ -255,7 +263,9 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.active_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
     }
-    // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
+    if ((input_data.buttons_lo & input.BTN_X) != 0) {
+        state.action_menu_open = true;
+    }
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.request(.menu);
@@ -438,6 +448,11 @@ fn movementRectForHero(hero: u16, radius: u4) Rect {
         .h = (maxTileY - minTileY + 1) * grid.TILE_SIZE,
     };
 }
+const action_menu_rect: Rect = .{ .x = grid.TILE_SIZE * 2, .y = grid.TILE_SIZE * 2, .w = grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH - 32, .h = grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT - 32 };
+fn render_action_menu() void {
+    renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
+    renderer.drawRectOutline(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_DARK_GRAY);
+}
 pub fn render() void {
     ui.clearScreen(BG);
     renderer.drawRectOutline(
@@ -476,4 +491,8 @@ pub fn render() void {
     renderer.drawRectOutline(tile2X(state.active_tile) * grid.TILE_SIZE, tile2Y(state.active_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
 
     render_tile_info();
+
+    if (state.action_menu_open) {
+        render_action_menu();
+    }
 }
