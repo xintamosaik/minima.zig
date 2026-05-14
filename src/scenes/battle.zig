@@ -176,7 +176,7 @@ pub fn init(battle_def: BattleDef) void {
         i = i + 1;
     }
 }
-fn heroIndexAt(tile: u16) ?u16 {
+fn heroIndexAt(tile: u16) ?usize {
     var i: u8 = 0;
     while (i < heroes.party.len) {
         if (state.hero_positions[i] == tile) {
@@ -187,7 +187,25 @@ fn heroIndexAt(tile: u16) ?u16 {
 
     return null;
 }
-
+fn selectHero(index: usize) void {
+    state.selected_hero = index;
+    state.selected_tile = state.hero_positions[index];
+    state.hero_active = true;
+    state.currentMoveRect = movementRectForHero(
+        index,
+        heroes.party[index].moveRadius,
+    );
+}
+fn clearHeroSelection() void {
+    state.currentMoveRect = .{
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    state.selected_hero = 0;
+    state.hero_active = false;
+}
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
@@ -226,21 +244,14 @@ pub fn input_cursor(input_data: input.Layout) void {
     if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
         state.selected_tile = state.cursor.now;
         if (heroIndexAt(state.selected_tile)) |index| {
-            state.selected_hero = index;
-            state.hero_active = true;
-            state.currentMoveRect = movementRectForHero(index, heroes.party[state.selected_hero].moveRadius);
+            selectHero(index);
         }
     }
     if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
         if (state.action_menu_open == true) {
             state.action_menu_open = false;
         } else {
-            state.currentMoveRect.x = 0;
-            state.currentMoveRect.y = 0;
-            state.currentMoveRect.w = 0;
-            state.currentMoveRect.h = 0;
-            state.selected_hero = 0;
-            state.hero_active = false;
+            clearHeroSelection();
         }
     }
     const last_hero = heroes.party.len - 1;
@@ -250,12 +261,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         } else {
             state.selected_hero = last_hero;
         }
-        state.selected_tile = state.hero_positions[state.selected_hero];
-        state.hero_active = true;
-        state.currentMoveRect = movementRectForHero(
-            state.selected_hero,
-            heroes.party[state.selected_hero].moveRadius,
-        );
+        selectHero(state.selected_hero);
     }
     if ((input_data.buttons_hi & input.BTN_R) != 0 and (last_input.buttons_hi & input.BTN_R) == 0) {
         if (state.selected_hero < last_hero) {
@@ -263,12 +269,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         } else {
             state.selected_hero = 0;
         }
-        state.selected_tile = state.hero_positions[state.selected_hero];
-        state.hero_active = true;
-        state.currentMoveRect = movementRectForHero(
-            state.selected_hero,
-            heroes.party[state.selected_hero].moveRadius,
-        );
+        selectHero(state.selected_hero);
     }
     if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0) {
         state.action_menu_open = true;
@@ -455,6 +456,12 @@ fn movementRectForHero(hero: usize, radius: u4) Rect {
         .h = (maxTileY - minTileY + 1) * grid.TILE_SIZE,
     };
 }
+fn render_heroes() void {
+    var i: usize = 0;
+    while (i < heroes.party.len) : (i += 1) {
+        render_hero(i, '1' + @as(u8, @intCast(i)));
+    }
+}
 const action_menu_rect: Rect = .{ .x = grid.TILE_SIZE * 2, .y = grid.TILE_SIZE * 2, .w = grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH - 32, .h = grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT - 32 };
 fn render_action_menu() void {
     renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
@@ -488,10 +495,7 @@ pub fn render() void {
 
     render_enemy_instances();
 
-    render_hero(0, '1');
-    render_hero(1, '2');
-    render_hero(2, '3');
-    render_hero(3, '4');
+    render_heroes();
 
     renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
     renderer.drawRectOutline(tile2X(state.cursor.now) * grid.TILE_SIZE, tile2Y(state.cursor.now) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
