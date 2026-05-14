@@ -52,7 +52,7 @@ const BattleState = struct {
     rng: u32 = 0,
     enemy_instances: [16]EnemyInstance = undefined,
     enemy_instance_count: usize = 0,
-    active_tile: u16 = 0,
+    selected_tile: u16 = 0,
     hero_positions: [4]u16 = undefined,
     selected_hero: usize = 0,
     hero_active: bool = false,
@@ -68,7 +68,7 @@ const BattleState = struct {
         self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
         self.enemy_instance_count = 0;
-        self.active_tile = 0;
+        self.selected_tile = 0;
 
         self.hero_positions = undefined;
         self.selected_hero = 0;
@@ -224,8 +224,8 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.cursor.last_move = 0;
     }
     if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
-        state.active_tile = state.cursor.now;
-        if (heroIndexAt(state.active_tile)) |index| {
+        state.selected_tile = state.cursor.now;
+        if (heroIndexAt(state.selected_tile)) |index| {
             state.selected_hero = index;
             state.hero_active = true;
             state.currentMoveRect = movementRectForHero(index, heroes.party[state.selected_hero].moveRadius);
@@ -250,7 +250,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         } else {
             state.selected_hero = last_hero;
         }
-        state.active_tile = state.hero_positions[state.selected_hero];
+        state.selected_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
         state.currentMoveRect = movementRectForHero(
             state.selected_hero,
@@ -263,7 +263,7 @@ pub fn input_cursor(input_data: input.Layout) void {
         } else {
             state.selected_hero = 0;
         }
-        state.active_tile = state.hero_positions[state.selected_hero];
+        state.selected_tile = state.hero_positions[state.selected_hero];
         state.hero_active = true;
         state.currentMoveRect = movementRectForHero(
             state.selected_hero,
@@ -355,7 +355,7 @@ fn render_enemy_instances() void {
     }
 }
 fn activeTileKind() grid.TileKind {
-    return grid.getTile(tile2X(state.active_tile), tile2Y(state.active_tile));
+    return grid.getTile(tile2X(state.selected_tile), tile2Y(state.selected_tile));
 }
 
 fn heroNameAt(tile: u16) []const u8 {
@@ -389,8 +389,8 @@ fn render_tile_info() void {
         colors.C64_BLACK,
     );
 
-    const hero_name = heroNameAt(state.active_tile);
-    const enemy_name = enemyNameAt(state.active_tile);
+    const hero_name = heroNameAt(state.selected_tile);
+    const enemy_name = enemyNameAt(state.selected_tile);
 
     const enemy_instance_type: []const u8 =
         if (hero_name.len > 0)
@@ -474,15 +474,15 @@ pub fn render() void {
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.enemy_instance_count)), colors.C64_CYAN, colors.C64_BLACK);
 
-    const position = ui.u999ToChars(state.active_tile);
+    const position = ui.u999ToChars(state.selected_tile);
     font.drawString(32 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 2) * grid.TILE_SIZE, "POS", colors.C64_LIGHT_BLUE, colors.C64_BLACK);
     font.drawString(37 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 2) * grid.TILE_SIZE, &position, colors.C64_LIGHT_BLUE, colors.C64_BLACK);
 
-    const activeX = ui.u999ToChars(tile2X(state.active_tile));
+    const activeX = ui.u999ToChars(tile2X(state.selected_tile));
     font.drawString(32 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 1) * grid.TILE_SIZE, "X", colors.C64_LIGHT_RED, colors.C64_BLACK);
     font.drawString(37 * grid.TILE_SIZE, (maps.BATTLE_MAP_HEIGHT - 1) * grid.TILE_SIZE, &activeX, colors.C64_LIGHT_RED, colors.C64_BLACK);
 
-    const activeY = ui.u999ToChars(tile2Y(state.active_tile));
+    const activeY = ui.u999ToChars(tile2Y(state.selected_tile));
     font.drawString(32 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "Y", colors.C64_LIGHT_GREEN, colors.C64_BLACK);
     font.drawString(37 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &activeY, colors.C64_LIGHT_GREEN, colors.C64_BLACK);
 
@@ -495,7 +495,7 @@ pub fn render() void {
 
     renderer.drawRectOutline(0, 0, grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH, grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT, colors.C64_DARK_GRAY);
     renderer.drawRectOutline(tile2X(state.cursor.now) * grid.TILE_SIZE, tile2Y(state.cursor.now) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_YELLOW);
-    renderer.drawRectOutline(tile2X(state.active_tile) * grid.TILE_SIZE, tile2Y(state.active_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
+    renderer.drawRectOutline(tile2X(state.selected_tile) * grid.TILE_SIZE, tile2Y(state.selected_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
 
     render_tile_info();
 
