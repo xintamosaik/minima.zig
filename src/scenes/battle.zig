@@ -18,6 +18,8 @@ const BG = colors.C64_BLACK;
 const HERO_COLOR = colors.C64_LIGHT_GRAY;
 const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
 
+const CURSOR_SLOW_DOWN = 8;
+
 const Rect = struct {
     x: u32,
     y: u32,
@@ -131,8 +133,9 @@ fn trySpawnActor(kind: enemies.Kind, tile: u16) bool {
 fn randBelow(max: u32) u32 {
     return ((rand() >> 16) * max) >> 16;
 }
-const HALF_WIDTH = maps.BATTLE_MAP_WIDTH / 2;
+
 pub fn spawnEncounter(encounter: encounters.Encounter, seed: u32) void {
+    const HALF_WIDTH = maps.BATTLE_MAP_WIDTH / 2;
     state.rng = seed;
 
     for (encounter) |spawn| {
@@ -180,7 +183,7 @@ fn heroIndexAt(tile: u16) ?u16 {
 
     return null;
 }
-const CURSOR_SLOW_DOWN = 8;
+
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
@@ -231,6 +234,26 @@ pub fn input_cursor(input_data: input.Layout) void {
         state.currentMoveRect.h = 0;
         state.selected_hero = 0;
         state.hero_active = false;
+    }
+    if ((input_data.buttons_hi & input.BTN_L) != 0 and (last_input.buttons_hi & input.BTN_L) == 0) {
+        console_log(0);
+        if (state.selected_hero > 0) {
+            state.selected_hero = state.selected_hero - 1;
+        } else {
+            state.selected_hero = 3;
+        }
+        state.active_tile = state.hero_positions[state.selected_hero];
+        state.hero_active = true;
+    }
+    if ((input_data.buttons_hi & input.BTN_R) != 0 and (last_input.buttons_hi & input.BTN_R) == 0) {
+        console_log(1);
+        if (state.selected_hero < 3) {
+            state.selected_hero = state.selected_hero + 1;
+        } else {
+            state.selected_hero = 0;
+        }
+        state.active_tile = state.hero_positions[state.selected_hero];
+        state.hero_active = true;
     }
     // if ((input_data.buttons_lo & input.BTN_X) != 0) {}
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
