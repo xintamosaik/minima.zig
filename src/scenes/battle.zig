@@ -1,26 +1,12 @@
 extern "env" fn console_log(value: u32) void;
 
-const input = @import("../input.zig");
-const renderer = @import("../render.zig");
 const scene = @import("../scene.zig");
 const maps = @import("../maps/maps.zig");
-const colors = @import("../colors.zig");
-const font = @import("../font.zig");
-const ui = @import("../ui.zig");
+
 const grid = @import("../grid.zig");
-const encounters = @import("../encounters/encounter.zig");
-const patterns_outside = @import("../patterns/outside.zig");
-const patterns_general = @import("../patterns/general.zig");
+
 const heroes = @import("../heroes.zig");
 const enemies = @import("../enemies/enemies.zig");
-
-const BG = colors.C64_BLACK;
-const HERO_COLOR = colors.C64_LIGHT_GRAY;
-const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
-
-const CURSOR_SLOW_DOWN = 8;
-
-const NO_TILE: u16 = 0xffff;
 
 const Rect = struct {
     x: u32,
@@ -29,25 +15,37 @@ const Rect = struct {
     h: u32,
 };
 
-var last_input: input.Layout = .{
-    .buttons_lo = 0,
-    .buttons_hi = 0,
-    ._reserved = 0,
-    .mouse_x = 0,
-    .mouse_y = 0,
-    .mouse_buttons = 0,
-};
-
-const Cursor = struct { now: u16, last_move: u8 };
-
-const EnemyInstance = struct { tile: u16, kind: enemies.Kind };
-
 fn tile2X(tile: u16) u32 {
     return @as(u32, tile) % maps.BATTLE_MAP_WIDTH;
 }
 fn tile2Y(tile: u16) u32 {
     return @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
 }
+
+//
+//
+//
+//      :####:   ########    :##:    ########  ########
+//     :######   ########     ##     ########  ########
+//     ##:  :#      ##       ####       ##     ##
+//     ##           ##       ####       ##     ##
+//     ###:         ##      :#  #:      ##     ##
+//     :#####:      ##       #::#       ##     #######
+//      .#####:     ##      ##  ##      ##     #######
+//         :###     ##      ######      ##     ##
+//           ##     ##     .######.     ##     ##
+//     #:.  :##     ##     :##  ##:     ##     ##
+//     #######:     ##     ###  ###     ##     ########
+//     .#####:      ##     ##:  :##     ##     ########
+//
+//
+//
+//
+const EnemyInstance = struct { tile: u16, kind: enemies.Kind };
+
+const Cursor = struct { now: u16, last_move: u8 };
+
+const NO_TILE: u16 = 0xffff;
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
@@ -90,21 +88,26 @@ const BattleState = struct {
 };
 var state = BattleState{};
 
-fn rand() u32 {
-    state.rng = state.rng *% 1664525 +% 1013904223;
-    return state.rng;
-}
-
-pub const EncounterConfig = struct {
-    groups: encounters.Encounter,
-    seed: u32,
-};
-pub const BattleDef = struct {
-    tile_mapping: maps.TileMapping,
-    pattern_map: maps.PatternMap,
-    encounter_config: []const EncounterConfig,
-    hero_seed: u32,
-};
+//
+//
+//
+//      :####:   ######:     :##:   ##      ## ###   ##
+//     :######   #######:     ##    ##.    .## ###   ##
+//     ##:  :#   ##   :##    ####   ##:    :## ###:  ##
+//     ##        ##    ##    ####    #: ## :#  ####  ##
+//     ###:      ##   :##   :#  #:  :# .## ##: ##:#: ##
+//     :#####:   #######:    #::#   :##.##.##: ## ## ##
+//      .#####:  ######:    ##  ##  .##:##:##. ## ## ##
+//         :###  ##         ######   ##    ##. ## :#:##
+//           ##  ##        .######.  ###::###  ##  ####
+//     #:.  :##  ##        :##  ##:  ###..###  ##  :###
+//     #######:  ##        ###  ###  ###  ###  ##   ###
+//     .#####:   ##        ##:  :##   ##  ###  ##   ###
+//
+//
+//
+//
+const encounters = @import("../encounters/encounter.zig");
 
 fn heroAt(tile: u16) bool {
     for (state.hero_positions) |pos| {
@@ -139,6 +142,10 @@ fn trySpawnEnemyInstance(kind: enemies.Kind, tile: u16) bool {
     state.enemy_instance_count += 1;
 
     return true;
+}
+fn rand() u32 {
+    state.rng = state.rng *% 1664525 +% 1013904223;
+    return state.rng;
 }
 
 fn randBelow(max: u32) u32 {
@@ -206,6 +213,38 @@ fn spawnHeroes(seed: u32) void {
     }
 }
 
+//
+//
+//
+//      ######   ###   ##   ######   ########
+//      ######   ###   ##   ######   ########
+//        ##     ###:  ##     ##        ##
+//        ##     ####  ##     ##        ##
+//        ##     ##:#: ##     ##        ##
+//        ##     ## ## ##     ##        ##
+//        ##     ## ## ##     ##        ##
+//        ##     ## :#:##     ##        ##
+//        ##     ##  ####     ##        ##
+//        ##     ##  :###     ##        ##
+//      ######   ##   ###   ######      ##
+//      ######   ##   ###   ######      ##
+//
+//
+//
+//
+
+pub const EncounterConfig = struct {
+    groups: encounters.Encounter,
+    seed: u32,
+};
+
+pub const BattleDef = struct {
+    tile_mapping: maps.TileMapping,
+    pattern_map: maps.PatternMap,
+    encounter_config: []const EncounterConfig,
+    hero_seed: u32,
+};
+
 pub fn init(battle_def: BattleDef) void {
     maps.loadMap(battle_def.pattern_map, battle_def.tile_mapping);
 
@@ -217,6 +256,27 @@ pub fn init(battle_def: BattleDef) void {
         spawnEncounter(config.groups, config.seed);
     }
 }
+
+//
+//
+//
+//     ##    ##   ######
+//     ##    ##   ######
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     ##    ##     ##
+//     :######:   ######
+//      :####:    ######
+//
+//
+//
+//
+
 fn heroIndexAt(tile: u16) ?usize {
     var i: usize = 0;
     while (i < heroes.party.len) {
@@ -247,6 +307,39 @@ fn clearHeroSelection() void {
     state.selected_hero = 0;
     state.hero_active = false;
 }
+
+//
+//
+//
+//      ######   ###   ##  ######:   ##    ##  ########
+//      ######   ###   ##  #######:  ##    ##  ########
+//        ##     ###:  ##  ##   :##  ##    ##     ##
+//        ##     ####  ##  ##    ##  ##    ##     ##
+//        ##     ##:#: ##  ##   :##  ##    ##     ##
+//        ##     ## ## ##  #######:  ##    ##     ##
+//        ##     ## ## ##  ######:   ##    ##     ##
+//        ##     ## :#:##  ##        ##    ##     ##
+//        ##     ##  ####  ##        ##    ##     ##
+//        ##     ##  :###  ##        ##    ##     ##
+//      ######   ##   ###  ##        :######:     ##
+//      ######   ##   ###  ##         :####:      ##
+//
+//
+//
+//
+const input = @import("../input.zig");
+
+const CURSOR_SLOW_DOWN = 8;
+
+var last_input: input.Layout = .{
+    .buttons_lo = 0,
+    .buttons_hi = 0,
+    ._reserved = 0,
+    .mouse_x = 0,
+    .mouse_y = 0,
+    .mouse_buttons = 0,
+};
+
 pub fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
@@ -322,10 +415,61 @@ pub fn input_cursor(input_data: input.Layout) void {
 
     last_input = input_data;
 }
+
+//
+//
+//
+//     ########   ######     :####:  ##   ###
+//     ########   ######     ######  ##   ##
+//        ##        ##     :##:  .#  ## :##:
+//        ##        ##     ##        ##.##:
+//        ##        ##     ##.       #####
+//        ##        ##     ##        #####
+//        ##        ##     ##        #####:
+//        ##        ##     ##.       ##::##
+//        ##        ##     ##        ##  ##
+//        ##        ##     :##:  .#  ##  :##
+//        ##      ######     ######  ##   ##
+//        ##      ######     :####:  ##   :##
+//
+//
+//
+//
+
 pub fn tick(input_data: input.Layout) void {
     input_cursor(input_data);
 }
 
+//
+//
+//
+//     ######:   ########  ###   ##  #####:    ########  ######:
+//     #######   ########  ###   ##  #######   ########  #######
+//     ##   :##  ##        ###:  ##  ##  :##:  ##        ##   :##
+//     ##    ##  ##        ####  ##  ##   :##  ##        ##    ##
+//     ##   :##  ##        ##:#: ##  ##   .##  ##        ##   :##
+//     #######:  #######   ## ## ##  ##    ##  #######   #######:
+//     ######    #######   ## ## ##  ##    ##  #######   ######
+//     ##   ##.  ##        ## :#:##  ##   .##  ##        ##   ##.
+//     ##   ##   ##        ##  ####  ##   :##  ##        ##   ##
+//     ##   :##  ##        ##  :###  ##  :##:  ##        ##   :##
+//     ##    ##: ########  ##   ###  #######   ########  ##    ##:
+//     ##    ### ########  ##   ###  #####:    ########  ##    ###
+//
+//
+//
+//
+
+const renderer = @import("../render.zig");
+
+const ui = @import("../ui.zig");
+const font = @import("../font.zig");
+const colors = @import("../colors.zig");
+
+const patterns_outside = @import("../patterns/outside.zig");
+const patterns_general = @import("../patterns/general.zig");
+
+const BG = colors.C64_BLACK;
 fn render_tiles() void {
     var ty: u32 = 0;
     while (ty < maps.BATTLE_MAP_HEIGHT) : (ty += 1) {
@@ -357,6 +501,9 @@ fn render_tiles() void {
         }
     }
 }
+
+const HERO_COLOR = colors.C64_LIGHT_GRAY;
+const HERO_ACTIVE_COLOR = colors.C64_YELLOW;
 
 fn render_hero(index: usize, label: u8) void {
     const color = if (index == state.selected_hero and state.hero_active == true) HERO_ACTIVE_COLOR else HERO_COLOR;
