@@ -340,7 +340,7 @@ var last_input: input.Layout = .{
     .mouse_buttons = 0,
 };
 
-pub fn input_cursor(input_data: input.Layout) void {
+fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
     if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
         tile2X(state.cursor.now) > 0 and
