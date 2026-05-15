@@ -3,6 +3,8 @@
 // 
 // /src/scenes.mts
 //
+// Last synced 2026-05-15
+//
 pub const Scene = enum(u8) {
     intro,
     menu,

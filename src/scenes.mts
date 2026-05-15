@@ -2,6 +2,8 @@
  * This needs to be synced with the enum in zig.
  * 
  * /src/scene.zig
+ * 
+ * Last synced 2026-05-15
  */
 export const SCENE = {
     INTRO: 0,
