@@ -63,7 +63,7 @@ export fn inputLen() u32 {
     return @sizeOf(input.Layout);
 }
 
-/// Exports byte offsets for mouse fields so JS stays in sync with InputData layout.
+/// Exports byte offsets for input fields so JS stays in sync with InputData layout.
 export fn inputButtonsLoOffset() u32 {
     return @as(u32, @intCast(@offsetOf(input.Layout, "buttons_lo")));
 }
