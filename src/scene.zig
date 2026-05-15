@@ -1,3 +1,8 @@
+//
+// This needs to be synced with the "enum" on the browser TypeScript side!
+// 
+// /src/scenes.mts
+//
 pub const Scene = enum(u8) {
     intro,
     menu,

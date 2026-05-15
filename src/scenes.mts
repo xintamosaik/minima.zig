@@ -1,3 +1,8 @@
+/**
+ * This needs to be synced with the enum in zig.
+ * 
+ * /src/scene.zig
+ */
 export const SCENE = {
     INTRO: 0,
     MENU: 1,
