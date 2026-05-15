@@ -1,6 +1,6 @@
 //
 // This needs to be synced with the "enum" on the browser TypeScript side!
-// 
+//
 // /src/scenes.mts
 //
 // Last synced 2026-05-15

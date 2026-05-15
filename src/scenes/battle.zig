@@ -45,7 +45,8 @@ const EnemyInstance = struct { tile: u16, kind: enemies.Kind };
 
 const Cursor = struct { now: u16, last_move: u8 };
 
-const NO_TILE: u16 = 0xffff;
+/// This is a somewhat bad workaround marking "not spawned yet" or "outside of the map"
+const NO_TILE: u16 = 0xffff; 
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
