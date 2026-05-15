@@ -9,7 +9,7 @@ pub const HEIGHT: u32 = grid.HEIGHT * grid.TILE_SIZE;
 /// Raw pixel count of the frame buffer.
 const PIXELS = WIDTH * HEIGHT;
 /// Zig allocates this in module memory; JS can query its base via `framePtr()`.
-pub var frame_buffer: [PIXELS]u32 = undefined;
+pub var frame_buffer: [PIXELS]u32 = [_]u32{0} ** PIXELS;
 
 /// Writes one 32-bit pixel into the frame buffer.
 fn writePixel32(x: u32, y: u32, color: u32) void {
