@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.mjs",
   "scripts": {
-    "build:wasm": "./build.sh",
+    "build:wasm": "zig build-exe src/index.zig -target wasm32-freestanding -fno-entry -rdynamic -O ReleaseSmall -fstrip -femit-bin=dist/index.wasm",
     "build:ts": "esbuild src/index.mts --bundle --format=esm --target=es2022 --outfile=dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:all": "pnpm run build:wasm && pnpm run typecheck && pnpm run build:ts",
