@@ -46,7 +46,7 @@ const EnemyInstance = struct { tile: u16, kind: enemies.Kind };
 const Cursor = struct { now: u16, last_move: u8 };
 
 /// This is a somewhat bad workaround marking "not spawned yet" or "outside of the map"
-const NO_TILE: u16 = 0xffff; 
+const NO_TILE: u16 = 0xffff;
 
 const BattleState = struct {
     cursor: Cursor = .{ .now = 0, .last_move = 0 },
@@ -344,50 +344,55 @@ var last_input: input.Layout = .{
 
 fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
-    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
-        tile2X(state.cursor.now) > 0 and
-        (state.cursor.last_move > CURSOR_SLOW_DOWN or
-            (last_input.buttons_lo & input.BTN_LEFT) == 0))
-    {
-        state.cursor.now -= 1;
-        state.cursor.last_move = 0;
-    }
-
-    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
-        tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
-        (state.cursor.last_move > CURSOR_SLOW_DOWN or
-            (last_input.buttons_lo & input.BTN_RIGHT) == 0))
-    {
-        state.cursor.now += 1;
-        state.cursor.last_move = 0;
-    }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and
-        state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and
-        (state.cursor.last_move > CURSOR_SLOW_DOWN or
-            (last_input.buttons_lo & input.BTN_UP) == 0))
-    {
-        state.cursor.now -= maps.BATTLE_MAP_WIDTH;
-        state.cursor.last_move = 0;
-    }
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and
-        state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and
-        (state.cursor.last_move > CURSOR_SLOW_DOWN or
-            (last_input.buttons_lo & input.BTN_DOWN) == 0))
-    {
-        state.cursor.now += maps.BATTLE_MAP_WIDTH;
-        state.cursor.last_move = 0;
-    }
-    if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
-        state.selected_tile = state.cursor.now;
-        if (heroIndexAt(state.selected_tile)) |index| {
-            selectHero(index);
+    if (state.action_menu_open == false) {
+        if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
+            tile2X(state.cursor.now) > 0 and
+            (state.cursor.last_move > CURSOR_SLOW_DOWN or
+                (last_input.buttons_lo & input.BTN_LEFT) == 0))
+        {
+            state.cursor.now -= 1;
+            state.cursor.last_move = 0;
         }
-    }
-    if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
-        if (state.action_menu_open == true) {
-            state.action_menu_open = false;
-        } else {
+
+        if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
+            tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
+            (state.cursor.last_move > CURSOR_SLOW_DOWN or
+                (last_input.buttons_lo & input.BTN_RIGHT) == 0))
+        {
+            state.cursor.now += 1;
+            state.cursor.last_move = 0;
+        }
+        if ((input_data.buttons_lo & input.BTN_UP) != 0 and
+            state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and
+            (state.cursor.last_move > CURSOR_SLOW_DOWN or
+                (last_input.buttons_lo & input.BTN_UP) == 0))
+        {
+            state.cursor.now -= maps.BATTLE_MAP_WIDTH;
+            state.cursor.last_move = 0;
+        }
+        if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and
+            state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and
+            (state.cursor.last_move > CURSOR_SLOW_DOWN or
+                (last_input.buttons_lo & input.BTN_DOWN) == 0))
+        {
+            state.cursor.now += maps.BATTLE_MAP_WIDTH;
+            state.cursor.last_move = 0;
+        }
+        if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
+            state.selected_tile = state.cursor.now;
+            if (heroIndexAt(state.selected_tile)) |index| {
+                selectHero(index);
+            }
+        }
+        if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
             clearHeroSelection();
+        }
+        if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
+            state.action_menu_open = true;
+        }
+    } else {
+        if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
+            state.action_menu_open = false;
         }
     }
     const last_hero = heroes.party.len - 1;
@@ -407,9 +412,7 @@ fn input_cursor(input_data: input.Layout) void {
         }
         selectHero(state.selected_hero);
     }
-    if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
-        state.action_menu_open = true;
-    }
+
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.request(.menu);
@@ -653,10 +656,26 @@ fn render_heroes() void {
         render_hero(i, '1' + @as(u8, @intCast(i)));
     }
 }
+const ACTION_MENU_MARGIN_LEFT = 8 * 3;
+const ACTION_MENU_WIDTH: u32 = 8 * 26;
+const ACTION_MENU_HEIGHT: u32 = 24;
+const ACTION_MENU_FG = colors.C64_WHITE;
+
+pub fn drawMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
+    renderer.fillRect(ACTION_MENU_MARGIN_LEFT, y, ACTION_MENU_WIDTH, ACTION_MENU_HEIGHT, bg);
+    font.drawString(32, y + 8, label, fg, bg);
+}
 const action_menu_rect: Rect = .{ .x = grid.TILE_SIZE * 2, .y = grid.TILE_SIZE * 2, .w = grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH - 32, .h = grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT - 32 };
+
 fn render_action_menu() void {
     renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
     renderer.drawRectOutline(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_DARK_GRAY);
+
+    drawMenuItem(8 * 3, "move", ACTION_MENU_FG, colors.C64_GREEN);
+    drawMenuItem(8 * 7, "attack", ACTION_MENU_FG, colors.C64_RED);
+    drawMenuItem(8 * 11, "cast spell", ACTION_MENU_FG, colors.C64_PURPLE);
+    drawMenuItem(8 * 15, "use item", ACTION_MENU_FG, colors.C64_ORANGE);
+    drawMenuItem(8 * 19, "tba", ACTION_MENU_FG, colors.C64_GRAY);
 }
 pub fn render() void {
     ui.clearScreen(BG);
