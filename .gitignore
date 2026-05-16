@@ -3,3 +3,4 @@ dist/index.mjs
 dist/index.mjs.map
 node_modules/
 design.md
+bun.lock
