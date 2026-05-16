@@ -394,6 +394,15 @@ fn input_cursor(input_data: input.Layout) void {
         if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
             state.action_menu_open = false;
         }
+        if ((input_data.buttons_lo & input.BTN_UP) != 0  and (last_input.buttons_lo & input.BTN_UP) == 0 and selected_menu_item > 0 ) {
+            selected_menu_item -= 1;
+    
+        }
+
+        if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and (last_input.buttons_lo & input.BTN_DOWN) == 0 and selected_menu_item < action_menu_items.len - 1) {
+            selected_menu_item += 1;
+   
+        }
     }
     const last_hero = heroes.party.len - 1;
     if ((input_data.buttons_hi & input.BTN_L) != 0 and (last_input.buttons_hi & input.BTN_L) == 0) {
@@ -656,12 +665,26 @@ fn render_heroes() void {
         render_hero(i, '1' + @as(u8, @intCast(i)));
     }
 }
+
+const ActionMenuItem = struct {
+    label: []const u8,
+    y: u32,
+    color: u32,
+};
+const action_menu_items = [_]ActionMenuItem{
+    .{ .label = "move", .y = 8 * 3, .color = colors.C64_GREEN },
+    .{ .label = "attack", .y = 8 * 7, .color = colors.C64_RED },
+    .{ .label = "cast spell", .y = 8 * 11, .color = colors.C64_PURPLE },
+    .{ .label = "use item", .y = 8 * 15, .color = colors.C64_BLUE },
+    .{ .label = "special", .y = 8 * 19, .color = colors.C64_BROWN },
+};
+var selected_menu_item: usize = 0;
 const ACTION_MENU_MARGIN_LEFT = 8 * 3;
 const ACTION_MENU_WIDTH: u32 = 8 * 26;
 const ACTION_MENU_HEIGHT: u32 = 24;
 const ACTION_MENU_FG = colors.C64_WHITE;
 
-pub fn drawMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
+pub fn drawActionMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
     renderer.fillRect(ACTION_MENU_MARGIN_LEFT, y, ACTION_MENU_WIDTH, ACTION_MENU_HEIGHT, bg);
     font.drawString(32, y + 8, label, fg, bg);
 }
@@ -671,11 +694,19 @@ fn render_action_menu() void {
     renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
     renderer.drawRectOutline(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_DARK_GRAY);
 
-    drawMenuItem(8 * 3, "move", ACTION_MENU_FG, colors.C64_GREEN);
-    drawMenuItem(8 * 7, "attack", ACTION_MENU_FG, colors.C64_RED);
-    drawMenuItem(8 * 11, "cast spell", ACTION_MENU_FG, colors.C64_PURPLE);
-    drawMenuItem(8 * 15, "use item", ACTION_MENU_FG, colors.C64_ORANGE);
-    drawMenuItem(8 * 19, "tba", ACTION_MENU_FG, colors.C64_GRAY);
+    for (action_menu_items) |item| {
+        drawActionMenuItem(item.y, item.label, BG, item.color);
+    }
+
+    const item = action_menu_items[selected_menu_item];
+
+    renderer.drawRectOutline(
+        ACTION_MENU_MARGIN_LEFT,
+        item.y,
+        ACTION_MENU_WIDTH,
+        ACTION_MENU_HEIGHT,
+        colors.C64_WHITE,
+    );
 }
 pub fn render() void {
     ui.clearScreen(BG);
