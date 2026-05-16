@@ -87,6 +87,7 @@ const BattleState = struct {
         };
     }
 };
+
 var state = BattleState{};
 
 //
