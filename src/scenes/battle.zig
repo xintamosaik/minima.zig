@@ -22,6 +22,13 @@ fn tile2Y(tile: u16) u32 {
     return @as(u32, tile) / maps.BATTLE_MAP_WIDTH;
 }
 
+const BattleMode = enum {
+    map,
+    action_menu,
+    move,
+    attack,
+};
+
 //
 //
 //
@@ -57,7 +64,8 @@ const BattleState = struct {
     hero_positions: [4]u16 = undefined,
     selected_hero: usize = 0,
     hero_active: bool = false,
-    action_menu_open: bool = false,
+
+    mode: BattleMode = .map,
     selected_menu_item: usize = 0,
     currentMoveRect: Rect = .{
         .x = 0,
@@ -77,9 +85,9 @@ const BattleState = struct {
 
         self.selected_hero = 0;
         self.hero_active = false;
-        self.action_menu_open = false;
-        self.selected_menu_item = 0;
 
+        self.selected_menu_item = 0;
+        self.mode = .map;
         self.currentMoveRect = .{
             .x = 0,
             .y = 0,
@@ -407,14 +415,14 @@ fn input_battle_map(input_data: input.Layout) void {
         clearHeroSelection();
     }
     if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
-        state.action_menu_open = true;
+        state.mode = .action_menu;
     }
     cycle_heroes(input_data);
 }
 
 fn input_action_menu(input_data: input.Layout) void {
     if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
-        state.action_menu_open = false;
+        state.mode = .map;
     }
     if ((input_data.buttons_lo & input.BTN_UP) != 0 and (last_input.buttons_lo & input.BTN_UP) == 0 and state.selected_menu_item > 0) {
         state.selected_menu_item -= 1;
@@ -427,10 +435,11 @@ fn input_action_menu(input_data: input.Layout) void {
 }
 fn input_cursor(input_data: input.Layout) void {
     state.cursor.last_move +%= 1;
-    if (state.action_menu_open == false) {
-        input_battle_map(input_data);
-    } else {
-        input_action_menu(input_data);
+    switch (state.mode) {
+        .map => input_battle_map(input_data),
+        .action_menu => input_action_menu(input_data),
+        .move => {},
+        .attack => {},
     }
 
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
@@ -702,6 +711,8 @@ fn drawActionMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
 const action_menu_rect: Rect = .{ .x = grid.TILE_SIZE * 2, .y = grid.TILE_SIZE * 2, .w = grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH - 32, .h = grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT - 32 };
 
 fn render_action_menu() void {
+    render_map();
+
     renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
     renderer.drawRectOutline(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_DARK_GRAY);
 
@@ -719,10 +730,8 @@ fn render_action_menu() void {
         colors.C64_WHITE,
     );
 }
-pub fn render() void {
-    ui.clearScreen(BG);
-
-    render_tiles();
+fn render_map() void{
+  render_tiles();
     renderer.drawRectOutline(
         state.currentMoveRect.x,
         state.currentMoveRect.y,
@@ -730,7 +739,6 @@ pub fn render() void {
         state.currentMoveRect.h,
         colors.C64_CYAN,
     );
-
 
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.enemy_instance_count)), colors.C64_CYAN, colors.C64_BLACK);
@@ -757,7 +765,14 @@ pub fn render() void {
 
     render_tile_info();
 
-    if (state.action_menu_open) {
-        render_action_menu();
+}
+pub fn render() void {
+    ui.clearScreen(BG);
+    switch (state.mode) {
+        .map => render_map(),
+        .action_menu => render_action_menu(),
+        .move => {},
+        .attack => {},
     }
+    
 }
