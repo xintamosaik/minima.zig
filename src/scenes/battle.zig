@@ -58,7 +58,7 @@ const BattleState = struct {
     selected_hero: usize = 0,
     hero_active: bool = false,
     action_menu_open: bool = false,
-
+    selected_menu_item: usize = 0,
     currentMoveRect: Rect = .{
         .x = 0,
         .y = 0,
@@ -78,6 +78,7 @@ const BattleState = struct {
         self.selected_hero = 0;
         self.hero_active = false;
         self.action_menu_open = false;
+        self.selected_menu_item = 0;
 
         self.currentMoveRect = .{
             .x = 0,
@@ -113,10 +114,11 @@ const encounters = @import("../encounters/encounter.zig");
 
 fn heroAt(tile: u16) bool {
     for (state.hero_positions) |pos| {
-        if (pos == tile) return true;
+        if (pos != NO_TILE and pos == tile) return true;
     }
     return false;
 }
+
 fn enemyInstanceAt(tile: u16) bool {
     var i: usize = 0;
     while (i < state.enemy_instance_count) : (i += 1) {
@@ -281,15 +283,15 @@ pub fn init(battle_def: BattleDef) void {
 
 fn heroIndexAt(tile: u16) ?usize {
     var i: usize = 0;
-    while (i < heroes.party.len) {
-        if (state.hero_positions[i] == tile) {
+    while (i < heroes.party.len) : (i += 1) {
+        if (state.hero_positions[i] != NO_TILE and state.hero_positions[i] == tile) {
             return i;
         }
-        i = i + 1;
     }
 
     return null;
 }
+
 fn selectHero(index: usize) void {
     state.selected_hero = index;
     state.selected_tile = state.hero_positions[index];
@@ -414,12 +416,12 @@ fn input_action_menu(input_data: input.Layout) void {
     if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
         state.action_menu_open = false;
     }
-    if ((input_data.buttons_lo & input.BTN_UP) != 0 and (last_input.buttons_lo & input.BTN_UP) == 0 and selected_menu_item > 0) {
-        selected_menu_item -= 1;
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and (last_input.buttons_lo & input.BTN_UP) == 0 and state.selected_menu_item > 0) {
+        state.selected_menu_item -= 1;
     }
 
-    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and (last_input.buttons_lo & input.BTN_DOWN) == 0 and selected_menu_item < action_menu_items.len - 1) {
-        selected_menu_item += 1;
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and (last_input.buttons_lo & input.BTN_DOWN) == 0 and state.selected_menu_item < action_menu_items.len - 1) {
+        state.selected_menu_item += 1;
     }
     cycle_heroes(input_data);
 }
@@ -688,13 +690,12 @@ const action_menu_items = [_]ActionMenuItem{
     .{ .label = "use item", .y = 8 * 15, .color = colors.C64_BLUE },
     .{ .label = "special", .y = 8 * 19, .color = colors.C64_BROWN },
 };
-var selected_menu_item: usize = 0;
+
 const ACTION_MENU_MARGIN_LEFT = 8 * 3;
 const ACTION_MENU_WIDTH: u32 = 8 * 26;
 const ACTION_MENU_HEIGHT: u32 = 24;
-const ACTION_MENU_FG = colors.C64_WHITE;
 
-pub fn drawActionMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
+fn drawActionMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
     renderer.fillRect(ACTION_MENU_MARGIN_LEFT, y, ACTION_MENU_WIDTH, ACTION_MENU_HEIGHT, bg);
     font.drawString(32, y + 8, label, fg, bg);
 }
@@ -708,7 +709,7 @@ fn render_action_menu() void {
         drawActionMenuItem(item.y, item.label, BG, item.color);
     }
 
-    const item = action_menu_items[selected_menu_item];
+    const item = action_menu_items[state.selected_menu_item];
 
     renderer.drawRectOutline(
         ACTION_MENU_MARGIN_LEFT,
@@ -720,6 +721,8 @@ fn render_action_menu() void {
 }
 pub fn render() void {
     ui.clearScreen(BG);
+
+    render_tiles();
     renderer.drawRectOutline(
         state.currentMoveRect.x,
         state.currentMoveRect.y,
@@ -727,7 +730,7 @@ pub fn render() void {
         state.currentMoveRect.h,
         colors.C64_CYAN,
     );
-    render_tiles();
+
 
     font.drawString(0 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, "ENEMIES", colors.C64_CYAN, colors.C64_BLACK);
     font.drawString(9 * grid.TILE_SIZE, maps.BATTLE_MAP_HEIGHT * grid.TILE_SIZE, &ui.u999ToChars(@intCast(state.enemy_instance_count)), colors.C64_CYAN, colors.C64_BLACK);
