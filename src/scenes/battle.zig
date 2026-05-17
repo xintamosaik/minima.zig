@@ -342,68 +342,7 @@ var last_input: input.Layout = .{
     .mouse_buttons = 0,
 };
 
-fn input_cursor(input_data: input.Layout) void {
-    state.cursor.last_move +%= 1;
-    if (state.action_menu_open == false) {
-        if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
-            tile2X(state.cursor.now) > 0 and
-            (state.cursor.last_move > CURSOR_SLOW_DOWN or
-                (last_input.buttons_lo & input.BTN_LEFT) == 0))
-        {
-            state.cursor.now -= 1;
-            state.cursor.last_move = 0;
-        }
-
-        if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
-            tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
-            (state.cursor.last_move > CURSOR_SLOW_DOWN or
-                (last_input.buttons_lo & input.BTN_RIGHT) == 0))
-        {
-            state.cursor.now += 1;
-            state.cursor.last_move = 0;
-        }
-        if ((input_data.buttons_lo & input.BTN_UP) != 0 and
-            state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and
-            (state.cursor.last_move > CURSOR_SLOW_DOWN or
-                (last_input.buttons_lo & input.BTN_UP) == 0))
-        {
-            state.cursor.now -= maps.BATTLE_MAP_WIDTH;
-            state.cursor.last_move = 0;
-        }
-        if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and
-            state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and
-            (state.cursor.last_move > CURSOR_SLOW_DOWN or
-                (last_input.buttons_lo & input.BTN_DOWN) == 0))
-        {
-            state.cursor.now += maps.BATTLE_MAP_WIDTH;
-            state.cursor.last_move = 0;
-        }
-        if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
-            state.selected_tile = state.cursor.now;
-            if (heroIndexAt(state.selected_tile)) |index| {
-                selectHero(index);
-            }
-        }
-        if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
-            clearHeroSelection();
-        }
-        if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
-            state.action_menu_open = true;
-        }
-    } else {
-        if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
-            state.action_menu_open = false;
-        }
-        if ((input_data.buttons_lo & input.BTN_UP) != 0  and (last_input.buttons_lo & input.BTN_UP) == 0 and selected_menu_item > 0 ) {
-            selected_menu_item -= 1;
-    
-        }
-
-        if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and (last_input.buttons_lo & input.BTN_DOWN) == 0 and selected_menu_item < action_menu_items.len - 1) {
-            selected_menu_item += 1;
-   
-        }
-    }
+fn cycle_heroes(input_data: input.Layout) void {
     const last_hero = heroes.party.len - 1;
     if ((input_data.buttons_hi & input.BTN_L) != 0 and (last_input.buttons_hi & input.BTN_L) == 0) {
         if (state.selected_hero > 0) {
@@ -421,12 +360,83 @@ fn input_cursor(input_data: input.Layout) void {
         }
         selectHero(state.selected_hero);
     }
+}
+fn input_battle_map(input_data: input.Layout) void {
+    if ((input_data.buttons_lo & input.BTN_LEFT) != 0 and
+        tile2X(state.cursor.now) > 0 and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_LEFT) == 0))
+    {
+        state.cursor.now -= 1;
+        state.cursor.last_move = 0;
+    }
+
+    if ((input_data.buttons_lo & input.BTN_RIGHT) != 0 and
+        tile2X(state.cursor.now) < maps.BATTLE_MAP_WIDTH - 1 and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_RIGHT) == 0))
+    {
+        state.cursor.now += 1;
+        state.cursor.last_move = 0;
+    }
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and
+        state.cursor.now > maps.BATTLE_MAP_WIDTH - 1 and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_UP) == 0))
+    {
+        state.cursor.now -= maps.BATTLE_MAP_WIDTH;
+        state.cursor.last_move = 0;
+    }
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and
+        state.cursor.now < maps.BATTLE_MAP_LENGTH - maps.BATTLE_MAP_WIDTH and
+        (state.cursor.last_move > CURSOR_SLOW_DOWN or
+            (last_input.buttons_lo & input.BTN_DOWN) == 0))
+    {
+        state.cursor.now += maps.BATTLE_MAP_WIDTH;
+        state.cursor.last_move = 0;
+    }
+    if ((input_data.buttons_lo & input.BTN_A) != 0 and (last_input.buttons_lo & input.BTN_A) == 0) {
+        state.selected_tile = state.cursor.now;
+        if (heroIndexAt(state.selected_tile)) |index| {
+            selectHero(index);
+        }
+    }
+    if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
+        clearHeroSelection();
+    }
+    if ((input_data.buttons_lo & input.BTN_X) != 0 and (last_input.buttons_lo & input.BTN_X) == 0 and state.hero_active) {
+        state.action_menu_open = true;
+    }
+    cycle_heroes(input_data);
+}
+
+fn input_action_menu(input_data: input.Layout) void {
+    if ((input_data.buttons_lo & input.BTN_B) != 0 and (last_input.buttons_lo & input.BTN_B) == 0) {
+        state.action_menu_open = false;
+    }
+    if ((input_data.buttons_lo & input.BTN_UP) != 0 and (last_input.buttons_lo & input.BTN_UP) == 0 and selected_menu_item > 0) {
+        selected_menu_item -= 1;
+    }
+
+    if ((input_data.buttons_lo & input.BTN_DOWN) != 0 and (last_input.buttons_lo & input.BTN_DOWN) == 0 and selected_menu_item < action_menu_items.len - 1) {
+        selected_menu_item += 1;
+    }
+    cycle_heroes(input_data);
+}
+fn input_cursor(input_data: input.Layout) void {
+    state.cursor.last_move +%= 1;
+    if (state.action_menu_open == false) {
+        input_battle_map(input_data);
+    } else {
+        input_action_menu(input_data);
+    }
 
     // if ((input_data.buttons_lo & input.BTN_Y) != 0) {}
     if ((input_data.buttons_hi & input.BTN_SELECT) != 0) {
         scene.request(.menu);
     }
 
+    // We need to retain what was input before to make the logic work
     last_input = input_data;
 }
 
