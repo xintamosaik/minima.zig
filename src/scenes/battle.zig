@@ -711,7 +711,6 @@ fn drawActionMenuItem(y: u32, label: []const u8, fg: u32, bg: u32) void {
 const action_menu_rect: Rect = .{ .x = grid.TILE_SIZE * 2, .y = grid.TILE_SIZE * 2, .w = grid.TILE_SIZE * maps.BATTLE_MAP_WIDTH - 32, .h = grid.TILE_SIZE * maps.BATTLE_MAP_HEIGHT - 32 };
 
 fn render_action_menu() void {
-
     renderer.fillRect(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_BLACK);
     renderer.drawRectOutline(action_menu_rect.x, action_menu_rect.y, action_menu_rect.w, action_menu_rect.h, colors.C64_DARK_GRAY);
 
@@ -729,8 +728,8 @@ fn render_action_menu() void {
         colors.C64_WHITE,
     );
 }
-fn render_map() void{
-  render_tiles();
+fn render_map() void {
+    render_tiles();
     renderer.drawRectOutline(
         state.currentMoveRect.x,
         state.currentMoveRect.y,
@@ -763,7 +762,6 @@ fn render_map() void{
     renderer.drawRectOutline(tile2X(state.selected_tile) * grid.TILE_SIZE, tile2Y(state.selected_tile) * grid.TILE_SIZE, grid.TILE_SIZE, grid.TILE_SIZE, colors.C64_WHITE);
 
     render_tile_info();
-
 }
 
 fn render_mode_map() void {
@@ -772,7 +770,6 @@ fn render_mode_map() void {
 fn render_mode_action_menu() void {
     render_map();
     render_action_menu();
-    
 }
 fn render_mode_move() void {
     render_map();
@@ -789,5 +786,4 @@ pub fn render() void {
         .move => render_mode_move(),
         .attack => render_mode_attack(),
     }
-    
 }
