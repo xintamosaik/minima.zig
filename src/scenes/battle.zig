@@ -73,6 +73,7 @@ const BattleState = struct {
         .w = 0,
         .h = 0,
     },
+    reachable_tiles: [maps.BATTLE_MAP_LENGTH]bool = [_]bool{false} ** maps.BATTLE_MAP_LENGTH,
     pub fn reset(self: *BattleState) void {
         self.cursor = .{ .now = 0, .last_move = 0 };
         self.rng = 0;
@@ -94,6 +95,7 @@ const BattleState = struct {
             .w = 0,
             .h = 0,
         };
+        self.reachable_tiles = [_]bool{false} ** maps.BATTLE_MAP_LENGTH;
     }
 };
 
@@ -308,6 +310,7 @@ fn selectHero(index: usize) void {
         index,
         heroes.party[index].moveRadius,
     );
+    computeReachableTiles(index, heroes.party[index].moveRadius);
 }
 fn clearHeroSelection() void {
     state.currentMoveRect = .{
@@ -318,6 +321,67 @@ fn clearHeroSelection() void {
     };
     state.selected_hero = 0;
     state.hero_active = false;
+    state.reachable_tiles = [_]bool{false} ** maps.BATTLE_MAP_LENGTH;
+}
+
+fn tileIsBlockedForMovement(tile: u16, moving_hero_index: usize) bool {
+    const tx = tile2X(tile);
+    const ty = tile2Y(tile);
+    if (!grid.isPassable(grid.getTile(tx, ty))) return true;
+
+    var i: usize = 0;
+    while (i < heroes.party.len) : (i += 1) {
+        if (i != moving_hero_index and state.hero_positions[i] != NO_TILE and state.hero_positions[i] == tile) {
+            return true;
+        }
+    }
+
+    return enemyInstanceAt(tile);
+}
+
+fn computeReachableTiles(hero_index: usize, move_radius: u4) void {
+    state.reachable_tiles = [_]bool{false} ** maps.BATTLE_MAP_LENGTH;
+
+    const start = state.hero_positions[hero_index];
+    if (start == NO_TILE) return;
+
+    var cost: [maps.BATTLE_MAP_LENGTH]u16 = [_]u16{0xffff} ** maps.BATTLE_MAP_LENGTH;
+    var queue: [maps.BATTLE_MAP_LENGTH]u16 = undefined;
+    var head: usize = 0;
+    var tail: usize = 0;
+
+    cost[@as(usize, start)] = 0;
+    state.reachable_tiles[@as(usize, start)] = true;
+    queue[tail] = start;
+    tail += 1;
+
+    while (head < tail) : (head += 1) {
+        const tile = queue[head];
+        const tile_cost = cost[@as(usize, tile)];
+        if (tile_cost >= move_radius) continue;
+
+        const x = tile2X(tile);
+        const y = tile2Y(tile);
+        const next_cost = tile_cost + 1;
+        const row_stride = @as(u16, @intCast(maps.BATTLE_MAP_WIDTH));
+        const neighbors = [_]u16{
+            if (x > 0) tile - 1 else NO_TILE,
+            if (x + 1 < maps.BATTLE_MAP_WIDTH) tile + 1 else NO_TILE,
+            if (y > 0) tile - row_stride else NO_TILE,
+            if (y + 1 < maps.BATTLE_MAP_HEIGHT) tile + row_stride else NO_TILE,
+        };
+
+        for (neighbors) |neighbor| {
+            if (neighbor == NO_TILE) continue;
+            if (tileIsBlockedForMovement(neighbor, hero_index)) continue;
+            if (next_cost >= cost[@as(usize, neighbor)]) continue;
+
+            cost[@as(usize, neighbor)] = next_cost;
+            state.reachable_tiles[@as(usize, neighbor)] = true;
+            queue[tail] = neighbor;
+            tail += 1;
+        }
+    }
 }
 
 //
@@ -730,6 +794,22 @@ fn render_action_menu() void {
 }
 fn render_map() void {
     render_tiles();
+    if (state.hero_active) {
+        var tile: usize = 0;
+        while (tile < maps.BATTLE_MAP_LENGTH) : (tile += 1) {
+            if (!state.reachable_tiles[tile]) continue;
+
+            const tx = @as(u32, @intCast(tile % maps.BATTLE_MAP_WIDTH));
+            const ty = @as(u32, @intCast(tile / maps.BATTLE_MAP_WIDTH));
+            const px = tx * grid.TILE_SIZE;
+            const py = ty * grid.TILE_SIZE;
+
+            var stripe_x: u32 = 1;
+            while (stripe_x < grid.TILE_SIZE - 1) : (stripe_x += 3) {
+                renderer.fillRect(px + stripe_x, py + 1, 1, grid.TILE_SIZE - 2, colors.C64_LIGHT_GREEN);
+            }
+        }
+    }
     renderer.drawRectOutline(
         state.currentMoveRect.x,
         state.currentMoveRect.y,
