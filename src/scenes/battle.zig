@@ -364,11 +364,21 @@ fn computeReachableTiles(hero_index: usize, move_radius: u4) void {
         const y = tile2Y(tile);
         const next_cost = tile_cost + 1;
         const row_stride = @as(u16, @intCast(maps.BATTLE_MAP_WIDTH));
+        const can_left = x > 0;
+        const can_right = x + 1 < maps.BATTLE_MAP_WIDTH;
+        const can_up = y > 0;
+        const can_down = y + 1 < maps.BATTLE_MAP_HEIGHT;
         const neighbors = [_]u16{
-            if (x > 0) tile - 1 else NO_TILE,
-            if (x + 1 < maps.BATTLE_MAP_WIDTH) tile + 1 else NO_TILE,
-            if (y > 0) tile - row_stride else NO_TILE,
-            if (y + 1 < maps.BATTLE_MAP_HEIGHT) tile + row_stride else NO_TILE,
+            // orthogonal
+            if (can_left) tile - 1 else NO_TILE,
+            if (can_right) tile + 1 else NO_TILE,
+            if (can_up) tile - row_stride else NO_TILE,
+            if (can_down) tile + row_stride else NO_TILE,
+            // diagonal (45°): still costs exactly one move step
+            if (can_left and can_up) tile - row_stride - 1 else NO_TILE,
+            if (can_right and can_up) tile - row_stride + 1 else NO_TILE,
+            if (can_left and can_down) tile + row_stride - 1 else NO_TILE,
+            if (can_right and can_down) tile + row_stride + 1 else NO_TILE,
         };
 
         for (neighbors) |neighbor| {
@@ -804,9 +814,15 @@ fn render_map() void {
             const px = tx * grid.TILE_SIZE;
             const py = ty * grid.TILE_SIZE;
 
-            var stripe_x: u32 = 1;
-            while (stripe_x < grid.TILE_SIZE - 1) : (stripe_x += 3) {
-                renderer.fillRect(px + stripe_x, py + 1, 1, grid.TILE_SIZE - 2, colors.C64_LIGHT_GREEN);
+            var row: u32 = 1;
+            while (row < grid.TILE_SIZE - 1) : (row += 1) {
+                // 45° diagonal stripe family: x grows with y.
+                var col: u32 = 1;
+                while (col < grid.TILE_SIZE - 1) : (col += 1) {
+                    if (((col + grid.TILE_SIZE - row) % 3) == 0) {
+                        renderer.fillRect(px + col, py + row, 1, 1, colors.C64_LIGHT_GREEN);
+                    }
+                }
             }
         }
     }
